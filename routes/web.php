@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Admin\Users\UserIndex;
 use App\Livewire\Auth\Login;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,12 @@ Route::middleware('auth')->group(function () {
                 ->name($item['route']);
         }
     }
+});
+
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+    Route::middleware('permission:users.view')->group(function () {
+        Route::get('/usuarios', UserIndex::class)->name('users.index');
+    });
 });
 
 Route::get('/', function () {
