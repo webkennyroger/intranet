@@ -112,3 +112,47 @@ test('blocking the sole Super Administrador is blocked', function () {
 
     expect($admin->refresh()->isActive())->toBeTrue();
 });
+
+test('an Administrador cannot delete the sole Super Administrador', function () {
+    $this->seed(AclSeeder::class);
+
+    // AclSeeder creates a default Super Administrador. Find and delete all but the target one.
+    $superAdmin = User::factory()->create();
+    $superAdmin->assignRole('Super Administrador');
+
+    // Delete the default Super Administrador so only our target remains
+    User::where('email', 'admin@defensoria.am.gov.br')->delete();
+
+    $admin = User::factory()->create();
+    $admin->assignRole('Administrador');
+
+    $this->actingAs($admin);
+
+    Livewire::test(UserIndex::class)
+        ->call('delete', $superAdmin->id)
+        ->assertHasErrors();
+
+    expect(User::find($superAdmin->id))->not->toBeNull();
+});
+
+test('an Administrador cannot block the sole Super Administrador', function () {
+    $this->seed(AclSeeder::class);
+
+    // AclSeeder creates a default Super Administrador. Find and delete all but the target one.
+    $superAdmin = User::factory()->create();
+    $superAdmin->assignRole('Super Administrador');
+
+    // Delete the default Super Administrador so only our target remains
+    User::where('email', 'admin@defensoria.am.gov.br')->delete();
+
+    $admin = User::factory()->create();
+    $admin->assignRole('Administrador');
+
+    $this->actingAs($admin);
+
+    Livewire::test(UserIndex::class)
+        ->call('toggleBlock', $superAdmin->id)
+        ->assertHasErrors();
+
+    expect($superAdmin->refresh()->isActive())->toBeTrue();
+});
