@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intranet - Defensoria Pública do Estado de Mato Grosso</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            dpemt: {
+              dark: '#0C4A34',    // Verde escuro institucional do header
+              green: '#15803D',   // Verde principal
+              lightGreen: '#E8F5E9',
+              accent: '#16A34A',  // Verde vibrante
+              badge: '#21563D',   // Tag das seções
+              gold: '#D97706',    // Tom dourado para badges de destaque
+              grayText: '#64748B',
+              bgLight: '#F8FAFC'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    
+    .section-title-line {
+      position: relative;
+    }
+    .section-title-line::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      width: 40px;
+      height: 3px;
+      background-color: #0C4A34;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+
+<body class="h-full font-sans antialiased bg-slate-100 flex flex-col text-slate-800">
+
+  <!-- HEADER FIXO SUPERIOR (MANTIDO RIGOROSAMENTE INTACTO) -->
+  <header class="bg-dpemt-dark text-white sticky top-0 z-50 shadow-md h-16 flex items-center justify-between px-4">
+    <!-- Esquerda: Toggle + Logo -->
+    <div class="flex items-center gap-3">
+      <button id="sidebar-toggle" class="p-2 rounded-lg hover:bg-emerald-800/60 transition text-white/90">
+        <i class="fa-solid fa-bars text-lg"></i>
+      </button>
+
+      <div class="flex items-center gap-2.5 cursor-pointer">
+        <!-- Brasão / Logo DPEMT -->
+        <div class="w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center p-1">
+          <svg class="w-full h-full text-white fill-current" viewBox="0 0 24 24">
+            <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-5.45 9-12V7l-9-5zm0 2.18l7 3.89v5.03c0 4.54-3.12 8.78-7 9.87-3.88-1.09-7-5.33-7-9.87V8.07l7-3.89zM11 7v2h2V7h-2zm0 4v6h2v-6h-2z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-sm uppercase tracking-wider leading-tight text-white">Defensoria Pública</h1>
+          <p class="text-[10px] text-emerald-200 uppercase tracking-widest font-medium">Do Estado de Mato Grosso</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Centro: Campo de Busca -->
+    <div class="hidden md:flex items-center flex-1 max-w-md mx-8">
+      <div class="relative w-full">
+        <input 
+          type="text" 
+          placeholder="Buscar no sistema..." 
+          class="w-full py-1.5 pl-4 pr-10 rounded-full bg-emerald-950/60 border border-emerald-700/50 text-white placeholder-emerald-300/70 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-emerald-950/80 transition"
+        />
+        <button class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300 hover:text-white">
+          <i class="fa-solid fa-magnifying-glass text-xs"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Direita: Notificações e Perfil do Usuário -->
+    <div class="flex items-center gap-4">
+      <!-- Notificações -->
+      <button class="relative p-2 rounded-full hover:bg-emerald-800/60 text-emerald-100 transition">
+        <i class="fa-regular fa-bell text-lg"></i>
+        <span class="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">3</span>
+      </button>
+
+      <!-- Divisor -->
+      <div class="h-6 w-px bg-emerald-800 hidden sm:block"></div>
+
+      <!-- Usuário Dropdown -->
+      <div class="flex items-center gap-2.5 cursor-pointer p-1 rounded-lg hover:bg-emerald-800/40 transition">
+        <div class="w-8 h-8 rounded-full bg-emerald-700 overflow-hidden border border-emerald-400 flex items-center justify-center text-white font-bold text-xs">
+          <i class="fa-solid fa-user"></i>
+        </div>
+        <div class="hidden sm:block text-left">
+          <span class="text-xs font-semibold text-white block leading-tight">kennilima</span>
+        </div>
+        <i class="fa-solid fa-chevron-down text-[10px] text-emerald-300"></i>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTAINER PRINCIPAL COM SIDEBAR + ÁREA DE CONTEÚDO -->
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- SIDEBAR LEFT NAV (MANTIDA RIGOROSAMENTE INTACTA) -->
+    <aside id="sidebar" class="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 transition-all duration-300 z-40 overflow-y-auto">
+      
+      <!-- Topo Sidebar: Card de Saudação do Usuário -->
+      <div class="p-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
+        <div class="w-12 h-12 rounded-full bg-slate-200 flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-300">
+          <i class="fa-solid fa-user-tie text-2xl text-slate-500"></i>
+        </div>
+        <div class="overflow-hidden">
+          <p class="text-xs text-slate-500 font-medium">Bom dia,</p>
+          <p class="text-sm font-bold text-slate-800 truncate">kennilima</p>
+          <span class="inline-block mt-0.5 px-2 py-0.5 bg-slate-200/80 text-slate-600 text-[10px] font-semibold rounded-full">
+            Super Administrador
+          </span>
+        </div>
+      </div>
+
+      <!-- Menus Categorizados -->
+      <nav class="p-3 space-y-6 flex-1 text-sm">
+        
+        <!-- ITEM PRINCIPAL -->
+        <div>
+          <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-emerald-50 text-emerald-800 font-semibold transition group">
+            <i class="fa-solid fa-house text-emerald-700"></i>
+            <span>Início</span>
+          </a>
+        </div>
+
+        <!-- CATEGORIA: GERAL -->
+        <div>
+          <h3 class="px-3 text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-1">GERAL</h3>
+          <ul class="space-y-0.5">
+            <li>
+              <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
+                <i class="fa-solid fa-robot text-slate-400 w-4 text-center"></i>
+                <span>Assistente Geral</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- CATEGORIA: CONTEÚDO -->
+        <div>
+          <h3 class="px-3 text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-1">CONTEÚDO</h3>
+          <ul class="space-y-0.5">
+            <li>
+              <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
+                <i class="fa-solid fa-newspaper text-slate-400 w-4 text-center"></i>
+                <span>Mural</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
+                <i class="fa-solid fa-sliders text-slate-400 w-4 text-center"></i>
+                <span>Serviços</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
+                <i class="fa-solid fa-folder-open text-slate-400 w-4 text-center"></i>
+                <span>Documentos</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- CATEGORIA: GESTÃO -->
+        <div>
+          <h3 class="px-3 text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-1">GESTÃO</h3>
+          <ul class="space-y-0.5">
+            <li>
+              <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
+                <i class="fa-solid fa-scale-balanced text-slate-400 w-4 text-center"></i>
+                <span>Conselho Superior</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
+                <i class="fa-regular fa-comment-dots text-slate-400 w-4 text-center"></i>
+                <span>Notícias</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
+                <i class="fa-solid fa-camera text-slate-400 w-4 text-center"></i>
+                <span>Fotos</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
+                <i class="fa-solid fa-video text-slate-400 w-4 text-center"></i>
+                <span>Vídeos</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- CATEGORIA: OUTROS -->
+        <div>
+          <h3 class="px-3 text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-1">OUTROS</h3>
+          <ul class="space-y-0.5">
+            <li>
+              <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
+                <i class="fa-regular fa-calendar-days text-slate-400 w-4 text-center"></i>
+                <span>Eventos</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
+                <i class="fa-solid fa-graduation-cap text-slate-400 w-4 text-center"></i>
+                <span>Capacitações</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
+                <i class="fa-solid fa-bullhorn text-slate-400 w-4 text-center"></i>
+                <span>Fórum</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
+                <i class="fa-solid fa-life-ring text-slate-400 w-4 text-center"></i>
+                <span>SOS DPEMT</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
+                <i class="fa-solid fa-cake-candles text-slate-400 w-4 text-center"></i>
+                <span>Aniversariantes</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+      </nav>
+
+      <!-- Rodapé Sidebar: Recolher Menu -->
+      <div class="p-3 border-t border-slate-200">
+        <button id="collapse-btn" class="w-full flex items-center justify-between px-3 py-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg text-sm font-medium transition">
+          <span class="flex items-center gap-2">
+            <i class="fa-solid fa-chevron-left text-xs"></i>
+            <span>Recolher menu</span>
+          </span>
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- ÁREA PRINCIPAL: REFORMULADA COMO PORTAL DE NOTÍCIAS DAS IMAGENS -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-slate-100 space-y-8">
+      
+      <div class="max-w-7xl mx-auto space-y-8">
+
+        <!-- BARRA SUPERIOR DO PORTAL: DATA E TICKER DE AVISOS -->
+        <div class="bg-white border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2 text-slate-500 font-medium">
+            <i class="fa-regular fa-calendar-check text-emerald-700"></i>
+            <span>Quinta-feira, 01 de Outubro de 2026</span>
+            <span class="text-slate-300">|</span>
+            <span class="text-emerald-800 font-semibold"><i class="fa-solid fa-circle text-[8px] text-emerald-500 mr-1"></i>Portal de Notícias DPEMT</span>
+          </div>
+          <div class="flex items-center gap-2 text-slate-600 overflow-hidden">
+            <span class="bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded text-[10px] uppercase tracking-wider shrink-0">Urgente</span>
+            <p class="truncate font-medium text-slate-700">Protocolo de Condutas para o período eleitoral de 2026 está publicado no Mural.</p>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 1. BLOCO CAPA DO PORTAL (GRID MANCHETE + NOTÍCIAS DE APOIO) -->
+        <!-- ========================================== -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- NOTÍCIA DESTAQUE PRINCIPAL (MANCHETAO 8 COLS) -->
+          <article class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col group">
+            
+            <!-- Banner / Imagem de Capa do Manual de Redação -->
+            <div class="bg-dpemt-dark relative overflow-hidden p-6 sm:p-10 min-h-[300px] sm:min-h-[360px] flex flex-col justify-end">
+              <!-- Arte Ilustrativa de Fundo do Banner -->
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-emerald-950/40 to-transparent z-10"></div>
+              
+              <div class="absolute right-6 top-6 z-10 flex gap-2">
+                <span class="bg-emerald-600 text-white font-extrabold text-[11px] uppercase tracking-widest px-3 py-1 rounded-full shadow">
+                  CAPA DO PORTAL
+                </span>
+                <span class="bg-amber-500 text-slate-950 font-black text-[11px] uppercase tracking-widest px-3 py-1 rounded-full shadow">
+                  INSTITUCIONAL
+                </span>
+              </div>
+
+              <!-- Ícone / Ilustração de Fundo -->
+              <div class="absolute right-8 bottom-10 opacity-20 pointer-events-none">
+                <i class="fa-solid fa-book-open-reader text-9xl text-white"></i>
+              </div>
+
+              <!-- Conteúdo da Manchete Principal -->
+              <div class="relative z-20 space-y-3">
+                <span class="text-emerald-300 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <i class="fa-solid fa-feather-pointed"></i> Comunicação Institucional
+                </span>
+                <h2 class="text-2xl sm:text-4xl font-black text-white leading-tight hover:text-emerald-300 transition cursor-pointer">
+                  MANUAL DE REDAÇÃO ORIENTA COMUNICAÇÃO CLARA, ACESSÍVEL E INCLUSIVA NA DEFENSORIA PÚBLICA
+                </h2>
+                <p class="text-slate-200 text-sm sm:text-base leading-relaxed line-clamp-2 max-w-3xl">
+                  Documento reúne recomendações para a produção de textos institucionais, a padronização de nomenclaturas e o respeito à diversidade e às pessoas assistidas.
+                </p>
+                <div class="pt-2 flex items-center gap-4 text-xs text-slate-300 font-medium">
+                  <span class="flex items-center gap-1"><i class="fa-regular fa-clock"></i> Há 2 horas</span>
+                  <span>•</span>
+                  <span class="flex items-center gap-1"><i class="fa-regular fa-user"></i> Assessoria de Comunicação</span>
+                  <span>•</span>
+                  <span class="text-emerald-400 font-bold hover:underline cursor-pointer flex items-center gap-1">
+                    Ler matéria completa <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          </article>
+
+          <!-- NOTÍCIAS SECUNDÁRIAS DE APOIO DA CAPA (4 COLS) -->
+          <div class="lg:col-span-4 flex flex-col gap-4 justify-between">
+            
+            <div class="flex items-center justify-between pb-1 border-b border-slate-200">
+              <h3 class="font-extrabold text-sm text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-fire text-amber-500"></i> Em Destaque
+              </h3>
+              <span class="text-[11px] text-emerald-700 font-bold">Atualizado</span>
+            </div>
+
+            <!-- Card Secundário 1: Protocolo Eleitoral -->
+            <article class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:border-emerald-600 transition flex flex-col justify-between group">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="bg-emerald-900 text-emerald-100 text-[10px] font-bold px-2 py-0.5 rounded">ORIENTAÇÕES</span>
+                  <span class="text-[11px] text-slate-400">2026</span>
+                </div>
+                <h4 class="font-bold text-slate-800 text-sm leading-snug group-hover:text-emerald-700 transition cursor-pointer">
+                  PROTOCOLO DE ORIENTAÇÕES INSTITUCIONAIS
+                </h4>
+                <p class="text-xs text-slate-500 line-clamp-2">
+                  Guia prático de condutas vedadas e permitidas para membros e servidores no período eleitoral de 2026.
+                </p>
+              </div>
+              <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+                <span>Corregedoria-Geral</span>
+                <span class="text-emerald-700 font-bold group-hover:translate-x-1 transition"><i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+              </div>
+            </article>
+
+            <!-- Card Secundário 2: Assédio -->
+            <article class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:border-emerald-600 transition flex flex-col justify-between group">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="bg-slate-800 text-white text-[10px] font-bold px-2 py-0.5 rounded">MURAL & AVISOS</span>
+                  <span class="text-[11px] text-slate-400">24/09</span>
+                </div>
+                <h4 class="font-bold text-slate-800 text-sm leading-snug group-hover:text-emerald-700 transition cursor-pointer">
+                  DPEMT reforça orientações para ambiente de trabalho saudável e respeitoso
+                </h4>
+                <p class="text-xs text-slate-500 line-clamp-2">
+                  Canais de acolhimento, denúncia e diretrizes contra o assédio moral e sexual no âmbito do órgão.
+                </p>
+              </div>
+              <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+                <span>Ouvidoria / CPTBA</span>
+                <span class="text-emerald-700 font-bold group-hover:translate-x-1 transition"><i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+              </div>
+            </article>
+
+            <!-- Card Secundário 3: Kits Sustentabilidade -->
+            <article class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:border-emerald-600 transition flex flex-col justify-between group">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded">SUSTENTABILIDADE</span>
+                  <span class="text-[11px] text-slate-400">11/06</span>
+                </div>
+                <h4 class="font-bold text-slate-800 text-sm leading-snug group-hover:text-emerald-700 transition cursor-pointer">
+                  Distribuição de Kits Sustentabilidade é automática nas comarcas
+                </h4>
+              </div>
+              <div class="mt-2 text-[11px] text-emerald-700 font-bold flex items-center justify-between">
+                <span>Dispensa solicitações manuais</span>
+                <i class="fa-solid fa-chevron-right text-[10px] group-hover:translate-x-1 transition"></i>
+              </div>
+            </article>
+
+          </div>
+
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 2. FEED DE ÚLTIMAS NOTÍCIAS (GRID 3 COLUNAS ESTILO JORNAL) -->
+        <!-- ========================================== -->
+        <section class="space-y-4">
+          
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h3 class="font-black text-lg text-slate-800 tracking-tight uppercase section-title-line flex items-center gap-2">
+              <i class="fa-regular fa-newspaper text-emerald-800"></i> Últimas Notícias do Portal
+            </h3>
+            <a href="#" class="text-xs text-emerald-800 font-bold hover:underline flex items-center gap-1">
+              Ver todo o acervo <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Notícia 1 -->
+            <article class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col group">
+              <div class="h-44 bg-slate-200 relative overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=600&q=80" 
+                  alt="Atendimento Jurídico"
+                  class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                />
+                <span class="absolute top-3 left-3 bg-emerald-900 text-white font-bold text-[10px] px-2.5 py-1 rounded-md uppercase shadow">
+                  INSTITUCIONAL
+                </span>
+              </div>
+              <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                <div>
+                  <div class="text-[11px] text-slate-400 font-medium mb-1.5 flex items-center gap-2">
+                    <span><i class="fa-regular fa-calendar"></i> 28/09/2026</span>
+                    <span>•</span>
+                    <span><i class="fa-regular fa-clock"></i> 3 min leitura</span>
+                  </div>
+                  <h4 class="font-extrabold text-slate-800 text-base leading-snug group-hover:text-emerald-700 transition cursor-pointer">
+                    Defensoria amplia atendimento e moderniza sistemas nas comarcas do interior
+                  </h4>
+                  <p class="text-xs text-slate-600 mt-2 line-clamp-3 leading-relaxed">
+                    Ações integradas visam acelerar a resolução de demandas cíveis e de família, garantindo maior acesso aos assistidos.
+                  </p>
+                </div>
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-800">
+                  <span>Leia mais</span>
+                  <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition"></i>
+                </div>
+              </div>
+            </article>
+
+            <!-- Notícia 2 -->
+            <article class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col group">
+              <div class="h-44 bg-slate-200 relative overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=600&q=80" 
+                  alt="Tecnologia e Inovação"
+                  class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                />
+                <span class="absolute top-3 left-3 bg-emerald-700 text-white font-bold text-[10px] px-2.5 py-1 rounded-md uppercase shadow">
+                  TECNOLOGIA
+                </span>
+              </div>
+              <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                <div>
+                  <div class="text-[11px] text-slate-400 font-medium mb-1.5 flex items-center gap-2">
+                    <span><i class="fa-regular fa-calendar"></i> 25/09/2026</span>
+                    <span>•</span>
+                    <span><i class="fa-regular fa-clock"></i> 4 min leitura</span>
+                  </div>
+                  <h4 class="font-extrabold text-slate-800 text-base leading-snug group-hover:text-emerald-700 transition cursor-pointer">
+                    Novo Portal de Serviços Internos otimiza chamados da TI e Logística
+                  </h4>
+                  <p class="text-xs text-slate-600 mt-2 line-clamp-3 leading-relaxed">
+                    Ferramenta centraliza requisições com acompanhamento em tempo real e relatórios automatizados para gestores.
+                  </p>
+                </div>
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-800">
+                  <span>Leia mais</span>
+                  <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition"></i>
+                </div>
+              </div>
+            </article>
+
+            <!-- Notícia 3 -->
+            <article class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col group">
+              <div class="h-44 bg-slate-200 relative overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=600&q=80" 
+                  alt="Capacitação ESDEP"
+                  class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                />
+                <span class="absolute top-3 left-3 bg-amber-600 text-white font-bold text-[10px] px-2.5 py-1 rounded-md uppercase shadow">
+                  ESDEP
+                </span>
+              </div>
+              <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                <div>
+                  <div class="text-[11px] text-slate-400 font-medium mb-1.5 flex items-center gap-2">
+                    <span><i class="fa-regular fa-calendar"></i> 22/09/2026</span>
+                    <span>•</span>
+                    <span><i class="fa-regular fa-clock"></i> 2 min leitura</span>
+                  </div>
+                  <h4 class="font-extrabold text-slate-800 text-base leading-snug group-hover:text-emerald-700 transition cursor-pointer">
+                    Inscrições abertas para o curso de Atualização em Direito Processual
+                  </h4>
+                  <p class="text-xs text-slate-600 mt-2 line-clamp-3 leading-relaxed">
+                    Vagas limitadas para defensores e assessores jurídicos. Aulas síncronas com transmissão via plataforma oficial.
+                  </p>
+                </div>
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-800">
+                  <span>Leia mais</span>
+                  <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition"></i>
+                </div>
+              </div>
+            </article>
+
+          </div>
+
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 3. MULTIMÍDIA & GALERIA DE FOTOS -->
+        <!-- ========================================== -->
+        <section class="space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h3 class="font-black text-lg text-slate-800 tracking-tight uppercase section-title-line flex items-center gap-2">
+              <i class="fa-solid fa-camera-retro text-emerald-800"></i> Galeria Multimídia
+            </h3>
+            <span class="text-xs text-slate-500">Registros das ações institucionais</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            
+            <!-- Foto 1 -->
+            <div class="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group hover:shadow-md transition cursor-pointer">
+              <div class="h-48 bg-slate-200 relative overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=600&q=80" 
+                  alt="Dia da Árvore"
+                  class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                />
+                <div class="absolute inset-0 bg-slate-900/30 group-hover:bg-slate-900/10 transition"></div>
+                <span class="absolute bottom-3 left-3 bg-white/90 backdrop-blur text-slate-800 font-bold text-[10px] px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                  <i class="fa-solid fa-images text-emerald-700"></i> 12 Fotos
+                </span>
+              </div>
+              <div class="p-4 bg-white">
+                <h4 class="font-extrabold text-xs uppercase text-slate-800 group-hover:text-emerald-700 transition">
+                  DIA DA ÁRVORE
+                </h4>
+                <p class="text-[11px] text-slate-500 mt-1">Ação de plantio de mudas na sede administrativa</p>
+              </div>
+            </div>
+
+            <!-- Foto 2 -->
+            <div class="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group hover:shadow-md transition cursor-pointer">
+              <div class="h-48 bg-slate-200 relative overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=600&q=80" 
+                  alt="Encontro Regional"
+                  class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                />
+                <div class="absolute inset-0 bg-slate-900/30 group-hover:bg-slate-900/10 transition"></div>
+                <span class="absolute bottom-3 left-3 bg-white/90 backdrop-blur text-slate-800 font-bold text-[10px] px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                  <i class="fa-solid fa-images text-emerald-700"></i> 28 Fotos
+                </span>
+              </div>
+              <div class="p-4 bg-white">
+                <h4 class="font-extrabold text-xs uppercase text-slate-800 group-hover:text-emerald-700 transition">
+                  ENCONTRO REGIONAL: EDIÇÃO RONDONÓPOLIS
+                </h4>
+                <p class="text-[11px] text-slate-500 mt-1">Integração das equipes do sul do estado</p>
+              </div>
+            </div>
+
+            <!-- Foto 3 -->
+            <div class="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group hover:shadow-md transition cursor-pointer">
+              <div class="h-48 bg-slate-200 relative overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80" 
+                  alt="Inauguração Apiacás"
+                  class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                />
+                <div class="absolute inset-0 bg-slate-900/30 group-hover:bg-slate-900/10 transition"></div>
+                <span class="absolute bottom-3 left-3 bg-white/90 backdrop-blur text-slate-800 font-bold text-[10px] px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                  <i class="fa-solid fa-images text-emerald-700"></i> 15 Fotos
+                </span>
+              </div>
+              <div class="p-4 bg-white">
+                <h4 class="font-extrabold text-xs uppercase text-slate-800 group-hover:text-emerald-700 transition">
+                  INAUGURAÇÃO APIACÁS
+                </h4>
+                <p class="text-[11px] text-slate-500 mt-1">Entrega do novo núcleo de atendimento</p>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 4. AGENDA & EVENTOS DA SEMANA -->
+        <!-- ========================================== -->
+        <section class="space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h3 class="font-black text-lg text-slate-800 tracking-tight uppercase section-title-line flex items-center gap-2">
+              <i class="fa-regular fa-calendar-days text-emerald-800"></i> Agenda & Eventos Institucionais
+            </h3>
+          </div>
+
+          <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row gap-6 items-center">
+            
+            <!-- Calendário Digital + Arte do Evento -->
+            <div class="w-full md:w-5/12 bg-slate-900 text-white rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between min-h-[200px]">
+              <div class="flex items-center justify-between z-10">
+                <span class="bg-red-600 text-white font-extrabold text-[10px] uppercase px-2.5 py-1 rounded">ESDEP-MT</span>
+                <span class="text-xs text-slate-300 font-medium">Auditório Márcio Vidal</span>
+              </div>
+
+              <div class="my-4 z-10">
+                <h4 class="text-xl font-black leading-tight text-white">
+                  DEBATES CONTEMPORÂNEOS SOBRE A <span class="text-red-500 block">GUERRA ÀS DROGAS</span>
+                </h4>
+                <p class="text-xs text-slate-300 mt-2">Palestrantes: Gina Muniz e Flávio Lelles</p>
+              </div>
+
+              <div class="flex items-center justify-between pt-3 border-t border-slate-800 z-10">
+                <div class="flex items-center gap-2">
+                  <div class="bg-red-600 text-white px-3 py-1 rounded-lg text-center">
+                    <span class="block text-xs font-bold uppercase">SET</span>
+                    <span class="block text-lg font-black leading-none">24</span>
+                  </div>
+                  <div>
+                    <span class="block text-xs font-bold text-white">09h00 às 11h00</span>
+                    <span class="block text-[10px] text-slate-400">Presencial e On-line</span>
+                  </div>
+                </div>
+              </div>
+
+              <i class="fa-solid fa-gavel text-slate-800 text-8xl absolute -right-4 -bottom-4 pointer-events-none"></i>
+            </div>
+
+            <!-- Descrição e Inscrições -->
+            <div class="w-full md:w-7/12 space-y-4">
+              <div>
+                <span class="text-emerald-700 text-xs font-bold uppercase tracking-wider">Evento de Capacitação</span>
+                <h4 class="text-lg font-black text-slate-800 uppercase leading-snug mt-1">
+                  ESDEP-MT PROMOVE PALESTRA SOBRE DEBATES CONTEMPORÂNEOS DA GUERRA ÀS DROGAS
+                </h4>
+                <p class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+                  O evento trará discussões aprofundadas sobre políticas públicas, aspectos criminológicos e os impactos nas diretrizes de atuação da Defensoria Pública do Estado de Mato Grosso.
+                </p>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-3 pt-2">
+                <button class="px-5 py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-2">
+                  <i class="fa-solid fa-pen-to-square"></i> Realizar Inscrição
+                </button>
+                <button class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition flex items-center gap-2">
+                  <i class="fa-solid fa-download"></i> Baixar Programação (PDF)
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 5. ANIVERSARIANTES DO MÊS (SEÇÃO SOCIAL DO PORTAL) -->
+        <!-- ========================================== -->
+        <section class="space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h3 class="font-black text-lg text-slate-800 tracking-tight uppercase section-title-line flex items-center gap-2">
+              <i class="fa-solid fa-cake-candles text-emerald-800"></i> Aniversariantes de Outubro
+            </h3>
+            <span class="text-xs font-bold text-emerald-800">Espaço Social Institucional</span>
+          </div>
+
+          <div class="bg-gradient-to-br from-slate-50 via-emerald-50/40 to-slate-100 rounded-2xl p-6 border border-emerald-100 shadow-sm relative overflow-hidden">
+            
+            <div class="text-center mb-6">
+              <h2 class="text-3xl sm:text-4xl font-serif italic text-emerald-900 tracking-wide">
+                Feliz <span class="font-sans font-black not-italic text-emerald-800">aniversário</span>
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">Parabéns aos servidores e defensores da DPEMT!</p>
+            </div>
+
+            <!-- Grid de Cartões de Aniversariantes -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              
+              <!-- 21 DE SETEMBRO -->
+              <div class="bg-white/90 backdrop-blur rounded-xl p-4 border border-slate-200 shadow-sm hover:border-emerald-500 transition">
+                <div class="inline-block bg-emerald-900 text-white text-[10px] font-black px-2.5 py-0.5 rounded uppercase mb-2">
+                  21 DE SETEMBRO
+                </div>
+                <ul class="text-xs text-slate-700 space-y-1 font-medium">
+                  <li>• Ingrid Pereira Do Nascimento</li>
+                  <li>• Fernanda Vasques Ribas</li>
+                  <li>• Giovana Aparecida Liccioti</li>
+                  <li>• Talita Carla Silveira Da Silva</li>
+                  <li>• Luciana Cendron Decesaro</li>
+                </ul>
+              </div>
+
+              <!-- 22 DE SETEMBRO -->
+              <div class="bg-white/90 backdrop-blur rounded-xl p-4 border border-slate-200 shadow-sm hover:border-emerald-500 transition">
+                <div class="inline-block bg-emerald-900 text-white text-[10px] font-black px-2.5 py-0.5 rounded uppercase mb-2">
+                  22 DE SETEMBRO
+                </div>
+                <ul class="text-xs text-slate-700 space-y-1 font-medium">
+                  <li>• Kenni Roger Santana Lima</li>
+                </ul>
+              </div>
+
+              <!-- 23 DE SETEMBRO -->
+              <div class="bg-white/90 backdrop-blur rounded-xl p-4 border border-slate-200 shadow-sm hover:border-emerald-500 transition">
+                <div class="inline-block bg-emerald-900 text-white text-[10px] font-black px-2.5 py-0.5 rounded uppercase mb-2">
+                  23 DE SETEMBRO
+                </div>
+                <ul class="text-xs text-slate-700 space-y-1 font-medium">
+                  <li>• Izlia Morais De Paula Monteiro Da Silva</li>
+                  <li>• Adilton Nogueira Tavares</li>
+                  <li>• Thiago Araujo Bezerra De Sousa</li>
+                  <li>• Gabriel Benedito Rodrigues De Sousa</li>
+                  <li>• Gabrielle Maria Oliveira Mendes</li>
+                </ul>
+              </div>
+
+              <!-- 24 DE SETEMBRO -->
+              <div class="bg-white/90 backdrop-blur rounded-xl p-4 border border-slate-200 shadow-sm hover:border-emerald-500 transition">
+                <div class="inline-block bg-emerald-900 text-white text-[10px] font-black px-2.5 py-0.5 rounded uppercase mb-2">
+                  24 DE SETEMBRO
+                </div>
+                <ul class="text-xs text-slate-700 space-y-1 font-medium">
+                  <li>• Ines Vila Da Silva</li>
+                  <li>• Fernando Henrique Caetano Peres Dos Santos</li>
+                </ul>
+              </div>
+
+              <!-- 25 DE SETEMBRO -->
+              <div class="bg-white/90 backdrop-blur rounded-xl p-4 border border-slate-200 shadow-sm hover:border-emerald-500 transition">
+                <div class="inline-block bg-emerald-900 text-white text-[10px] font-black px-2.5 py-0.5 rounded uppercase mb-2">
+                  25 DE SETEMBRO
+                </div>
+                <ul class="text-xs text-slate-700 space-y-1 font-medium">
+                  <li>• Gustavo Sousa Godoy</li>
+                  <li>• Ana Luiza Freitas Da Cruz</li>
+                  <li>• Rafael Arruda Vilela Garcia</li>
+                </ul>
+              </div>
+
+              <!-- 26 DE SETEMBRO -->
+              <div class="bg-white/90 backdrop-blur rounded-xl p-4 border border-slate-200 shadow-sm hover:border-emerald-500 transition">
+                <div class="inline-block bg-emerald-900 text-white text-[10px] font-black px-2.5 py-0.5 rounded uppercase mb-2">
+                  26 DE SETEMBRO
+                </div>
+                <ul class="text-xs text-slate-700 space-y-1 font-medium">
+                  <li>• Lucas Gabriel Silva Franca</li>
+                  <li>• Beatriz Leite Leal</li>
+                  <li>• Maysa Nunes Barbosa Vilela</li>
+                </ul>
+              </div>
+
+            </div>
+
+            <div class="mt-6 text-center">
+              <a href="#" class="inline-flex items-center gap-1.5 text-emerald-900 font-extrabold text-xs hover:underline">
+                <i class="fa-regular fa-envelope"></i> Enviar mensagem de felicitação aos aniversariantes da semana
+              </a>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+
+      <!-- FOOTER DA INTRANET PORTAL -->
+      <footer class="mt-12 border-t border-slate-200 pt-6 pb-6 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 px-4">
+          <div class="text-left">
+            <p class="font-bold text-slate-700">Defensoria Pública do Estado de Mato Grosso</p>
+            <p class="text-[11px] text-slate-400">Portal de Notícias e Intranet Institucional</p>
+          </div>
+          <p>© 2026 DPEMT — Todos os direitos reservados.</p>
+        </div>
+      </footer>
+
+    </main>
+
+  </div>
+
+  <!-- JAVASCRIPT DE INTERATIVIDADE -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const sidebar = document.getElementById('sidebar');
+      const sidebarToggle = document.getElementById('sidebar-toggle');
+      const collapseBtn = document.getElementById('collapse-btn');
+
+      function toggleSidebar() {
+        if (sidebar.classList.contains('-translate-x-full')) {
+          sidebar.classList.remove('-translate-x-full');
+        } else {
+          sidebar.classList.add('-translate-x-full');
+        }
+      }
+
+      if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
+      }
+
+      if (collapseBtn) {
+        collapseBtn.addEventListener('click', () => {
+          sidebar.classList.toggle('w-64');
+          sidebar.classList.toggle('w-16');
+          
+          const textElements = sidebar.querySelectorAll('span, p, h3');
+          textElements.forEach(el => {
+            el.classList.toggle('hidden');
+          });
+        });
+      }
+    });
+  </script>
+
+</body>
+</html>
