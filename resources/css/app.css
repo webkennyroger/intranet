@@ -1,9 +1,76 @@
 @import 'tailwindcss';
+@plugin "@tailwindcss/typography";
 
+@custom-variant dark (&:not(.light, .light *));
+
+@source '../views/**/*.blade.php';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --color-primary-50: #ecfdf5;
+    --color-primary-100: #d1fae5;
+    --color-primary-200: #a7f3d0;
+    --color-primary-300: #6ee7b7;
+    --color-primary-400: #34d399;
+    --color-primary-500: #10b981;
+    --color-primary-600: #059669;
+    --color-primary-700: #047857;
+    --color-primary-800: #065f46;
+    --color-primary-900: #064e3b;
+    --color-primary-950: #022c22;
+}
+
+:root {
+    --bg-base: hsl(160 49% 8%);
+    --bg-surface: hsl(160 47% 11%);
+    --bg-elevated: hsl(160 33% 17%);
+    --bg-hover: hsl(160 33% 17% / 0.6);
+    --bg-card: hsl(160 47% 11% / 0.6);
+    --bg-input: hsl(160 33% 17% / 0.5);
+    --text-primary: hsl(160 40% 96%);
+    --text-secondary: hsl(160 20% 65%);
+    --text-muted: hsl(160 16% 47%);
+    --border-color: hsl(160 25% 27% / 0.8);
+    --border-subtle: hsl(160 25% 27% / 0.5);
+    --scrollbar-thumb: hsl(160 25% 27%);
+    --scrollbar-hover: hsl(160 19% 35%);
+}
+
+.light {
+    --bg-base: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-elevated: #f1f5f9;
+    --bg-hover: rgba(241, 245, 249, 0.8);
+    --bg-card: rgba(255, 255, 255, 0.8);
+    --bg-input: rgba(241, 245, 249, 0.8);
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --border-color: rgba(203, 213, 225, 0.8);
+    --border-subtle: rgba(203, 213, 225, 0.5);
+    --scrollbar-thumb: #cbd5e1;
+    --scrollbar-hover: #94a3b8;
+}
+
+html, body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
+
+:focus-visible {
+    outline: 3px solid #059669;
+    outline-offset: 2px;
 }
