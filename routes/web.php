@@ -16,6 +16,10 @@ Route::post('/logout', function () {
     return redirect()->route('login');
 })->middleware('auth')->name('logout');
 
+Route::get('/dashboard', fn () => view('dashboard'))
+    ->middleware('auth')
+    ->name('dashboard');
+
 Route::get('/', function () {
     return view('welcome');
 });
