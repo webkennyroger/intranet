@@ -13,11 +13,29 @@
     </div>
 
     <nav class="p-3 space-y-6 flex-1 text-sm">
-        <div>
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-emerald-50 text-emerald-800 font-semibold transition">
-                <i class="fa-solid fa-house text-emerald-700"></i>
-                <span>Início</span>
-            </a>
-        </div>
+        @foreach (config('sidebar') as $section)
+            @php
+                $items = collect($section['items'] ?? [$section])
+                    ->filter(fn ($item) => $item['permission'] === null || auth()->user()->can($item['permission']));
+            @endphp
+
+            @if ($items->isNotEmpty())
+                <div>
+                    @if (isset($section['group']))
+                        <h3 class="px-3 text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-1">{{ $section['group'] }}</h3>
+                    @endif
+                    <ul class="space-y-0.5">
+                        @foreach ($items as $item)
+                            <li>
+                                <a href="{{ route($item['route']) }}" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition">
+                                    <i class="fa-solid fa-{{ $item['icon'] }} text-slate-400 w-4 text-center"></i>
+                                    <span>{{ $item['label'] }}</span>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+        @endforeach
     </nav>
 </aside>
