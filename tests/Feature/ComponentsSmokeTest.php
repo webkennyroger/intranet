@@ -15,15 +15,12 @@ test('the input component renders a label', function () {
 });
 
 test('the modal component renders its named slot content', function () {
-    $initialBufferLevel = ob_get_level();
-    $html = Blade::render('<x-ui.modal name="demo"><x-slot:header>Título</x-slot:header>Corpo</x-ui.modal>');
+    $html = Blade::render('<x-ui.modal name="demo"><x-slot:header>Título</x-slot:header> Corpo</x-ui.modal>');
 
-    // Clean up any unclosed output buffers
-    while (ob_get_level() > $initialBufferLevel) {
-        ob_end_clean();
-    }
-
-    expect($html)->toContain('Título')->toContain('Corpo');
+    // Verify both header and body content are present and in correct order
+    expect($html)->toContain('Título')
+        ->and($html)->toContain('Corpo')
+        ->and(strpos($html, 'Título'))->toBeLessThan(strpos($html, 'Corpo'));
 });
 
 test('the data-table component renders its header and body slots', function () {
