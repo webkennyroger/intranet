@@ -1,6 +1,11 @@
 <div class="max-w-7xl mx-auto space-y-4">
     <div class="flex items-center justify-between">
         <h2 class="text-xl font-bold text-slate-800">Usuários</h2>
+        <div>
+            <x-ui.button x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'user-form' }))">
+                Novo usuário
+            </x-ui.button>
+        </div>
     </div>
 
     @error('delete') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
@@ -36,4 +41,9 @@
             {{ $users->links() }}
         </x-slot:footer>
     </x-ui.data-table>
+
+    <x-ui.modal name="user-form" maxWidth="lg">
+        <x-slot:header>Usuário</x-slot:header>
+        <livewire:admin.users.user-form />
+    </x-ui.modal>
 </div>

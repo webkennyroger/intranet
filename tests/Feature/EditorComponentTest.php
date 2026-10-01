@@ -1,9 +1,11 @@
 <?php
 
+use Livewire\Component;
 use Livewire\Livewire;
 
 test('the tiptap editor component renders its mount point and hidden input', function () {
-    $html = Livewire::test(new class extends \Livewire\Component {
+    $html = Livewire::test(new class extends Component
+    {
         public $content = '<p>Olá</p>';
 
         public function render()

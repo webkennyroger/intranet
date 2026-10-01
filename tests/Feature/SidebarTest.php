@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 test('a nav item with no permission requirement is visible to any authenticated user', function () {
     config(['sidebar' => [

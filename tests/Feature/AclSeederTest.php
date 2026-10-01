@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Services\PermissionManager;
 use Database\Seeders\AclSeeder;
 use Spatie\Permission\Models\Role;
 
@@ -17,7 +18,7 @@ test('Super Administrador role has every permission in the inventory', function 
     $role = Role::where('name', 'Super Administrador')->first();
 
     expect($role->permissions->pluck('name')->sort()->values()->all())
-        ->toBe(collect(App\Services\PermissionManager::inventory())->sort()->values()->all());
+        ->toBe(collect(PermissionManager::inventory())->sort()->values()->all());
 });
 
 test('Editor role cannot publish content', function () {
