@@ -15,7 +15,13 @@ test('the input component renders a label', function () {
 });
 
 test('the modal component renders its named slot content', function () {
+    $initialBufferLevel = ob_get_level();
     $html = Blade::render('<x-ui.modal name="demo"><x-slot:header>Título</x-slot:header>Corpo</x-ui.modal>');
+
+    // Clean up any unclosed output buffers
+    while (ob_get_level() > $initialBufferLevel) {
+        ob_end_clean();
+    }
 
     expect($html)->toContain('Título')->toContain('Corpo');
 });
