@@ -20,6 +20,19 @@ Route::get('/dashboard', fn () => view('dashboard'))
     ->middleware('auth')
     ->name('dashboard');
 
+Route::middleware('auth')->group(function () {
+    foreach (config('sidebar') as $section) {
+        foreach ($section['items'] ?? [$section] as $item) {
+            if (! str_starts_with($item['route'], 'placeholder.')) {
+                continue;
+            }
+
+            Route::get($item['uri'], fn () => view('coming-soon', ['title' => $item['label']]))
+                ->name($item['route']);
+        }
+    }
+});
+
 Route::get('/', function () {
     return view('welcome');
 });
