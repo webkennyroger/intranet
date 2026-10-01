@@ -135,6 +135,21 @@ test('an Administrador cannot delete the sole Super Administrador', function () 
     expect(User::find($superAdmin->id))->not->toBeNull();
 });
 
+test('clicking edit on a user loads their data into the form', function () {
+    $this->seed(AclSeeder::class);
+
+    $admin = User::factory()->create();
+    $admin->assignRole('Super Administrador');
+    $target = User::factory()->create(['name' => 'Fernanda Costa']);
+    $target->assignRole('Editor');
+
+    $this->actingAs($admin);
+
+    Livewire::test(UserIndex::class)
+        ->call('edit', $target->id)
+        ->assertSee('Fernanda Costa');
+});
+
 test('an Administrador cannot block the sole Super Administrador', function () {
     $this->seed(AclSeeder::class);
 

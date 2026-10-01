@@ -44,6 +44,7 @@ class AclSeeder extends Seeder
             $role->syncPermissions($permissions);
         }
 
+        // Default dev credential (admin@defensoria.am.gov.br / password) — must be rotated before any shared/staging/production deployment.
         $admin = User::withoutGlobalScopes()->firstOrCreate(
             ['email' => 'admin@defensoria.am.gov.br'],
             [

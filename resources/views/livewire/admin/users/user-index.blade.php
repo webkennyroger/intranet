@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between">
         <h2 class="text-xl font-bold text-slate-800">Usuários</h2>
         <div>
-            <x-ui.button x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'user-form' }))">
+            <x-ui.button wire:click="closeForm" x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'user-form' }))">
                 Novo usuário
             </x-ui.button>
         </div>
@@ -27,6 +27,9 @@
                 <td class="px-6 py-3">{{ $user->getRoleNames()->first() ?? '—' }}</td>
                 <td class="px-6 py-3">{{ $user->status->label() }}</td>
                 <td class="px-6 py-3 space-x-2">
+                    <button wire:click="edit({{ $user->id }})" x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'user-form' }))" class="text-sm text-emerald-700 hover:underline">
+                        Editar
+                    </button>
                     <button wire:click="toggleBlock({{ $user->id }})" class="text-sm text-amber-700 hover:underline">
                         {{ $user->isActive() ? 'Bloquear' : 'Desbloquear' }}
                     </button>
@@ -44,6 +47,6 @@
 
     <x-ui.modal name="user-form" maxWidth="lg">
         <x-slot:header>Usuário</x-slot:header>
-        <livewire:admin.users.user-form />
+        <livewire:admin.users.user-form :user="$editingUser" :key="'user-form-'.($editingUserId ?? 'new')" />
     </x-ui.modal>
 </div>
