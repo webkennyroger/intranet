@@ -1,6 +1,6 @@
 <header class="bg-dpemt-dark text-white sticky top-0 z-50 shadow-md h-16 flex items-center justify-between px-4" style="background-color: #0C4A34;">
     <div class="flex items-center gap-3">
-        <button id="sidebar-toggle" @click="sidebarOpen = !sidebarOpen" class="p-2 rounded-lg hover:bg-emerald-800/60 transition text-white/90">
+        <button id="sidebar-toggle" @click="mobileSidebarOpen = true" class="lg:hidden p-2 rounded-lg hover:bg-emerald-800/60 transition text-white/90">
             <i class="fa-solid fa-bars text-lg"></i>
         </button>
 
