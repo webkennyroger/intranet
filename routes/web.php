@@ -21,6 +21,10 @@ Route::get('/dashboard', fn () => view('dashboard'))
     ->middleware('auth')
     ->name('dashboard');
 
+Route::get('/servicos', \App\Livewire\Services\ServicesIndex::class)
+    ->middleware('auth')
+    ->name('services.index');
+
 Route::middleware('auth')->group(function () {
     foreach (config('sidebar') as $section) {
         foreach ($section['items'] ?? [$section] as $item) {
