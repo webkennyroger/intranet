@@ -46,6 +46,7 @@ return [
         'items' => [
             ['label' => 'Usuários', 'icon' => 'users', 'uri' => '/admin/usuarios', 'route' => 'admin.users.index', 'permission' => 'users.view'],
             ['label' => 'Gerenciar Serviços', 'icon' => 'sliders', 'uri' => '/admin/servicos', 'route' => 'admin.services.index', 'permission' => 'services.manage'],
+            ['label' => 'Gerenciar Mural', 'icon' => 'newspaper', 'uri' => '/admin/mural', 'route' => 'admin.articles.index', 'permission' => 'content.view'],
         ],
     ],
 ];

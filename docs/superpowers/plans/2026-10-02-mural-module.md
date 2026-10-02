@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- No new permissions — reuse `content.view` (Editor/Gestor/Administrador/Super Administrador), `content.create`/`content.update` (same four), `content.publish` and `content.delete` (Gestor/Administrador/Super Administrador only — Editor has neither).
+- No new permissions — reuse `content.view` (Editor/Gestor/Administrador/Super Administrador), `content.create`/`content.update` (same four), `content.publish` (Gestor/Administrador/Super Administrador), and `content.delete` (Administrador/Super Administrador only — Gestor and Editor both lack it, per the foundation's already-seeded `AclSeeder`).
 - No image upload / media library. Article covers are `cover_color` (string) + `cover_icon` (Font Awesome slug) + optional `cover_label` (short text) — exactly like Services' icon-only approach, just three fields instead of one.
 - No department-based scoping for Gestor — explicitly deferred per the foundation spec; any Gestor can publish any article.
 - Single draft → published step. No review queue, no notifications.
@@ -23,7 +23,7 @@
 ## Review Focus
 
 - A draft (unpublished) article must never appear on the `/mural` feed, and `/mural/{article}` for a draft must return 404 — not reachable by guessing the URL even for a user who could see it in the admin list.
-- An Editor (has `content.view` but not `content.publish`/`content.delete`) must be blocked from publishing or deleting an article even by calling the Livewire action directly — not just by the button being hidden, since this is a real permission gap (unlike Services, where every role reaching the screen already had the one permission it checked).
+- An Editor (has `content.view` but not `content.publish`/`content.delete`) and a Gestor (has `content.publish` but not `content.delete`) must both be blocked from deleting an article even by calling the Livewire action directly — not just by the button being hidden, since this is a real permission gap (unlike Services, where every role reaching the screen already had the one permission it checked). Note: `abort_unless`'s `HttpException` does not propagate to a Pest `->throws()` assertion through `Livewire::test()->call()` in this stack — verify denial by asserting the resulting state (record unchanged) rather than expecting a thrown exception.
 - Liking the same article twice by the same user must toggle (like → unlike), never create two like rows or double-count.
 - The "last 7 days" period filter must use `published_at`, correctly excluding an older published article from the results.
 - Article `title`/`excerpt` must render escaped (XSS); `body` intentionally renders as raw trusted HTML (Tiptap output from permissioned staff) — confirm this is a deliberate `{!! !!}` only on `body`, nowhere else.
@@ -432,7 +432,6 @@ use App\Models\Category;
 use App\Models\User;
 use Database\Seeders\AclSeeder;
 use Livewire\Livewire;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 function actingAsRole(string $role): User
 {
@@ -501,7 +500,9 @@ test('an Editor cannot publish an article', function () {
     $article = Article::factory()->create(['is_published' => false]);
 
     Livewire::test(ArticleIndex::class)->call('togglePublish', $article->id);
-})->throws(HttpException::class);
+
+    expect($article->refresh()->is_published)->toBeFalse();
+});
 
 test('a Gestor can publish an article and it gets a published_at date', function () {
     actingAsRole('Gestor');
@@ -529,10 +530,21 @@ test('an Editor cannot delete an article', function () {
     $article = Article::factory()->create();
 
     Livewire::test(ArticleIndex::class)->call('delete', $article->id);
-})->throws(HttpException::class);
 
-test('a Gestor can delete an article', function () {
+    expect(Article::find($article->id))->not->toBeNull();
+});
+
+test('a Gestor cannot delete an article (only Administrador/Super Administrador can)', function () {
     actingAsRole('Gestor');
+    $article = Article::factory()->create();
+
+    Livewire::test(ArticleIndex::class)->call('delete', $article->id);
+
+    expect(Article::find($article->id))->not->toBeNull();
+});
+
+test('an Administrador can delete an article', function () {
+    actingAsRole('Administrador');
     $article = Article::factory()->create();
 
     Livewire::test(ArticleIndex::class)->call('delete', $article->id);
@@ -821,7 +833,7 @@ Edit `config/sidebar.php`, add to the `ADMINISTRAÇÃO` group's `items` array:
 - [ ] **Step 9: Run the tests**
 
 Run: `php artisan test --filter=ArticleManagementTest`
-Expected: all 8 tests PASS.
+Expected: all 10 tests PASS.
 
 - [ ] **Step 10: Run the full suite**
 

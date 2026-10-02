@@ -15,7 +15,7 @@ Isso mapeia diretamente no modelo genérico Article+Category já decidido no spe
 - Modelo `Category` (nome, slug) — seedado com Institucional, Avisos e Campanhas, Sistemas & TI.
 - Modelo `Article`: título, resumo, corpo (HTML via Tiptap), categoria, capa (cor + ícone + rótulo curto — **sem upload de imagem**, decisão explícita abaixo), autor, status rascunho/publicado, data de publicação.
 - Curtidas por usuário (tabela `article_likes`, único por usuário+artigo), com toggle.
-- Fluxo de publicação usando as permissões `content.*` já existentes: `content.create`/`content.update` (Editor, Gestor, Administrador, Super Administrador) criam/editam; `content.publish` (Gestor, Administrador, Super Administrador) publica/despublica; `content.delete` (Gestor, Administrador, Super Administrador — Editor não tem) exclui. Nenhuma permissão nova.
+- Fluxo de publicação usando as permissões `content.*` já existentes: `content.create`/`content.update` (Editor, Gestor, Administrador, Super Administrador) criam/editam; `content.publish` (Gestor, Administrador, Super Administrador) publica/despublica; `content.delete` (Administrador, Super Administrador — nem Gestor nem Editor têm) exclui. Nenhuma permissão nova.
 - Tela administrativa `/admin/mural`: lista de artigos (todos os status), criar/editar com o editor Tiptap, publicar/despublicar, excluir.
 - Página pública `/mural`, substituindo o placeholder: feed paginado só de artigos publicados, com busca por palavra-chave, filtro de categoria, filtro de período, curtir/descurtir.
 - Página de artigo `/mural/{article}`, acessada pelo link "Saiba mais": título, capa, corpo completo, data, curtidas.
@@ -104,7 +104,7 @@ Models: `Category` (fillable: name, slug; `hasMany(Article::class)`), `Article` 
 ## Testes
 
 - **Modelo**: fábricas `CategoryFactory`/`ArticleFactory`; curtir/descurtir via a relação `belongsToMany`.
-- **Controle de acesso admin**: usuários com `content.view` (Editor, Gestor, Administrador, Super Administrador) acessam `/admin/mural`; publicar exige `content.publish` (Editor tentando publicar recebe 403, mesmo acessando a lista); excluir exige `content.delete` (Editor recebe 403).
+- **Controle de acesso admin**: usuários com `content.view` (Editor, Gestor, Administrador, Super Administrador) acessam `/admin/mural`; publicar exige `content.publish` (Editor tentando publicar não publica, mesmo acessando a lista); excluir exige `content.delete`, que só Administrador e Super Administrador têm (Gestor e Editor tentando excluir não excluem).
 - **CRUD administrativo**: criar artigo em rascunho; editar; publicar seta `published_at`; despublicar preserva `published_at` anterior; excluir remove.
 - **Página pública**: só artigos publicados aparecem; busca por palavra-chave filtra; filtro de categoria filtra; filtro de período (7 dias) exclui artigo mais antigo; paginação de 9 por página; curtir incrementa e é idempotente por usuário (clicar duas vezes = curtir depois descurtir, não dois registros); título/resumo escapados (XSS).
 - **Página de artigo**: artigo publicado é acessível; artigo em rascunho retorna 404 mesmo para quem tem permissão de ver (a visualização pública nunca expõe rascunho pela URL — quem precisa ver rascunho usa a tela admin).

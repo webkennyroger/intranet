@@ -48,6 +48,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::middleware('permission:services.manage')->group(function () {
         Route::get('/servicos', ServiceLinkIndex::class)->name('services.index');
     });
+
+    Route::middleware('permission:content.view')->group(function () {
+        Route::get('/mural', \App\Livewire\Admin\Articles\ArticleIndex::class)->name('articles.index');
+    });
 });
 
 Route::get('/', function () {
