@@ -1103,7 +1103,7 @@ Create `resources/views/livewire/mural/mural-index.blade.php`:
                         </div>
 
                         <div class="pt-2">
-                            <a href="{{ route('mural.show', $article) }}" class="text-emerald-700 font-bold text-xs hover:underline inline-flex items-center gap-1">
+                            <a href="{{ Route::has('mural.show') ? route('mural.show', $article) : '#' }}" class="text-emerald-700 font-bold text-xs hover:underline inline-flex items-center gap-1">
                                 Saiba mais <i class="fa-solid fa-arrow-right text-[10px]"></i>
                             </a>
                         </div>

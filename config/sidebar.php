@@ -17,7 +17,7 @@ return [
     [
         'group' => 'CONTEÚDO',
         'items' => [
-            ['label' => 'Mural', 'icon' => 'newspaper', 'uri' => '/mural', 'route' => 'placeholder.mural', 'permission' => null],
+            ['label' => 'Mural', 'icon' => 'newspaper', 'uri' => '/mural', 'route' => 'mural.index', 'permission' => null],
             ['label' => 'Serviços', 'icon' => 'sliders', 'uri' => '/servicos', 'route' => 'services.index', 'permission' => null],
             ['label' => 'Documentos', 'icon' => 'folder-open', 'uri' => '/documentos', 'route' => 'placeholder.documentos', 'permission' => null],
         ],

@@ -27,6 +27,10 @@ Route::get('/servicos', ServicesIndex::class)
     ->middleware('auth')
     ->name('services.index');
 
+Route::get('/mural', \App\Livewire\Mural\MuralIndex::class)
+    ->middleware('auth')
+    ->name('mural.index');
+
 Route::middleware('auth')->group(function () {
     foreach (config('sidebar') as $section) {
         foreach ($section['items'] ?? [$section] as $item) {
