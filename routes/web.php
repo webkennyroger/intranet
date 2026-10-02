@@ -1,8 +1,11 @@
 <?php
 
+use App\Livewire\Admin\Articles\ArticleIndex;
 use App\Livewire\Admin\Services\ServiceLinkIndex;
 use App\Livewire\Admin\Users\UserIndex;
 use App\Livewire\Auth\Login;
+use App\Livewire\Mural\ArticleShow;
+use App\Livewire\Mural\MuralIndex;
 use App\Livewire\Services\ServicesIndex;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -27,11 +30,11 @@ Route::get('/servicos', ServicesIndex::class)
     ->middleware('auth')
     ->name('services.index');
 
-Route::get('/mural', \App\Livewire\Mural\MuralIndex::class)
+Route::get('/mural', MuralIndex::class)
     ->middleware('auth')
     ->name('mural.index');
 
-Route::get('/mural/{article}', \App\Livewire\Mural\ArticleShow::class)
+Route::get('/mural/{article}', ArticleShow::class)
     ->middleware('auth')
     ->name('mural.show');
 
@@ -58,7 +61,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     });
 
     Route::middleware('permission:content.view')->group(function () {
-        Route::get('/mural', \App\Livewire\Admin\Articles\ArticleIndex::class)->name('articles.index');
+        Route::get('/mural', ArticleIndex::class)->name('articles.index');
     });
 });
 
