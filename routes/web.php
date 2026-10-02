@@ -1,7 +1,9 @@
 <?php
 
+use App\Livewire\Admin\Services\ServiceLinkIndex;
 use App\Livewire\Admin\Users\UserIndex;
 use App\Livewire\Auth\Login;
+use App\Livewire\Services\ServicesIndex;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -21,7 +23,7 @@ Route::get('/dashboard', fn () => view('dashboard'))
     ->middleware('auth')
     ->name('dashboard');
 
-Route::get('/servicos', \App\Livewire\Services\ServicesIndex::class)
+Route::get('/servicos', ServicesIndex::class)
     ->middleware('auth')
     ->name('services.index');
 
@@ -44,7 +46,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     });
 
     Route::middleware('permission:services.manage')->group(function () {
-        Route::get('/servicos', \App\Livewire\Admin\Services\ServiceLinkIndex::class)->name('services.index');
+        Route::get('/servicos', ServiceLinkIndex::class)->name('services.index');
     });
 });
 

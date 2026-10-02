@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Admin\Services\ServiceLinkForm;
 use App\Livewire\Admin\Services\ServiceLinkIndex;
 use App\Models\ServiceLink;
 use App\Models\User;
@@ -49,7 +50,7 @@ test('creating a service link with a valid url succeeds', function () {
     // ServiceLinkIndex's modal via wire:key; exercise it directly here
     // to prove validation + persistence (ServiceLinkIndex itself has no
     // title/icon/url properties of its own to set).
-    Livewire::test(\App\Livewire\Admin\Services\ServiceLinkForm::class)
+    Livewire::test(ServiceLinkForm::class)
         ->set('title', 'Vade Meccum')
         ->set('icon', 'book-open')
         ->set('url', 'https://example.com/vade-meccum')
@@ -62,7 +63,7 @@ test('creating a service link with a valid url succeeds', function () {
 test('creating a service link with an invalid url is rejected', function () {
     actingAsServicesAdmin();
 
-    Livewire::test(\App\Livewire\Admin\Services\ServiceLinkForm::class)
+    Livewire::test(ServiceLinkForm::class)
         ->set('title', 'Link Quebrado')
         ->set('icon', 'link')
         ->set('url', 'not-a-url')
@@ -76,7 +77,7 @@ test('editing an existing service link updates it', function () {
     actingAsServicesAdmin();
     $link = ServiceLink::factory()->create(['title' => 'Nome Antigo']);
 
-    Livewire::test(\App\Livewire\Admin\Services\ServiceLinkForm::class, ['link' => $link])
+    Livewire::test(ServiceLinkForm::class, ['link' => $link])
         ->set('title', 'Nome Novo')
         ->call('save')
         ->assertHasNoErrors();
