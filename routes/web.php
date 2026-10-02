@@ -31,6 +31,10 @@ Route::get('/mural', \App\Livewire\Mural\MuralIndex::class)
     ->middleware('auth')
     ->name('mural.index');
 
+Route::get('/mural/{article}', \App\Livewire\Mural\ArticleShow::class)
+    ->middleware('auth')
+    ->name('mural.show');
+
 Route::middleware('auth')->group(function () {
     foreach (config('sidebar') as $section) {
         foreach ($section['items'] ?? [$section] as $item) {
