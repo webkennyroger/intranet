@@ -38,6 +38,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::middleware('permission:users.view')->group(function () {
         Route::get('/usuarios', UserIndex::class)->name('users.index');
     });
+
+    Route::middleware('permission:services.manage')->group(function () {
+        Route::get('/servicos', \App\Livewire\Admin\Services\ServiceLinkIndex::class)->name('services.index');
+    });
 });
 
 Route::get('/', function () {

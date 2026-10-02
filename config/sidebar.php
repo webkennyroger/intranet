@@ -45,6 +45,7 @@ return [
         'group' => 'ADMINISTRAÇÃO',
         'items' => [
             ['label' => 'Usuários', 'icon' => 'users', 'uri' => '/admin/usuarios', 'route' => 'admin.users.index', 'permission' => 'users.view'],
+            ['label' => 'Gerenciar Serviços', 'icon' => 'sliders', 'uri' => '/admin/servicos', 'route' => 'admin.services.index', 'permission' => 'services.manage'],
         ],
     ],
 ];
