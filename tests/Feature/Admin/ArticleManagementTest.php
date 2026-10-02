@@ -58,6 +58,37 @@ test('creating an article without a body is rejected', function () {
     expect(Article::where('title', 'Sem Corpo')->exists())->toBeFalse();
 });
 
+test('creating an article with a non-existent category is rejected', function () {
+    actingAsRole('Editor');
+
+    Livewire::test(ArticleForm::class)
+        ->set('title', 'Categoria Inválida')
+        ->set('excerpt', 'Resumo')
+        ->set('body', '<p>Conteúdo</p>')
+        ->set('categoryId', '999999')
+        ->set('coverColor', '#064e3b')
+        ->set('coverIcon', 'newspaper')
+        ->call('save')
+        ->assertHasErrors(['categoryId']);
+
+    expect(Article::where('title', 'Categoria Inválida')->exists())->toBeFalse();
+});
+
+test('creating an article with no category succeeds', function () {
+    actingAsRole('Editor');
+
+    Livewire::test(ArticleForm::class)
+        ->set('title', 'Sem Categoria')
+        ->set('excerpt', 'Resumo')
+        ->set('body', '<p>Conteúdo</p>')
+        ->set('coverColor', '#064e3b')
+        ->set('coverIcon', 'newspaper')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(Article::where('title', 'Sem Categoria')->first()?->category_id)->toBeNull();
+});
+
 test('editing an existing article updates it', function () {
     actingAsRole('Editor');
     $article = Article::factory()->create(['title' => 'Antigo']);

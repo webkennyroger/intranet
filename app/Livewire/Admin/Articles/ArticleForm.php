@@ -46,7 +46,14 @@ class ArticleForm extends Component
 
     public function save(): void
     {
-        $this->validate();
+        $this->validate([
+            'title' => 'required|string|max:255',
+            'excerpt' => 'required|string|max:500',
+            'body' => 'required|string',
+            'categoryId' => $this->categoryId !== '' ? 'required|exists:categories,id' : 'nullable',
+            'coverColor' => 'required|string|max:20',
+            'coverIcon' => 'required|regex:/^[a-z0-9-]+$/',
+        ]);
 
         $data = [
             'title' => $this->title,

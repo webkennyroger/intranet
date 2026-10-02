@@ -55,3 +55,19 @@ test('a user cannot like the same article twice at the database level', function
     expect(fn () => $article->likedByUsers()->attach($user->id))
         ->toThrow(QueryException::class);
 });
+
+test('soft-deleting an article author does not fail and the article keeps its author_id', function () {
+    // User uses SoftDeletes, so UserIndex::delete()'s $user->delete() never
+    // removes the row — no FK violation is possible. The article's
+    // author_id column is untouched; only the author() relation returns
+    // null afterward (default Eloquent behavior excludes soft-deleted
+    // related records), which is harmless since no view displays the
+    // author anywhere.
+    $author = User::factory()->create();
+    $article = Article::factory()->create(['author_id' => $author->id]);
+
+    $author->delete();
+
+    expect($article->refresh()->author_id)->toBe($author->id)
+        ->and($article->author)->toBeNull();
+});
