@@ -21,6 +21,9 @@
 /storage/*.key
 /storage/pail
 /vendor
+/.claude/worktrees/
+/.claude/scheduled_tasks.lock
+/.superpowers/
 _ide_helper.php
 Homestead.json
 Homestead.yaml

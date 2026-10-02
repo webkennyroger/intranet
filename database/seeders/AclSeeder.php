@@ -26,6 +26,7 @@ class AclSeeder extends Seeder
                 'content.view', 'content.create', 'content.update', 'content.delete', 'content.publish',
                 'media.upload',
                 'settings.manage',
+                'services.manage',
             ],
 
             'Gestor' => [

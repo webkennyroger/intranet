@@ -14,6 +14,7 @@ class PermissionManager
             'content.view', 'content.create', 'content.update', 'content.delete', 'content.publish',
             'media.upload',
             'settings.manage',
+            'services.manage',
         ];
     }
 
