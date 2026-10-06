@@ -1,0 +1,86 @@
+<?php
+
+use App\Models\CouncilMember;
+use App\Models\Document;
+use App\Models\Event;
+use App\Models\PhotoAlbum;
+use App\Models\Training;
+use App\Models\User;
+use App\Models\Video;
+
+test('the documents page only shows published documents', function () {
+    $user = User::factory()->create();
+    $published = Document::factory()->create(['title' => 'Documento Público', 'is_published' => true]);
+    $draft = Document::factory()->create(['title' => 'Documento Rascunho', 'is_published' => false]);
+
+    $this->actingAs($user)->get(route('documents.index'))
+        ->assertOk()
+        ->assertSee('Documento Público')
+        ->assertDontSee('Documento Rascunho');
+});
+
+test('the council page only shows active members', function () {
+    $user = User::factory()->create();
+    CouncilMember::factory()->create(['name' => 'Membro Ativo', 'is_active' => true]);
+    CouncilMember::factory()->create(['name' => 'Membro Inativo', 'is_active' => false]);
+
+    $this->actingAs($user)->get(route('council.index'))
+        ->assertOk()
+        ->assertSee('Membro Ativo')
+        ->assertDontSee('Membro Inativo');
+});
+
+test('the photos page only shows published albums', function () {
+    $user = User::factory()->create();
+    PhotoAlbum::factory()->create(['title' => 'Álbum Público', 'is_published' => true]);
+    PhotoAlbum::factory()->create(['title' => 'Álbum Rascunho', 'is_published' => false]);
+
+    $this->actingAs($user)->get(route('photos.index'))
+        ->assertOk()
+        ->assertSee('Álbum Público')
+        ->assertDontSee('Álbum Rascunho');
+});
+
+test('an unpublished album returns 404 on its show page', function () {
+    $user = User::factory()->create();
+    $album = PhotoAlbum::factory()->create(['is_published' => false]);
+
+    $this->actingAs($user)->get(route('photos.show', $album))->assertNotFound();
+});
+
+test('the videos page only shows published videos', function () {
+    $user = User::factory()->create();
+    Video::factory()->create(['title' => 'Vídeo Público', 'is_published' => true]);
+    Video::factory()->create(['title' => 'Vídeo Rascunho', 'is_published' => false]);
+
+    $this->actingAs($user)->get(route('videos.index'))
+        ->assertOk()
+        ->assertSee('Vídeo Público')
+        ->assertDontSee('Vídeo Rascunho');
+});
+
+test('the events page only shows published events', function () {
+    $user = User::factory()->create();
+    Event::factory()->create(['title' => 'Evento Público', 'is_published' => true]);
+    Event::factory()->create(['title' => 'Evento Rascunho', 'is_published' => false]);
+
+    $this->actingAs($user)->get(route('events.index'))
+        ->assertOk()
+        ->assertSee('Evento Público')
+        ->assertDontSee('Evento Rascunho');
+});
+
+test('the trainings page only shows published trainings', function () {
+    $user = User::factory()->create();
+    Training::factory()->create(['title' => 'Curso Público', 'is_published' => true]);
+    Training::factory()->create(['title' => 'Curso Rascunho', 'is_published' => false]);
+
+    $this->actingAs($user)->get(route('trainings.index'))
+        ->assertOk()
+        ->assertSee('Curso Público')
+        ->assertDontSee('Curso Rascunho');
+});
+
+test('a guest is redirected to login from any of the new site pages', function () {
+    $this->get(route('documents.index'))->assertRedirect(route('login'));
+});
