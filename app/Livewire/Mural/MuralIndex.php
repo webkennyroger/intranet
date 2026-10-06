@@ -7,6 +7,11 @@ use App\Models\Category;
 use Livewire\Component;
 use Livewire\WithPagination;
 
+/**
+ * Feed público do Mural: lista as matérias publicadas com busca por
+ * texto, filtro por categoria e por período, além de permitir curtir
+ * cada artigo direto na listagem.
+ */
 class MuralIndex extends Component
 {
     use WithPagination;
@@ -19,6 +24,8 @@ class MuralIndex extends Component
 
     public function updated(string $property): void
     {
+        // Volta para a primeira página sempre que um filtro muda, para não
+        // deixar o usuário "preso" numa página que não existe mais no resultado filtrado.
         if (in_array($property, ['search', 'categoryId', 'period'], true)) {
             $this->resetPage();
         }

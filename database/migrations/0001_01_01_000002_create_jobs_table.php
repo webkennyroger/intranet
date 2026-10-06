@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Fila de jobs pendentes de processamento (driver "database").
         Schema::create('jobs', function (Blueprint $table) {
             $table->id();
             $table->string('queue')->index();
@@ -21,6 +22,7 @@ return new class extends Migration
             $table->unsignedInteger('created_at');
         });
 
+        // Agrupamento de jobs em lote (Bus::batch), com contagem de sucesso/falha.
         Schema::create('job_batches', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('name');
@@ -34,6 +36,7 @@ return new class extends Migration
             $table->integer('finished_at')->nullable();
         });
 
+        // Histórico de jobs que falharam, para inspeção e novo envio (retry).
         Schema::create('failed_jobs', function (Blueprint $table) {
             $table->id();
             $table->string('uuid')->unique();

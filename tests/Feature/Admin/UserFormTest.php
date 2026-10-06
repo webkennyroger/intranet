@@ -19,25 +19,7 @@ function actingAsAdmin(): User
     return $admin;
 }
 
-test('creating a user with role Editor does not require a department', function () {
-    actingAsAdmin();
-
-    Livewire::test(UserForm::class)
-        ->set('name', 'João Lima')
-        ->set('username', 'joao.lima')
-        ->set('email', 'joao@defensoria.am.gov.br')
-        ->set('password', 'senha-segura-123')
-        ->set('role', 'Editor')
-        ->call('save')
-        ->assertHasNoErrors();
-
-    $user = User::where('email', 'joao@defensoria.am.gov.br')->first();
-    expect($user)->not->toBeNull()
-        ->and($user->hasRole('Editor'))->toBeTrue()
-        ->and($user->department)->toBeNull();
-});
-
-test('creating a user with role Gestor requires a department', function () {
+test('creating a user with role Defensor succeeds and department is optional', function () {
     actingAsAdmin();
 
     Livewire::test(UserForm::class)
@@ -45,45 +27,27 @@ test('creating a user with role Gestor requires a department', function () {
         ->set('username', 'marina.alves')
         ->set('email', 'marina@defensoria.am.gov.br')
         ->set('password', 'senha-segura-123')
-        ->set('role', 'Gestor')
-        ->set('department', '')
-        ->call('save')
-        ->assertHasErrors(['department']);
-
-    expect(User::where('email', 'marina@defensoria.am.gov.br')->first())->toBeNull();
-});
-
-test('creating a user with role Gestor and a department succeeds', function () {
-    actingAsAdmin();
-
-    Livewire::test(UserForm::class)
-        ->set('name', 'Marina Alves')
-        ->set('username', 'marina.alves')
-        ->set('email', 'marina@defensoria.am.gov.br')
-        ->set('password', 'senha-segura-123')
-        ->set('role', 'Gestor')
-        ->set('department', 'Recursos Humanos')
+        ->set('role', 'Defensor')
         ->call('save')
         ->assertHasNoErrors();
 
     $user = User::where('email', 'marina@defensoria.am.gov.br')->first();
-    expect($user->department)->toBe('Recursos Humanos')
-        ->and($user->hasRole('Gestor'))->toBeTrue();
+    expect($user)->not->toBeNull()
+        ->and($user->hasRole('Defensor'))->toBeTrue()
+        ->and($user->department)->toBeNull();
 });
 
 test('editing an existing user updates their role without requiring a new password', function () {
     actingAsAdmin();
-    $editor = User::factory()->create(['email' => 'troca@defensoria.am.gov.br']);
-    $editor->assignRole('Editor');
+    $target = User::factory()->create(['email' => 'troca@defensoria.am.gov.br']);
+    $target->assignRole('Administrador');
 
-    Livewire::test(UserForm::class, ['user' => $editor])
-        ->set('role', 'Gestor')
-        ->set('department', 'Comunicação')
+    Livewire::test(UserForm::class, ['user' => $target])
+        ->set('role', 'Defensor')
         ->call('save')
         ->assertHasNoErrors();
 
-    expect($editor->refresh()->hasRole('Gestor'))->toBeTrue()
-        ->and($editor->department)->toBe('Comunicação');
+    expect($target->refresh()->hasRole('Defensor'))->toBeTrue();
 });
 
 test('email must be unique when creating a user', function () {
@@ -95,7 +59,7 @@ test('email must be unique when creating a user', function () {
         ->set('username', 'outro.nome')
         ->set('email', 'duplicado@defensoria.am.gov.br')
         ->set('password', 'senha-segura-123')
-        ->set('role', 'Editor')
+        ->set('role', 'Administrador')
         ->call('save')
         ->assertHasErrors(['email']);
 });

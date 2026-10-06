@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Curtidas dos usuários em artigos do Mural (um usuário curte um artigo só uma vez).
         Schema::create('article_likes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('article_id')->constrained()->cascadeOnDelete();

@@ -9,12 +9,17 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * Usuário (servidor) do sistema. Combina autenticação, papéis/permissões
+ * via Spatie (HasRoles) e status ativo/bloqueado (UserStatus) para
+ * controlar quem pode acessar e o que pode fazer.
+ */
 class User extends Authenticatable
 {
     use HasFactory, HasRoles, Notifiable, SoftDeletes;
 
     protected $fillable = [
-        'name', 'username', 'email', 'password', 'status', 'department',
+        'name', 'username', 'email', 'password', 'status', 'department', 'birth_date',
     ];
 
     protected $hidden = [
@@ -27,6 +32,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'status' => UserStatus::class,
+            'birth_date' => 'date',
+            'last_login_at' => 'datetime',
         ];
     }
 

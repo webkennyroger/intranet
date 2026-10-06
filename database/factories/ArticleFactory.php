@@ -7,6 +7,10 @@ use App\Models\Category;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * Gera artigos de teste para o Mural, com categoria e autor próprios
+ * (criados via factory) e não publicados por padrão.
+ */
 class ArticleFactory extends Factory
 {
     protected $model = Article::class;

@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * Artigo/notícia publicado no Mural. Controla curtidas por usuário e
+ * expõe o scope `published` para esconder rascunhos do público.
+ */
 class Article extends Model
 {
     use HasFactory;

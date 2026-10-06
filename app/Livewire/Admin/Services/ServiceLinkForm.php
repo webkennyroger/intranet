@@ -3,9 +3,14 @@
 namespace App\Livewire\Admin\Services;
 
 use App\Models\ServiceLink;
+use App\Services\ActivityLogger;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
+/**
+ * Formulário admin de criação/edição dos links de serviço exibidos na
+ * barra lateral (título, ícone, URL de destino e se está ativo).
+ */
 class ServiceLinkForm extends Component
 {
     public ?ServiceLink $link = null;
@@ -44,10 +49,15 @@ class ServiceLinkForm extends Component
         ];
 
         if ($this->link) {
+            $changes = ActivityLogger::diff($this->link, $data);
             $this->link->update($data);
+            if ($changes !== []) {
+                ActivityLogger::updated($this->link, $changes);
+            }
         } else {
             $data['order'] = (ServiceLink::max('order') ?? 0) + 1;
-            ServiceLink::create($data);
+            $link = ServiceLink::create($data);
+            ActivityLogger::created($link);
         }
 
         $this->dispatch('service-link-saved');

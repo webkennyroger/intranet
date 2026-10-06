@@ -1,3 +1,9 @@
+{{--
+    Formulário de usuário (admin), aberto em modal.
+    Cadastra/edita dados de acesso (nome, usuário, e-mail, senha) e
+    perfil (papel, departamento, data de nascimento usada na página
+    de Aniversariantes).
+--}}
 <form wire:submit="save" class="space-y-4">
     <x-ui.input wire:model="name" label="Nome" />
     <x-ui.input wire:model="username" label="Usuário" />
@@ -7,13 +13,12 @@
     <x-ui.select wire:model.live="role" label="Papel">
         <option value="Super Administrador">Super Administrador</option>
         <option value="Administrador">Administrador</option>
-        <option value="Gestor">Gestor</option>
-        <option value="Editor">Editor</option>
+        <option value="Defensor">Defensor</option>
     </x-ui.select>
 
-    @if ($role === 'Gestor')
-        <x-ui.input wire:model="department" label="Departamento/Setor" />
-    @endif
+    <x-ui.input wire:model="department" label="Departamento/Setor" />
+
+    <x-ui.input wire:model="birthDate" type="date" label="Data de nascimento" hint="Usada na página de Aniversariantes." />
 
     <x-ui.button type="submit">Salvar</x-ui.button>
 </form>

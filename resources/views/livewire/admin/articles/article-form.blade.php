@@ -1,3 +1,8 @@
+{{--
+    Formulário de artigo do Mural (admin), aberto dentro de um modal.
+    Usado tanto para criar quanto para editar: título, resumo, categoria,
+    cor/ícone da capa e o conteúdo rico via editor Tiptap.
+--}}
 <form wire:submit="save" class="space-y-4" x-on:content-change="$wire.set('body', $event.detail)">
     <x-ui.input wire:model="title" label="Título" />
     <x-ui.input wire:model="excerpt" label="Resumo" />

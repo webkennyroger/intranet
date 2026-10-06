@@ -6,15 +6,15 @@ use Spatie\Permission\Models\Role;
 
 test('a nav item with no permission requirement is visible to any authenticated user', function () {
     config(['sidebar' => [
-        ['label' => 'Dashboard', 'icon' => 'house', 'uri' => '/dashboard', 'route' => 'dashboard', 'permission' => null],
+        ['label' => 'Início', 'icon' => 'house', 'uri' => '/inicio', 'route' => 'inicio', 'permission' => null],
         ['group' => 'TEST', 'items' => [
-            ['label' => 'ItemSemPermissão', 'icon' => 'newspaper', 'uri' => '/dashboard', 'route' => 'dashboard', 'permission' => null],
+            ['label' => 'ItemSemPermissão', 'icon' => 'newspaper', 'uri' => '/inicio', 'route' => 'inicio', 'permission' => null],
         ]],
     ]]);
 
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get(route('dashboard'));
+    $response = $this->actingAs($user)->get(route('inicio'));
 
     $response->assertStatus(200);
     $response->assertSee('ItemSemPermissão');
@@ -22,16 +22,16 @@ test('a nav item with no permission requirement is visible to any authenticated 
 
 test('a nav item requiring a permission the user lacks is not rendered', function () {
     config(['sidebar' => [
-        ['label' => 'Dashboard', 'icon' => 'house', 'uri' => '/dashboard', 'route' => 'dashboard', 'permission' => null],
+        ['label' => 'Início', 'icon' => 'house', 'uri' => '/inicio', 'route' => 'inicio', 'permission' => null],
         ['group' => 'TEST', 'items' => [
-            ['label' => 'ItemProtegido', 'icon' => 'lock', 'uri' => '/dashboard', 'route' => 'dashboard', 'permission' => 'users.view'],
+            ['label' => 'ItemProtegido', 'icon' => 'lock', 'uri' => '/inicio', 'route' => 'inicio', 'permission' => 'users.view'],
         ]],
     ]]);
 
     Permission::firstOrCreate(['name' => 'users.view', 'guard_name' => 'web']);
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get(route('dashboard'));
+    $response = $this->actingAs($user)->get(route('inicio'));
 
     $response->assertStatus(200);
     $response->assertDontSee('ItemProtegido');
@@ -39,9 +39,9 @@ test('a nav item requiring a permission the user lacks is not rendered', functio
 
 test('a nav item requiring a permission the user has is rendered', function () {
     config(['sidebar' => [
-        ['label' => 'Dashboard', 'icon' => 'house', 'uri' => '/dashboard', 'route' => 'dashboard', 'permission' => null],
+        ['label' => 'Início', 'icon' => 'house', 'uri' => '/inicio', 'route' => 'inicio', 'permission' => null],
         ['group' => 'TEST', 'items' => [
-            ['label' => 'ItemProtegido', 'icon' => 'lock', 'uri' => '/dashboard', 'route' => 'dashboard', 'permission' => 'users.view'],
+            ['label' => 'ItemProtegido', 'icon' => 'lock', 'uri' => '/inicio', 'route' => 'inicio', 'permission' => 'users.view'],
         ]],
     ]]);
 
@@ -52,7 +52,7 @@ test('a nav item requiring a permission the user has is rendered', function () {
     $user = User::factory()->create();
     $user->assignRole('Administrador');
 
-    $response = $this->actingAs($user)->get(route('dashboard'));
+    $response = $this->actingAs($user)->get(route('inicio'));
 
     $response->assertStatus(200);
     $response->assertSee('ItemProtegido');

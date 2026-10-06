@@ -9,6 +9,11 @@ use Illuminate\Support\Str;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
+/**
+ * Formulário de login público. Valida credenciais, aplica rate limiting
+ * contra tentativas repetidas, bloqueia contas inativas/bloqueadas e,
+ * se tudo passar, autentica o usuário e redireciona para o dashboard.
+ */
 class Login extends Component
 {
     #[Validate('required|email')]
@@ -47,6 +52,8 @@ class Login extends Component
             return;
         }
 
+        $user->forceFill(['last_login_at' => now()])->save();
+
         RateLimiter::clear($this->throttleKey());
         session()->regenerate();
 
@@ -63,6 +70,8 @@ class Login extends Component
 
     private function throttleKey(): string
     {
+        // Combina e-mail + IP para limitar tentativas por conta e por origem,
+        // evitando que um atacante use e-mails diferentes do mesmo IP.
         return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
     }
 

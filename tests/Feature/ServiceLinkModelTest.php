@@ -30,9 +30,8 @@ test('Administrador role has services.manage after seeding', function () {
     expect($role->hasPermissionTo('services.manage'))->toBeTrue();
 });
 
-test('Gestor and Editor roles do not have services.manage', function () {
+test('Defensor role does not have services.manage', function () {
     $this->seed(AclSeeder::class);
 
-    expect(Role::where('name', 'Gestor')->first()->hasPermissionTo('services.manage'))->toBeFalse()
-        ->and(Role::where('name', 'Editor')->first()->hasPermissionTo('services.manage'))->toBeFalse();
+    expect(Role::where('name', 'Defensor')->first()->hasPermissionTo('services.manage'))->toBeFalse();
 });

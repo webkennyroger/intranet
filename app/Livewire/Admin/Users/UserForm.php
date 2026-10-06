@@ -3,11 +3,16 @@
 namespace App\Livewire\Admin\Users;
 
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
+/**
+ * Formulário admin de criação/edição de usuários do sistema: dados
+ * cadastrais, papel (role) de acesso e senha.
+ */
 class UserForm extends Component
 {
     public ?User $user = null;
@@ -23,10 +28,13 @@ class UserForm extends Component
 
     public string $password = '';
 
-    #[Validate('required|in:Super Administrador,Administrador,Gestor,Editor')]
-    public string $role = 'Editor';
+    #[Validate('required|in:Super Administrador,Administrador,Defensor')]
+    public string $role = 'Administrador';
 
     public string $department = '';
+
+    #[Validate('nullable|date')]
+    public string $birthDate = '';
 
     public function mount(?User $user = null): void
     {
@@ -35,8 +43,9 @@ class UserForm extends Component
             $this->name = $user->name;
             $this->username = $user->username;
             $this->email = $user->email;
-            $this->role = $user->getRoleNames()->first() ?? 'Editor';
+            $this->role = $user->getRoleNames()->first() ?? 'Administrador';
             $this->department = $user->department ?? '';
+            $this->birthDate = $user->birth_date?->format('Y-m-d') ?? '';
         }
     }
 
@@ -46,8 +55,9 @@ class UserForm extends Component
             'name' => 'required|string|max:255',
             'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($this->user?->id)],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->user?->id)],
-            'role' => 'required|in:Super Administrador,Administrador,Gestor,Editor',
-            'department' => $this->role === 'Gestor' ? 'required|string|max:255' : 'nullable|string|max:255',
+            'role' => 'required|in:Super Administrador,Administrador,Defensor',
+            'department' => 'nullable|string|max:255',
+            'birthDate' => 'nullable|date',
         ];
 
         if (! $this->user) {
@@ -58,6 +68,9 @@ class UserForm extends Component
 
         $this->validate($rules);
 
+        // Impede remover o papel de Super Administrador do último usuário
+        // que o possui — sem essa trava, o sistema poderia ficar sem
+        // nenhum Super Administrador capaz de gerenciar os demais usuários.
         if (
             $this->user
             && $this->user->isSuperAdmin()
@@ -69,28 +82,43 @@ class UserForm extends Component
             return;
         }
 
-        $data = [
+        $loggableData = [
             'name' => $this->name,
             'username' => $this->username,
             'email' => $this->email,
-            'department' => $this->role === 'Gestor' ? $this->department : null,
+            'department' => $this->department !== '' ? $this->department : null,
+            'birth_date' => $this->birthDate !== '' ? $this->birthDate : null,
         ];
+
+        $data = $loggableData;
 
         if ($this->password !== '') {
             $data['password'] = Hash::make($this->password);
         }
 
         if ($this->user) {
+            $changes = ActivityLogger::diff($this->user, $loggableData);
+            $previousRole = $this->user->getRoleNames()->first();
+
             $this->user->update($data);
             $this->user->syncRoles([$this->role]);
+
+            if ($previousRole !== $this->role) {
+                $changes['role'] = ['old' => $previousRole, 'new' => $this->role];
+            }
+
+            if ($changes !== []) {
+                ActivityLogger::updated($this->user, $changes);
+            }
         } else {
             $user = User::create($data + ['password' => Hash::make($this->password)]);
             $user->assignRole($this->role);
+            ActivityLogger::created($user);
         }
 
         $this->dispatch('user-saved');
-        $this->reset(['name', 'username', 'email', 'password', 'department']);
-        $this->role = 'Editor';
+        $this->reset(['name', 'username', 'email', 'password', 'department', 'birthDate']);
+        $this->role = 'Administrador';
     }
 
     public function render()

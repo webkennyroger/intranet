@@ -4,9 +4,14 @@ namespace App\Livewire\Admin\Articles;
 
 use App\Models\Article;
 use App\Models\Category;
+use App\Services\ActivityLogger;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
+/**
+ * Formulário admin de criação/edição de artigos do Mural (notícias/avisos
+ * publicados aos usuários), incluindo categoria e capa (cor/ícone/rótulo).
+ */
 class ArticleForm extends Component
 {
     public ?Article $article = null;
@@ -66,12 +71,17 @@ class ArticleForm extends Component
         ];
 
         if ($this->article) {
+            $changes = ActivityLogger::diff($this->article, $data);
             $this->article->update($data);
+            if ($changes !== []) {
+                ActivityLogger::updated($this->article, $changes);
+            }
         } else {
-            Article::create($data + [
+            $article = Article::create($data + [
                 'author_id' => auth()->id(),
                 'is_published' => false,
             ]);
+            ActivityLogger::created($article);
         }
 
         $this->dispatch('article-saved');

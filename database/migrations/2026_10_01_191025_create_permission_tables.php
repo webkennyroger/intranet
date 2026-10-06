@@ -8,6 +8,9 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * Tabelas padrão do pacote spatie/permission: a base do controle de
+     * acesso por papéis (roles) e permissões usada em toda a intranet.
      */
     public function up(): void
     {
@@ -23,6 +26,7 @@ return new class extends Migration
         /**
          * See `docs/prerequisites.md` for suggested lengths on 'name' and 'guard_name' if "1071 Specified key was too long" errors are encountered.
          */
+        // Catálogo de permissões individuais (ex.: "content.view", "users.manage").
         Schema::create($tableNames['permissions'], static function (Blueprint $table) {
             $table->id(); // permission id
             $table->string('name');
@@ -35,6 +39,7 @@ return new class extends Migration
         /**
          * See `docs/prerequisites.md` for suggested lengths on 'name' and 'guard_name' if "1071 Specified key was too long" errors are encountered.
          */
+        // Papéis (ex.: "Super Administrador", "Defensor") que agrupam permissões.
         Schema::create($tableNames['roles'], static function (Blueprint $table) use ($teams, $columnNames) {
             $table->id(); // role id
             if ($teams || config('permission.testing')) { // permission.testing is a fix for sqlite testing
@@ -51,6 +56,7 @@ return new class extends Migration
             }
         });
 
+        // Permissões atribuídas diretamente a um model (normalmente um User), sem passar por um papel.
         Schema::create($tableNames['model_has_permissions'], static function (Blueprint $table) use ($tableNames, $columnNames, $pivotPermission, $teams) {
             $table->unsignedBigInteger($pivotPermission);
 
@@ -74,6 +80,7 @@ return new class extends Migration
             }
         });
 
+        // Papéis atribuídos a cada model (normalmente um User) — ex.: qual usuário é "Administrador".
         Schema::create($tableNames['model_has_roles'], static function (Blueprint $table) use ($tableNames, $columnNames, $pivotRole, $teams) {
             $table->unsignedBigInteger($pivotRole);
 
@@ -97,6 +104,7 @@ return new class extends Migration
             }
         });
 
+        // Pivô papel-permissão: quais permissões cada papel concede.
         Schema::create($tableNames['role_has_permissions'], static function (Blueprint $table) use ($tableNames, $pivotRole, $pivotPermission) {
             $table->unsignedBigInteger($pivotPermission);
             $table->unsignedBigInteger($pivotRole);

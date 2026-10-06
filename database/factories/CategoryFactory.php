@@ -6,6 +6,9 @@ use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
+/**
+ * Gera categorias de artigo de teste, derivando o slug a partir do nome gerado.
+ */
 class CategoryFactory extends Factory
 {
     protected $model = Category::class;

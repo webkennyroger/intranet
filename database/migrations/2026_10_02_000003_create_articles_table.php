@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Artigos/notícias do Mural: conteúdo, autor, categoria e status de publicação.
         Schema::create('articles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();

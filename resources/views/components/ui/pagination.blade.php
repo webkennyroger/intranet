@@ -1,3 +1,8 @@
+{{--
+    Links de paginação (anterior/números/próxima) a partir de um paginator do
+    Laravel. Componente genérico do kit de UI, ainda não usado em nenhuma tela
+    deste projeto — as listagens do admin paginam via o próprio data-table.
+--}}
 @props([
     'paginator' => null,
     'compact' => false,

@@ -1,3 +1,8 @@
+{{--
+    Tela de login da Intranet.
+    Mostra o formulário de e-mail/senha e exibe os erros de validação
+    ou de credenciais inválidas vindos do componente Livewire.
+--}}
 <div class="min-h-screen flex items-center justify-center px-4 py-16" style="background-color: var(--bg-base);">
     <div class="w-full max-w-md">
         <div class="text-center mb-10">

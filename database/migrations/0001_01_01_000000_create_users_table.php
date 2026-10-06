@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Tabela de usuários da intranet: dados de login, status da conta e setor de trabalho.
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -25,12 +26,14 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // Tokens temporários para o fluxo de "esqueci minha senha".
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
 
+        // Sessões de login ativas, usadas pelo driver de sessão em banco de dados.
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->foreignId('user_id')->nullable()->index();

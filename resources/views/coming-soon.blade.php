@@ -1,3 +1,8 @@
+{{--
+    Placeholder genérico para seções do site público ainda não
+    implementadas. Recebe o título da seção via $title e só exibe um
+    aviso de "em construção" dentro do layout público padrão.
+--}}
 <x-layouts::app :title="$title">
     <div class="max-w-7xl mx-auto">
         <div class="bg-white border border-slate-200 rounded-2xl p-12 text-center">

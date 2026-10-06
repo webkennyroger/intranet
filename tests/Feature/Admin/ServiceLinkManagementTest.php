@@ -23,22 +23,12 @@ test('an Administrador can view the services management page', function () {
     $this->get(route('admin.services.index'))->assertStatus(200);
 });
 
-test('a Gestor is forbidden from the services management page', function () {
+test('a Defensor is forbidden from the services management page', function () {
     $this->seed(AclSeeder::class);
-    $gestor = User::factory()->create();
-    $gestor->assignRole('Gestor');
+    $defensor = User::factory()->create();
+    $defensor->assignRole('Defensor');
 
-    $this->actingAs($gestor)
-        ->get(route('admin.services.index'))
-        ->assertStatus(403);
-});
-
-test('an Editor is forbidden from the services management page', function () {
-    $this->seed(AclSeeder::class);
-    $editor = User::factory()->create();
-    $editor->assignRole('Editor');
-
-    $this->actingAs($editor)
+    $this->actingAs($defensor)
         ->get(route('admin.services.index'))
         ->assertStatus(403);
 });
@@ -85,33 +75,28 @@ test('editing an existing service link updates it', function () {
     expect($link->refresh()->title)->toBe('Nome Novo');
 });
 
-test('moving a service link up swaps its order with the previous one', function () {
+test('reordering service links updates each order to match the given sequence', function () {
+    actingAsServicesAdmin();
+    $first = ServiceLink::factory()->create(['order' => 1]);
+    $second = ServiceLink::factory()->create(['order' => 2]);
+    $third = ServiceLink::factory()->create(['order' => 3]);
+
+    Livewire::test(ServiceLinkIndex::class)->call('reorder', [$third->id, $first->id, $second->id]);
+
+    expect($third->refresh()->order)->toBe(0)
+        ->and($first->refresh()->order)->toBe(1)
+        ->and($second->refresh()->order)->toBe(2);
+});
+
+test('reordering rejects an id list that does not match the existing service links', function () {
     actingAsServicesAdmin();
     $first = ServiceLink::factory()->create(['order' => 1]);
     $second = ServiceLink::factory()->create(['order' => 2]);
 
-    Livewire::test(ServiceLinkIndex::class)->call('moveUp', $second->id);
+    Livewire::test(ServiceLinkIndex::class)->call('reorder', [$first->id, 999999]);
 
-    expect($first->refresh()->order)->toBe(2)
-        ->and($second->refresh()->order)->toBe(1);
-});
-
-test('moving the first service link up does nothing', function () {
-    actingAsServicesAdmin();
-    $first = ServiceLink::factory()->create(['order' => 1]);
-
-    Livewire::test(ServiceLinkIndex::class)->call('moveUp', $first->id);
-
-    expect($first->refresh()->order)->toBe(1);
-});
-
-test('moving the last service link down does nothing', function () {
-    actingAsServicesAdmin();
-    $last = ServiceLink::factory()->create(['order' => 1]);
-
-    Livewire::test(ServiceLinkIndex::class)->call('moveDown', $last->id);
-
-    expect($last->refresh()->order)->toBe(1);
+    expect($first->refresh()->order)->toBe(1)
+        ->and($second->refresh()->order)->toBe(2);
 });
 
 test('deleting a service link removes it', function () {

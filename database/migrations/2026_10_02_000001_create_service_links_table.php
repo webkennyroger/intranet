@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Links de serviços exibidos na página "Serviços", com ícone e ordem de exibição.
         Schema::create('service_links', function (Blueprint $table) {
             $table->id();
             $table->string('title');

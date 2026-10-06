@@ -18,14 +18,14 @@ function actingAsRole(string $role): User
     return $user;
 }
 
-test('an Editor can view the articles management page', function () {
-    actingAsRole('Editor');
+test('an Administrador can view the articles management page', function () {
+    actingAsRole('Administrador');
 
     $this->get(route('admin.articles.index'))->assertStatus(200);
 });
 
 test('creating an article saves it as a draft', function () {
-    actingAsRole('Editor');
+    actingAsRole('Administrador');
     $category = Category::factory()->create();
 
     Livewire::test(ArticleForm::class)
@@ -44,7 +44,7 @@ test('creating an article saves it as a draft', function () {
 });
 
 test('creating an article without a body is rejected', function () {
-    actingAsRole('Editor');
+    actingAsRole('Administrador');
 
     Livewire::test(ArticleForm::class)
         ->set('title', 'Sem Corpo')
@@ -59,7 +59,7 @@ test('creating an article without a body is rejected', function () {
 });
 
 test('creating an article with a non-existent category is rejected', function () {
-    actingAsRole('Editor');
+    actingAsRole('Administrador');
 
     Livewire::test(ArticleForm::class)
         ->set('title', 'Categoria Inválida')
@@ -75,7 +75,7 @@ test('creating an article with a non-existent category is rejected', function ()
 });
 
 test('creating an article with no category succeeds', function () {
-    actingAsRole('Editor');
+    actingAsRole('Administrador');
 
     Livewire::test(ArticleForm::class)
         ->set('title', 'Sem Categoria')
@@ -90,7 +90,7 @@ test('creating an article with no category succeeds', function () {
 });
 
 test('editing an existing article updates it', function () {
-    actingAsRole('Editor');
+    actingAsRole('Administrador');
     $article = Article::factory()->create(['title' => 'Antigo']);
 
     Livewire::test(ArticleForm::class, ['article' => $article])
@@ -101,8 +101,8 @@ test('editing an existing article updates it', function () {
     expect($article->refresh()->title)->toBe('Novo Título');
 });
 
-test('an Editor cannot publish an article', function () {
-    actingAsRole('Editor');
+test('a Defensor cannot publish an article', function () {
+    actingAsRole('Defensor');
     $article = Article::factory()->create(['is_published' => false]);
 
     Livewire::test(ArticleIndex::class)->call('togglePublish', $article->id);
@@ -110,8 +110,8 @@ test('an Editor cannot publish an article', function () {
     expect($article->refresh()->is_published)->toBeFalse();
 });
 
-test('a Gestor can publish an article and it gets a published_at date', function () {
-    actingAsRole('Gestor');
+test('an Administrador can publish an article and it gets a published_at date', function () {
+    actingAsRole('Administrador');
     $article = Article::factory()->create(['is_published' => false, 'published_at' => null]);
 
     Livewire::test(ArticleIndex::class)->call('togglePublish', $article->id);
@@ -121,7 +121,7 @@ test('a Gestor can publish an article and it gets a published_at date', function
 });
 
 test('unpublishing an article preserves its original published_at', function () {
-    actingAsRole('Gestor');
+    actingAsRole('Administrador');
     $originalDate = now()->subDays(5);
     $article = Article::factory()->create(['is_published' => true, 'published_at' => $originalDate]);
 
@@ -131,17 +131,8 @@ test('unpublishing an article preserves its original published_at', function () 
         ->and($article->published_at->isSameMinute($originalDate))->toBeTrue();
 });
 
-test('an Editor cannot delete an article', function () {
-    actingAsRole('Editor');
-    $article = Article::factory()->create();
-
-    Livewire::test(ArticleIndex::class)->call('delete', $article->id);
-
-    expect(Article::find($article->id))->not->toBeNull();
-});
-
-test('a Gestor cannot delete an article (only Administrador/Super Administrador can)', function () {
-    actingAsRole('Gestor');
+test('a Defensor cannot delete an article (only Administrador/Super Administrador can)', function () {
+    actingAsRole('Defensor');
     $article = Article::factory()->create();
 
     Livewire::test(ArticleIndex::class)->call('delete', $article->id);

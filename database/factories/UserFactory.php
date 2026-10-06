@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
+ * Gera usuários de teste da intranet, com senha padrão "password" e status ativo.
+ *
  * @extends Factory<User>
  */
 class UserFactory extends Factory

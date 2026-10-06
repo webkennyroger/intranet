@@ -1,3 +1,10 @@
+{{--
+    Editor de texto rico (WYSIWYG) baseado em Tiptap, usado nos formulários
+    que precisam de conteúdo formatado (ex.: artigos). A toolbar chama a
+    API do Tiptap diretamente via Alpine; o HTML gerado fica sincronizado
+    num input hidden ("name") que é o que de fato é enviado no submit do
+    formulário.
+--}}
 @props([
     'name' => 'content',
     'value' => '',

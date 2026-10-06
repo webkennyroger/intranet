@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Cache da aplicação armazenado em banco (driver "database").
         Schema::create('cache', function (Blueprint $table) {
             $table->string('key')->primary();
             $table->mediumText('value');
             $table->bigInteger('expiration')->index();
         });
 
+        // Locks de cache, usados para evitar condições de corrida entre processos.
         Schema::create('cache_locks', function (Blueprint $table) {
             $table->string('key')->primary();
             $table->string('owner');

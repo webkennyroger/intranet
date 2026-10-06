@@ -3,9 +3,14 @@
 namespace App\Livewire\Admin\Services;
 
 use App\Models\ServiceLink;
+use App\Services\ActivityLogger;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
+/**
+ * Tela admin "Gerenciar Serviços": lista os links de serviço, com
+ * reordenação via drag-and-drop, ativação/desativação e exclusão.
+ */
 class ServiceLinkIndex extends Component
 {
     public ?int $editingLinkId = null;
@@ -28,41 +33,35 @@ class ServiceLinkIndex extends Component
 
     public function delete(int $linkId): void
     {
-        ServiceLink::findOrFail($linkId)->delete();
+        $link = ServiceLink::findOrFail($linkId);
+        $link->delete();
+        ActivityLogger::deleted($link);
     }
 
     public function toggleActive(int $linkId): void
     {
         $link = ServiceLink::findOrFail($linkId);
-        $link->update(['is_active' => ! $link->is_active]);
+        $willBeActive = ! $link->is_active;
+        $link->update(['is_active' => $willBeActive]);
+        $willBeActive ? ActivityLogger::activated($link) : ActivityLogger::deactivated($link);
     }
 
-    public function moveUp(int $linkId): void
+    /**
+     * @param  array<int, int>  $ids
+     */
+    public function reorder(array $ids): void
     {
-        $this->swapOrder($linkId, 'up');
-    }
+        $existingCount = ServiceLink::whereIn('id', $ids)->count();
 
-    public function moveDown(int $linkId): void
-    {
-        $this->swapOrder($linkId, 'down');
-    }
+        // Confere se $ids é exatamente o conjunto completo de links, sem
+        // duplicados nem itens faltando, antes de reaplicar a ordem — o
+        // front-end manda a lista inteira a cada drag-and-drop, e dados
+        // adulterados ou fora de sincronia não devem bagunçar o campo "order".
+        abort_if($existingCount !== count(array_unique($ids)) || $existingCount !== ServiceLink::count(), 403);
 
-    private function swapOrder(int $linkId, string $direction): void
-    {
-        $current = ServiceLink::findOrFail($linkId);
-
-        $neighbor = $direction === 'up'
-            ? ServiceLink::where('order', '<', $current->order)->orderByDesc('order')->first()
-            : ServiceLink::where('order', '>', $current->order)->orderBy('order')->first();
-
-        if (! $neighbor) {
-            return;
+        foreach ($ids as $position => $id) {
+            ServiceLink::whereKey($id)->update(['order' => $position]);
         }
-
-        [$currentOrder, $neighborOrder] = [$current->order, $neighbor->order];
-
-        $current->update(['order' => $neighborOrder]);
-        $neighbor->update(['order' => $currentOrder]);
     }
 
     public function render()
@@ -70,6 +69,9 @@ class ServiceLinkIndex extends Component
         return view('livewire.admin.services.service-link-index', [
             'links' => ServiceLink::orderBy('order')->get(),
             'editingLink' => $this->editingLinkId ? ServiceLink::find($this->editingLinkId) : null,
-        ]);
+            'totalLinks' => ServiceLink::count(),
+            'activeLinks' => ServiceLink::where('is_active', true)->count(),
+            'inactiveLinks' => ServiceLink::where('is_active', false)->count(),
+        ])->layout('layouts.admin', ['title' => 'Gerenciar Serviços']);
     }
 }

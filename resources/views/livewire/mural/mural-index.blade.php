@@ -1,9 +1,16 @@
+{{--
+    Tela do Mural (feed de notícias).
+    Lista as matérias publicadas, com busca por palavra-chave e
+    filtros por categoria e período.
+--}}
 <div class="max-w-7xl mx-auto space-y-6">
+    <!-- Cabeçalho da página -->
     <div>
         <h1 class="text-3xl font-black text-slate-800 tracking-tight">Mural</h1>
         <p class="text-slate-500 text-sm mt-1 font-medium">Acompanhe as últimas notícias e informações.</p>
     </div>
 
+    <!-- Filtros e busca -->
     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
             <div class="md:col-span-5">
@@ -29,10 +36,12 @@
     </div>
 
     @if ($articles->isEmpty())
+        <!-- Estado vazio -->
         <div class="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-500">
             Nenhuma notícia encontrada.
         </div>
     @else
+        <!-- Grade de notícias -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach ($articles as $article)
                 <article class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
@@ -74,6 +83,7 @@
             @endforeach
         </div>
 
+        <!-- Paginação -->
         <div class="pt-4">
             {{ $articles->links() }}
         </div>

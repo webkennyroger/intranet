@@ -1,6 +1,11 @@
-<header class="bg-dpemt-dark text-white sticky top-0 z-50 shadow-md h-16 flex items-center justify-between px-4" style="background-color: #0C4A34;">
+{{--
+    Cabeçalho do site público (fora do admin): logo/nome da intranet,
+    busca (visual, ainda não funcional), alternância de tema e menu do
+    usuário com logout. Usa a cor "brand-primary" definida em Aparência.
+--}}
+<header class="text-white sticky top-0 z-50 shadow-md h-16 flex items-center justify-between px-4" style="background-color: var(--brand-primary);">
     <div class="flex items-center gap-3">
-        <button id="sidebar-toggle" @click="mobileSidebarOpen = true" class="lg:hidden p-2 rounded-lg hover:bg-emerald-800/60 transition text-white/90">
+        <button id="sidebar-toggle" @click="mobileSidebarOpen = true" class="lg:hidden p-2 rounded-lg hover:bg-black/10 transition text-white/90">
             <i class="fa-solid fa-bars text-lg"></i>
         </button>
 
@@ -12,7 +17,7 @@
             </div>
             <div>
                 <h1 class="font-extrabold text-sm uppercase tracking-wider leading-tight text-white">Intranet DPEMT</h1>
-                <p class="text-[10px] text-emerald-200 uppercase tracking-widest font-medium">Defensoria Pública do Estado de Mato Grosso</p>
+                <p class="text-[10px] text-white/70 uppercase tracking-widest font-medium">Defensoria Pública do Estado de Mato Grosso</p>
             </div>
         </div>
     </div>
@@ -20,29 +25,27 @@
     <div class="hidden md:flex items-center flex-1 max-w-md mx-8">
         <div class="relative w-full">
             <input type="text" placeholder="Buscar no sistema..."
-                class="w-full py-1.5 pl-4 pr-10 rounded-full bg-emerald-950/60 border border-emerald-700/50 text-white placeholder-emerald-300/70 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400" />
-            <button class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-300 hover:text-white">
+                class="w-full py-1.5 pl-4 pr-10 rounded-full bg-black/20 border border-white/20 text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-white/40" />
+            <button class="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white">
                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
             </button>
         </div>
     </div>
 
     <div class="flex items-center gap-4" x-data="{ userMenuOpen: false }">
-        <button class="relative p-2 rounded-full hover:bg-emerald-800/60 text-emerald-100 transition">
-            <i class="fa-regular fa-bell text-lg"></i>
-        </button>
+        <x-ui.theme-toggle class="relative p-2 rounded-full hover:bg-black/10 text-white/90 transition" style="color: inherit;" />
 
-        <div class="h-6 w-px bg-emerald-800 hidden sm:block"></div>
+        <div class="h-6 w-px bg-white/20 hidden sm:block"></div>
 
         <div class="relative">
-            <button @click="userMenuOpen = !userMenuOpen" class="flex items-center gap-2.5 cursor-pointer p-1 rounded-lg hover:bg-emerald-800/40 transition">
-                <div class="w-8 h-8 rounded-full bg-emerald-700 overflow-hidden border border-emerald-400 flex items-center justify-center text-white font-bold text-xs">
+            <button @click="userMenuOpen = !userMenuOpen" class="flex items-center gap-2.5 cursor-pointer p-1 rounded-lg hover:bg-black/10 transition">
+                <div class="w-8 h-8 rounded-full bg-black/20 overflow-hidden border border-white/30 flex items-center justify-center text-white font-bold text-xs">
                     {{ auth()->user()->getAvatarInitials() }}
                 </div>
                 <div class="hidden sm:block text-left">
                     <span class="text-xs font-semibold text-white block leading-tight">{{ auth()->user()->name }}</span>
                 </div>
-                <i class="fa-solid fa-chevron-down text-[10px] text-emerald-300"></i>
+                <i class="fa-solid fa-chevron-down text-[10px] text-white/70"></i>
             </button>
 
             <div x-show="userMenuOpen" @click.outside="userMenuOpen = false" x-cloak

@@ -9,34 +9,33 @@ use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
+/**
+ * Cria os três papéis de acesso da intranet (Super Administrador, Administrador
+ * e Defensor) com suas permissões, garante que todas as permissões do sistema
+ * existam no banco e cria o usuário admin padrão para o primeiro acesso.
+ */
 class AclSeeder extends Seeder
 {
     public function run(): void
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
+        // Garante que todas as permissões cadastradas em PermissionManager existam no banco.
         (new PermissionManager)->ensureAll();
 
+        // Mapa de papel => lista de permissões concedidas a esse papel.
         $roleDefinitions = [
             'Super Administrador' => PermissionManager::inventory(),
 
             'Administrador' => [
-                'users.view', 'users.create', 'users.update', 'users.delete', 'users.manage',
-                'roles.view',
                 'content.view', 'content.create', 'content.update', 'content.delete', 'content.publish',
                 'media.upload',
-                'settings.manage',
                 'services.manage',
+                'forum.manage',
             ],
 
-            'Gestor' => [
-                'content.view', 'content.create', 'content.update', 'content.publish',
-                'media.upload',
-            ],
-
-            'Editor' => [
-                'content.view', 'content.create', 'content.update',
-                'media.upload',
+            'Defensor' => [
+                'council.manage',
             ],
         ];
 

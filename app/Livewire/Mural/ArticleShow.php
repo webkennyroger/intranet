@@ -5,6 +5,10 @@ namespace App\Livewire\Mural;
 use App\Models\Article;
 use Livewire\Component;
 
+/**
+ * Página de detalhe de uma matéria do Mural: exibe o artigo publicado
+ * e permite curtir/descurtir.
+ */
 class ArticleShow extends Component
 {
     public Article $article;

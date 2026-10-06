@@ -1,49 +1,87 @@
-<div class="max-w-7xl mx-auto space-y-4">
-    <div class="flex items-center justify-between">
-        <h2 class="text-xl font-bold text-slate-800">Serviços</h2>
-        <div>
+{{--
+    Tela de gestão de Links de Serviços (admin).
+    Lista os serviços exibidos no site, com reordenação por
+    arrastar-e-soltar, e permite criar, editar, ativar/desativar e
+    excluir links.
+--}}
+<div class="space-y-4">
+    <!-- Cabeçalho da Página -->
+    <x-admin.page-header
+        icon="sliders"
+        title="Serviços"
+        subtitle="Gerencie os links de serviços exibidos no site."
+    >
+        <x-slot:actions>
             <x-ui.button wire:click="closeForm" x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'service-link-form' }))">
                 Novo serviço
             </x-ui.button>
-        </div>
+        </x-slot:actions>
+    </x-admin.page-header>
+
+    <!-- Estatísticas (Cards) -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <x-admin.stat-card label="Total de serviços" :value="$totalLinks" sublabel="Links cadastrados" />
+        <x-admin.stat-card label="Ativos" :value="$activeLinks" sublabel="Visíveis no site" valueColor="var(--admin-primary-dark)" />
+        <x-admin.stat-card label="Inativos" :value="$inactiveLinks" sublabel="Ocultos do site" />
     </div>
 
-    <x-ui.data-table>
+    <!-- Tabela de Serviços (Reordenável) -->
+    <x-ui.data-table sortable sortMethod="reorder" selectable>
         <x-slot:header>
-            <th class="px-6 py-3">Ícone</th>
-            <th class="px-6 py-3">Título</th>
-            <th class="px-6 py-3">URL</th>
-            <th class="px-6 py-3">Status</th>
-            <th class="px-6 py-3">Ações</th>
+            <th class="px-4 py-3 w-8"><x-ui.table-checkbox header /></th>
+            <th class="px-4 py-3 w-8"></th>
+            <th class="px-6 py-3"><i class="fa-solid fa-gear mr-1 opacity-60"></i> Serviço</th>
+            <th class="px-6 py-3"><i class="fa-solid fa-link mr-1 opacity-60"></i> URL</th>
+            <th class="px-6 py-3"><i class="fa-solid fa-circle-check mr-1 opacity-60"></i> Status</th>
+            <th class="px-6 py-3"><i class="fa-solid fa-bolt mr-1 opacity-60"></i> Ações</th>
         </x-slot:header>
 
         @foreach ($links as $link)
-            <tr>
-                <td class="px-6 py-3"><i class="fa-solid fa-{{ $link->icon }} text-emerald-800"></i></td>
-                <td class="px-6 py-3">{{ $link->title }}</td>
-                <td class="px-6 py-3 text-slate-500 truncate max-w-xs">{{ $link->url }}</td>
-                <td class="px-6 py-3">{{ $link->is_active ? 'Ativo' : 'Inativo' }}</td>
-                <td class="px-6 py-3 space-x-2 whitespace-nowrap">
-                    <button wire:click="moveUp({{ $link->id }})" class="text-sm text-slate-500 hover:underline">
-                        <i class="fa-solid fa-arrow-up"></i>
-                    </button>
-                    <button wire:click="moveDown({{ $link->id }})" class="text-sm text-slate-500 hover:underline">
-                        <i class="fa-solid fa-arrow-down"></i>
-                    </button>
-                    <button wire:click="edit({{ $link->id }})" x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'service-link-form' }))" class="text-sm text-emerald-700 hover:underline">
-                        Editar
-                    </button>
-                    <button wire:click="toggleActive({{ $link->id }})" class="text-sm text-amber-700 hover:underline">
-                        {{ $link->is_active ? 'Desativar' : 'Ativar' }}
-                    </button>
-                    <button wire:click="delete({{ $link->id }})" wire:confirm="Confirma a exclusão deste serviço?" class="text-sm text-red-700 hover:underline">
-                        Excluir
-                    </button>
+            <tr
+                wire:key="service-link-{{ $link->id }}"
+                data-sort-id="{{ $link->id }}"
+                draggable="false"
+                x-on:dragstart="start($event)"
+                x-on:dragend="end($event)"
+                x-on:dragover.prevent
+                x-on:drop="drop($event)"
+            >
+                <td class="px-4 py-3"><x-ui.table-checkbox /></td>
+                <td class="px-4 py-3">
+                    <x-ui.drag-handle />
+                </td>
+                <td class="px-6 py-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style="background-color: var(--admin-primary-light);">
+                            <i class="fa-solid fa-{{ $link->icon }}" style="color: var(--admin-primary);"></i>
+                        </span>
+                        <span class="font-semibold" style="color: var(--text-primary);">{{ $link->title }}</span>
+                    </div>
+                </td>
+                <td class="px-6 py-3 truncate max-w-xs" style="color: var(--text-secondary);">{{ $link->url }}</td>
+                <td class="px-6 py-3"><x-ui.badge :variant="$link->is_active ? 'success' : 'default'">{{ $link->is_active ? 'Ativo' : 'Inativo' }}</x-ui.badge></td>
+                <td class="px-6 py-3 space-x-3 whitespace-nowrap">
+                    <x-ui.tooltip text="Editar">
+                        <button wire:click="edit({{ $link->id }})" x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'service-link-form' }))" class="text-emerald-700">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                    </x-ui.tooltip>
+                    <x-ui.tooltip :text="$link->is_active ? 'Desativar' : 'Ativar'">
+                        <button wire:click="toggleActive({{ $link->id }})" class="text-amber-700">
+                            <i class="fa-solid fa-{{ $link->is_active ? 'toggle-off' : 'toggle-on' }}"></i>
+                        </button>
+                    </x-ui.tooltip>
+                    <x-ui.tooltip text="Excluir">
+                        <button wire:click="delete({{ $link->id }})" wire:confirm="Confirma a exclusão deste serviço?" class="text-red-700">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </x-ui.tooltip>
                 </td>
             </tr>
         @endforeach
     </x-ui.data-table>
 
+    <!-- Modal: Formulário de Serviço -->
     <x-ui.modal name="service-link-form" maxWidth="lg">
         <x-slot:header>Serviço</x-slot:header>
         <livewire:admin.services.service-link-form :link="$editingLink" :key="'service-link-form-'.($editingLinkId ?? 'new')" />

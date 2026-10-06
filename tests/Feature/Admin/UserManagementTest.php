@@ -17,24 +17,24 @@ test('a Super Administrador can view the user management page', function () {
         ->assertSeeLivewire(UserIndex::class);
 });
 
-test('a Gestor is forbidden from the user management page', function () {
+test('a Defensor is forbidden from the user management page', function () {
     $this->seed(AclSeeder::class);
 
-    $gestor = User::factory()->create();
-    $gestor->assignRole('Gestor');
+    $defensor = User::factory()->create();
+    $defensor->assignRole('Defensor');
 
-    $this->actingAs($gestor)
+    $this->actingAs($defensor)
         ->get(route('admin.users.index'))
         ->assertStatus(403);
 });
 
-test('an Editor is forbidden from the user management page', function () {
+test('an Administrador is forbidden from the user management page', function () {
     $this->seed(AclSeeder::class);
 
-    $editor = User::factory()->create();
-    $editor->assignRole('Editor');
+    $admin = User::factory()->create();
+    $admin->assignRole('Administrador');
 
-    $this->actingAs($editor)
+    $this->actingAs($admin)
         ->get(route('admin.users.index'))
         ->assertStatus(403);
 });
@@ -89,7 +89,7 @@ test('an admin can delete a different, non-last-super-admin user', function () {
     $admin = User::factory()->create();
     $admin->assignRole('Super Administrador');
     $editor = User::factory()->create();
-    $editor->assignRole('Editor');
+    $editor->assignRole('Defensor');
 
     $this->actingAs($admin);
 
@@ -113,15 +113,11 @@ test('blocking the sole Super Administrador is blocked', function () {
     expect($admin->refresh()->isActive())->toBeTrue();
 });
 
-test('an Administrador cannot delete the sole Super Administrador', function () {
+test('an Administrador has no permission to delete users at all', function () {
     $this->seed(AclSeeder::class);
 
-    // AclSeeder creates a default Super Administrador. Find and delete all but the target one.
     $superAdmin = User::factory()->create();
     $superAdmin->assignRole('Super Administrador');
-
-    // Delete the default Super Administrador so only our target remains
-    User::where('email', 'admin@defensoria.am.gov.br')->delete();
 
     $admin = User::factory()->create();
     $admin->assignRole('Administrador');
@@ -130,7 +126,7 @@ test('an Administrador cannot delete the sole Super Administrador', function () 
 
     Livewire::test(UserIndex::class)
         ->call('delete', $superAdmin->id)
-        ->assertHasErrors();
+        ->assertForbidden();
 
     expect(User::find($superAdmin->id))->not->toBeNull();
 });
@@ -141,7 +137,7 @@ test('clicking edit on a user loads their data into the form', function () {
     $admin = User::factory()->create();
     $admin->assignRole('Super Administrador');
     $target = User::factory()->create(['name' => 'Fernanda Costa']);
-    $target->assignRole('Editor');
+    $target->assignRole('Defensor');
 
     $this->actingAs($admin);
 
@@ -150,15 +146,11 @@ test('clicking edit on a user loads their data into the form', function () {
         ->assertSee('Fernanda Costa');
 });
 
-test('an Administrador cannot block the sole Super Administrador', function () {
+test('an Administrador has no permission to block users at all', function () {
     $this->seed(AclSeeder::class);
 
-    // AclSeeder creates a default Super Administrador. Find and delete all but the target one.
     $superAdmin = User::factory()->create();
     $superAdmin->assignRole('Super Administrador');
-
-    // Delete the default Super Administrador so only our target remains
-    User::where('email', 'admin@defensoria.am.gov.br')->delete();
 
     $admin = User::factory()->create();
     $admin->assignRole('Administrador');
@@ -167,7 +159,78 @@ test('an Administrador cannot block the sole Super Administrador', function () {
 
     Livewire::test(UserIndex::class)
         ->call('toggleBlock', $superAdmin->id)
-        ->assertHasErrors();
+        ->assertForbidden();
 
     expect($superAdmin->refresh()->isActive())->toBeTrue();
+});
+
+test('search filters the user list by name or email', function () {
+    $this->seed(AclSeeder::class);
+
+    $admin = User::factory()->create();
+    $admin->assignRole('Super Administrador');
+    User::factory()->create(['name' => 'Fernanda Costa', 'email' => 'fernanda@defensoria.am.gov.br']);
+    User::factory()->create(['name' => 'Marcos Lima', 'email' => 'marcos@defensoria.am.gov.br']);
+
+    $this->actingAs($admin);
+
+    Livewire::test(UserIndex::class)
+        ->set('search', 'Fernanda')
+        ->assertSee('Fernanda Costa')
+        ->assertDontSee('Marcos Lima');
+});
+
+test('changing the role via the inline select updates the user role', function () {
+    $this->seed(AclSeeder::class);
+
+    $admin = User::factory()->create();
+    $admin->assignRole('Super Administrador');
+    $editor = User::factory()->create();
+    $editor->assignRole('Defensor');
+
+    $this->actingAs($admin);
+
+    Livewire::test(UserIndex::class)
+        ->set("roleChoice.{$editor->id}", 'Administrador')
+        ->call('changeRole', $editor->id)
+        ->assertHasNoErrors();
+
+    expect($editor->refresh()->hasRole('Administrador'))->toBeTrue();
+});
+
+test('changing the role to Defensor via the inline select updates the user role', function () {
+    $this->seed(AclSeeder::class);
+
+    $admin = User::factory()->create();
+    $admin->assignRole('Super Administrador');
+    $target = User::factory()->create();
+    $target->assignRole('Administrador');
+
+    $this->actingAs($admin);
+
+    Livewire::test(UserIndex::class)
+        ->set("roleChoice.{$target->id}", 'Defensor')
+        ->call('changeRole', $target->id)
+        ->assertHasNoErrors();
+
+    expect($target->refresh()->hasRole('Defensor'))->toBeTrue();
+});
+
+test('demoting the sole Super Administrador via the inline select is blocked', function () {
+    $this->seed(AclSeeder::class);
+
+    $admin = User::factory()->create();
+    $admin->assignRole('Super Administrador');
+
+    // Delete the default Super Administrador so only our target remains
+    User::where('email', 'admin@defensoria.am.gov.br')->delete();
+
+    $this->actingAs($admin);
+
+    Livewire::test(UserIndex::class)
+        ->set("roleChoice.{$admin->id}", 'Administrador')
+        ->call('changeRole', $admin->id)
+        ->assertHasErrors(['role']);
+
+    expect($admin->refresh()->hasRole('Super Administrador'))->toBeTrue();
 });

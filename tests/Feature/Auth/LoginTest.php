@@ -21,6 +21,22 @@ test('a user with correct credentials and active status can log in', function ()
     $this->assertAuthenticatedAs($user);
 });
 
+test('logging in records the last login timestamp', function () {
+    $user = User::factory()->create([
+        'email' => 'ana@defensoria.am.gov.br',
+        'password' => bcrypt('senha-correta'),
+        'status' => UserStatus::Active,
+        'last_login_at' => null,
+    ]);
+
+    Livewire::test(Login::class)
+        ->set('email', $user->email)
+        ->set('password', 'senha-correta')
+        ->call('submit');
+
+    expect($user->refresh()->last_login_at)->not->toBeNull();
+});
+
 test('a user with the wrong password cannot log in', function () {
     User::factory()->create([
         'email' => 'ana@defensoria.am.gov.br',
