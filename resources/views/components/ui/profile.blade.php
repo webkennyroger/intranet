@@ -1,3 +1,7 @@
+{{--
+    Cartão de perfil (avatar/iniciais + nome + cargo + slot de ações). Componente
+    genérico do kit de UI, ainda não usado em nenhuma tela deste projeto.
+--}}
 @props([
     'name' => null,
     'role' => null,

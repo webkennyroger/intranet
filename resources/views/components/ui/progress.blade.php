@@ -1,3 +1,8 @@
+{{--
+    Barra de progresso (valor/máximo convertido em porcentagem visual).
+    Componente genérico do kit de UI, ainda não usado em nenhuma tela deste
+    projeto.
+--}}
 @props([
     'value' => 0,
     'max' => 100,

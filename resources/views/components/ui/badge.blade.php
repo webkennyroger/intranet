@@ -1,3 +1,8 @@
+{{--
+    Etiqueta (badge) colorida por variante (primary/warning/danger/info/
+    success), usada em várias telas do admin para status, contagens etc.
+    "dot" acrescenta uma bolinha indicadora antes do texto.
+--}}
 @props([
     'variant' => 'default',
     'size' => 'md',

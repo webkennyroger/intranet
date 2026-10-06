@@ -1,3 +1,9 @@
+{{--
+    Botão padrão usado em todo o admin (vira link <a> se "href" for
+    informado). Suporta variantes de cor, tamanhos, ícone à esquerda/
+    direita e um estado "loading" que mostra um spinner e desabilita o
+    botão automaticamente durante wire:loading.
+--}}
 @props([
     'variant' => 'primary',
     'size' => 'md',
@@ -13,21 +19,21 @@
     $base = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
 
     $variantStyles = [
-        'primary' => '',
+        'primary' => 'background-color: var(--admin-primary, var(--brand-primary, #0C4A34)); color: #fff;',
         'secondary' => 'background-color: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border-color);',
         'danger' => 'background-color: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);',
         'ghost' => 'color: var(--text-secondary);',
-        'link' => 'color: #34d399;',
-        'outline' => '',
+        'link' => 'color: var(--admin-primary, var(--brand-primary, #0C4A34));',
+        'outline' => 'border: 2px solid var(--admin-primary, var(--brand-primary, #0C4A34)); color: var(--admin-primary, var(--brand-primary, #0C4A34));',
     ];
 
     $variants = [
-        'primary' => 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white focus:ring-emerald-500/50 shadow-lg shadow-emerald-500/20',
+        'primary' => 'hover:brightness-110 active:brightness-95 focus:ring-black/20 shadow-lg shadow-black/10',
         'secondary' => 'hover:opacity-80 focus:ring-emerald-500/30',
         'danger' => 'hover:opacity-80 focus:ring-red-500/50',
         'ghost' => 'hover:bg-[var(--bg-hover)] focus:ring-emerald-500/30',
-        'link' => 'hover:text-emerald-300 underline-offset-4 hover:underline p-0 h-auto focus:ring-0',
-        'outline' => 'border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 focus:ring-emerald-500/30',
+        'link' => 'hover:brightness-110 underline-offset-4 hover:underline p-0 h-auto focus:ring-0',
+        'outline' => 'hover:brightness-110 focus:ring-black/20',
     ];
 
     $sizes = [

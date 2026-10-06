@@ -1,3 +1,8 @@
+{{--
+    Área de upload de arquivo por clique ou por arrastar-e-soltar, que
+    repassa os arquivos pro input nativo escondido. Componente genérico do
+    kit de UI, ainda não usado em nenhuma tela deste projeto.
+--}}
 @props([
     'label' => null,
     'error' => null,

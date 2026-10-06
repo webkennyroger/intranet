@@ -1,3 +1,8 @@
+{{--
+    Componente genérico do kit de UI, ainda não usado em nenhuma tela deste
+    projeto (não está incluído em nenhum layout). O comentário mais abaixo
+    já explica como ligá-lo e dispará-lo, caso venha a ser adotado.
+--}}
 @props([
     'position' => 'bottom-right',
     'duration' => 4000,

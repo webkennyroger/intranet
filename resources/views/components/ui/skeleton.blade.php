@@ -1,3 +1,8 @@
+{{--
+    Placeholder "pulsante" para conteúdo ainda carregando (texto, círculo ou
+    retângulo). Componente genérico do kit de UI, ainda não usado em nenhuma
+    tela deste projeto.
+--}}
 @props([
     'variant' => 'text',
     'width' => null,

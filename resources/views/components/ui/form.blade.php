@@ -1,3 +1,9 @@
+{{--
+    Cartão de formulário genérico: título/descrição opcionais no topo, os
+    campos no slot padrão e uma faixa de ações (slot "actions") no final.
+    Componente genérico do kit de UI, ainda não usado em nenhuma tela
+    deste projeto.
+--}}
 @props([
     'title' => null,
     'description' => null,

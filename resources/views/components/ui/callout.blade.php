@@ -1,3 +1,9 @@
+{{--
+    Caixa de destaque colorida por variante (info/success/warning/danger)
+    com ícone fixo (via <x-ui.icon>) e título opcional. Parecido com
+    <x-ui.alert>, mas sem botão de fechar. Componente genérico do kit de
+    UI, ainda não usado em nenhuma tela deste projeto.
+--}}
 @props([
     'variant' => 'info',
     'icon' => null,

@@ -1,3 +1,8 @@
+{{--
+    Wrapper de campo de formulário: label opcional (com badge ao lado), o
+    input/slot principal, e mensagem de erro ou hint abaixo. Componente
+    genérico do kit de UI, ainda não usado em nenhuma tela deste projeto.
+--}}
 @props([
     'label' => null,
     'badge' => null,

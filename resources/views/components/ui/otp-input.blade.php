@@ -1,3 +1,9 @@
+{{--
+    Campo de código OTP (um input por dígito, com navegação automática entre
+    eles e suporte a colar o código inteiro). Componente genérico do kit de UI,
+    ainda não usado em nenhuma tela deste projeto. Integra com wire:model via
+    $wire.entangle, juntando os dígitos num único valor.
+--}}
 @props([
     'length' => 6,
     'label' => null,

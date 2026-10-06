@@ -1,3 +1,8 @@
+{{--
+    Grupo de opções exclusivas estilo "segmented control" (radios escondidos
+    + pílula destacando a opção ativa). Componente genérico do kit de UI, ainda
+    não usado em nenhuma tela deste projeto.
+--}}
 @props([
     'options' => [],
     'value' => null,

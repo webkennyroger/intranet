@@ -1,3 +1,9 @@
+{{--
+    Campo de texto padrão do projeto (label + input + ícone opcional + erro/hint).
+    Muito usado nos formulários do admin (usuários, artigos, links de serviço etc.).
+    O estado de erro é só visual: quem decide se há erro é o componente Livewire
+    que usa este input, passando a prop "error".
+--}}
 @props([
     'label' => null,
     'error' => null,

@@ -1,3 +1,8 @@
+{{--
+    Checkbox estilizado (esconde o input nativo e desenha a caixinha com
+    CSS/Tailwind) com label, descrição/hint e mensagem de erro. Usado em
+    formulários do admin.
+--}}
 @props([
     'label' => null,
     'description' => null,

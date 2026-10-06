@@ -1,3 +1,8 @@
+{{--
+    Agrupador (fieldset) para várias <x-ui.radio>, com legenda, descrição e erro
+    comuns ao grupo. Componente genérico do kit de UI, ainda não usado em
+    nenhuma tela deste projeto.
+--}}
 @props([
     'label' => null,
     'description' => null,

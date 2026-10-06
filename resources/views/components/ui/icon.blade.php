@@ -1,3 +1,10 @@
+{{--
+    Sistema de ícones SVG próprio do kit de UI (mapa fixo de paths por
+    nome), diferente do FontAwesome usado no restante do admin. É usado
+    internamente por vários componentes deste kit (botão, breadcrumbs,
+    checkbox, empty-state etc.) que já estão em uso em telas reais; ainda
+    não é chamado diretamente fora do kit de UI.
+--}}
 @props([
     'name' => 'question-mark-circle',
     'variant' => 'outline',

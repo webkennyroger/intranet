@@ -1,4 +1,8 @@
 {{--
+    Campo de hora (label + input + ícone + erro/hint), no mesmo padrão visual
+    do <x-ui.input>. Componente genérico do kit de UI, ainda não usado em
+    nenhuma tela deste projeto.
+
     Decisão de design: em vez de construir um dropdown de hora/minuto em
     Alpine (mais código, mais superfície de bug, sem ganho real de UX),
     usamos <input type="time"> nativo estilizado — o próprio navegador já

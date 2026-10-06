@@ -1,3 +1,9 @@
+{{--
+    Gráfico de barras simples (vertical ou horizontal) renderizado em HTML/
+    CSS puro a partir de uma lista "data" de pontos {label, value}, sem
+    depender de nenhuma biblioteca de gráficos JS. Componente genérico do
+    kit de UI, ainda não usado em nenhuma tela deste projeto.
+--}}
 @props([
     'data' => [],
     'type' => 'bar',

@@ -1,3 +1,9 @@
+{{--
+    Campo de texto com sugestões filtradas localmente (lista fixa recebida
+    em "options", sem busca no servidor) exibidas num dropdown abaixo do
+    input. Componente genérico do kit de UI, ainda não usado em nenhuma
+    tela deste projeto.
+--}}
 @props([
     'label' => null,
     'options' => [],

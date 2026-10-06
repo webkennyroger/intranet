@@ -1,3 +1,9 @@
+{{--
+    Carrossel de imagens com autoplay opcional, setas de navegação e
+    indicadores (dots). Aceita uma lista "items" (image/caption) ou um
+    slot customizado. Componente genérico do kit de UI, ainda não usado em
+    nenhuma tela deste projeto.
+--}}
 @props([
     'items' => [],
     'autoplay' => false,

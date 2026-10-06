@@ -1,3 +1,8 @@
+{{--
+    Linha divisória (horizontal ou vertical), com rótulo opcional no meio
+    (ex.: "ou"). Componente genérico do kit de UI, ainda não usado em nenhuma
+    tela deste projeto.
+--}}
 @props([
     'orientation' => 'horizontal',
     'vertical' => false,

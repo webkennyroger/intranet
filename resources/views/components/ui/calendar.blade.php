@@ -1,3 +1,9 @@
+{{--
+    Grade de calendário mensal "burra" (sem campo de texto), pensada para
+    ser usada dentro do <x-ui.date-picker>, mas também funciona sozinha com
+    wire:model. Hoje só é referenciada pelo date-picker, que por sua vez
+    ainda não está em uso em nenhuma tela deste projeto.
+--}}
 @props([
     'label' => null,
     'value' => null,

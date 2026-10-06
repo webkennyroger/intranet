@@ -1,3 +1,8 @@
+{{--
+    Barra de navegação horizontal (marca + links + ações). Componente genérico
+    do kit de UI, ainda não usado em nenhuma tela deste projeto — o layout atual
+    usa o header/sidebar próprios da intranet em vez deste.
+--}}
 @props([
     'items' => [],
 ])

@@ -1,3 +1,11 @@
+{{--
+    Modal genérico (overlay + painel), muito usado no admin para confirmações
+    e formulários em pop-up. Fica escondido por padrão e abre/fecha ouvindo
+    eventos de window: dispare `window.dispatchEvent(new CustomEvent('open-modal',
+    { detail: 'nome-do-modal' }))` para abrir e o mesmo com "close-modal" para
+    fechar — o "name" da prop precisa casar com o "detail" enviado. Também fecha
+    com Esc ou clique no backdrop.
+--}}
 @props([
     'name' => 'modal',
     'maxWidth' => 'md',
@@ -17,7 +25,7 @@
 
 <div
     x-data="{ open: false }"
-    x-on:open-modal.window="$event.detail === '{{ $name }}' && (open = true)"
+    x-on:open-modal.window="(Array.isArray($event.detail) ? $event.detail[0] : $event.detail) === '{{ $name }}' && (open = true)"
     x-on:close-modal.window="$event.detail === '{{ $name }}' && (open = false)"
     x-on:keydown.escape.window="open = false"
     x-show="open"

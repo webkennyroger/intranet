@@ -1,3 +1,9 @@
+{{--
+    Container de accordion (lista de painéis expansíveis via
+    <x-ui.accordion-item>). "exclusive" faz só um item ficar aberto por vez.
+    Componente genérico do kit de UI, ainda não usado em nenhuma tela deste
+    projeto.
+--}}
 @props([
     'exclusive' => false,
 ])

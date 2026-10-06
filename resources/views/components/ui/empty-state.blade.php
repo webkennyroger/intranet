@@ -1,3 +1,8 @@
+{{--
+    Bloco de "nenhum resultado encontrado" exibido quando uma listagem do
+    admin está vazia, com ícone, título, descrição e uma ação opcional
+    (ex.: botão de criar o primeiro registro).
+--}}
 @props([
     'title' => 'Nenhum resultado encontrado',
     'description' => null,

@@ -1,3 +1,8 @@
+{{--
+    Trilha de navegação (breadcrumb) a partir de uma lista "items" com
+    label/href. Usado pelo <x-admin.page-header> para mostrar o caminho da
+    página atual dentro do admin.
+--}}
 @props([
     'items' => [],
 ])

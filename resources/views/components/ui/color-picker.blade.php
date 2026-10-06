@@ -1,3 +1,8 @@
+{{--
+    Campo de cor: um color picker nativo do navegador ao lado de um input
+    de texto (hex) sincronizados, mais uma paleta de swatches rápidos.
+    Usado no formulário de artigos para escolher a cor da capa.
+--}}
 @props([
     'label' => null,
     'hint' => null,

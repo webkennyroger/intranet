@@ -1,3 +1,8 @@
+{{--
+    Botão de rádio estilizado (input nativo escondido + bolinha customizada).
+    Componente genérico do kit de UI, ainda não usado em nenhuma tela deste
+    projeto. Pensado para ser usado dentro de <x-ui.radio-group>.
+--}}
 @props([
     'label' => null,
     'description' => null,

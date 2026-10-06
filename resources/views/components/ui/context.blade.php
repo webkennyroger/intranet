@@ -1,14 +1,14 @@
+{{--
+    Menu de contexto (clique com o botão direito). O slot "trigger" é o
+    elemento que recebe o clique direito; o slot padrão são as opções do
+    menu (normalmente <x-ui.context-item>). O menu aparece ancorado nas
+    coordenadas exatas do clique e se ajusta pra não vazar da viewport.
+    Componente genérico do kit de UI, ainda não usado em nenhuma tela
+    deste projeto.
+--}}
 @props([
     'width' => '56',
 ])
-
-{{--
-    Menu de contexto (clique com o botão direito). O slot `trigger` é o
-    elemento que recebe o clique direito; o slot padrão são as opções do
-    menu (normalmente <x-ui.context-item>). O menu aparece ancorado nas
-    coordenadas exatas do clique ($event.clientX/clientY) e se ajusta pra
-    não vazar da viewport.
---}}
 
 @php
     $widthClass = match($width) {

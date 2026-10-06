@@ -1,3 +1,9 @@
+{{--
+    Título de seção com tamanho visual ("size") e nível semântico de
+    heading ("level", h1-h6) configuráveis de forma independente — o nível
+    não precisa bater com o tamanho. Componente genérico do kit de UI,
+    ainda não usado em nenhuma tela deste projeto.
+--}}
 @props([
     'size' => 'md',
     'level' => null,

@@ -1,13 +1,16 @@
+{{--
+    Item individual de um <x-ui.context> (menu de contexto). Renderiza <a>
+    quando "href" é informado (e não está desabilitado) ou <button> caso
+    contrário, pra permitir tanto navegação quanto ações via wire:click/
+    @click. Componente genérico do kit de UI, ainda não usado em nenhuma
+    tela deste projeto.
+--}}
 @props([
     'icon' => null,
     'href' => null,
     'danger' => false,
     'disabled' => false,
 ])
-
-{{-- Item individual de um <x-ui.context>. Renderiza <a> quando `href` é
-    informado (e não está desabilitado) ou <button> caso contrário, pra
-    permitir tanto navegação quanto ações via wire:click/@click. --}}
 
 @php
     $colorStyle = $danger ? 'color: rgb(248, 113, 113);' : 'color: var(--text-primary);';

@@ -1,3 +1,8 @@
+{{--
+    Controle deslizante (input range) com valor atual exibido ao lado do label.
+    Componente genérico do kit de UI, ainda não usado em nenhuma tela deste
+    projeto.
+--}}
 @props([
     'label' => null,
     'min' => 0,

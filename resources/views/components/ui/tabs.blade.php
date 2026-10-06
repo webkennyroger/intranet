@@ -1,3 +1,10 @@
+{{--
+    Abas que alternam painéis já renderizados no HTML, trocando a exibição no
+    cliente via Alpine (x-show), sem recarregar nada do servidor. Não serve pra
+    filtrar uma listagem paginada (isso precisaria de um filtro no backend).
+    Componente genérico do kit de UI, ainda não usado em nenhuma tela deste
+    projeto.
+--}}
 @props([
     'tabs' => [],
     'active' => null,

@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
 
-@custom-variant dark (&:not(.light, .light *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 @source '../views/**/*.blade.php';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -25,22 +25,6 @@
 }
 
 :root {
-    --bg-base: hsl(160 49% 8%);
-    --bg-surface: hsl(160 47% 11%);
-    --bg-elevated: hsl(160 33% 17%);
-    --bg-hover: hsl(160 33% 17% / 0.6);
-    --bg-card: hsl(160 47% 11% / 0.6);
-    --bg-input: hsl(160 33% 17% / 0.5);
-    --text-primary: hsl(160 40% 96%);
-    --text-secondary: hsl(160 20% 65%);
-    --text-muted: hsl(160 16% 47%);
-    --border-color: hsl(160 25% 27% / 0.8);
-    --border-subtle: hsl(160 25% 27% / 0.5);
-    --scrollbar-thumb: hsl(160 25% 27%);
-    --scrollbar-hover: hsl(160 19% 35%);
-}
-
-.light {
     --bg-base: #f8fafc;
     --bg-surface: #ffffff;
     --bg-elevated: #f1f5f9;
@@ -56,9 +40,29 @@
     --scrollbar-hover: #94a3b8;
 }
 
+.dark {
+    --bg-base: #081712;
+    --bg-surface: #0c221a;
+    --bg-elevated: #112a21;
+    --bg-hover: #16352a;
+    --bg-card: #0c221af2;
+    --bg-input: #16352a80;
+    --text-primary: #e6f2ec;
+    --text-secondary: #8aa39a;
+    --text-muted: #70847d;
+    --border-color: #16352a;
+    --border-subtle: #16352a80;
+    --scrollbar-thumb: #16352a;
+    --scrollbar-hover: #1e4433;
+}
+
 html, body {
     background-color: var(--bg-base);
     color: var(--text-primary);
+}
+
+html.dark .site-dark-bg {
+    background-color: var(--bg-base);
 }
 
 [x-cloak] {

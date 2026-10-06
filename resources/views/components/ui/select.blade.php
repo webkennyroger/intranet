@@ -1,3 +1,8 @@
+{{--
+    Select nativo estilizado (label + <select> + erro/hint), usado em alguns
+    formulários do admin (ex.: status do usuário). As opções vêm como <option>
+    no slot, não pela prop "options" (que fica disponível mas não é usada hoje).
+--}}
 @props([
     'label' => null,
     'error' => null,

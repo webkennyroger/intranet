@@ -1,3 +1,9 @@
+{{--
+    Caixa de alerta colorida por variante (info/success/warning/danger),
+    com ícone e botão de fechar opcional ("dismissible", via x-show do
+    Alpine). Componente genérico do kit de UI, ainda não usado em nenhuma
+    tela deste projeto.
+--}}
 @props([
     'variant' => 'info',
     'title' => null,

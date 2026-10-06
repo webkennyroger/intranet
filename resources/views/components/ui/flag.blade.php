@@ -1,3 +1,9 @@
+{{--
+    Bandeira de país: usa uma imagem em "src" se informada, senão converte
+    o código ISO 3166-1 alpha-2 em "country" (ex.: "br") no emoji de
+    bandeira correspondente. Componente genérico do kit de UI, ainda não
+    usado em nenhuma tela deste projeto.
+--}}
 @props([
     'country' => null,
     'src' => null,

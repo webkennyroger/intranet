@@ -1,3 +1,9 @@
+{{--
+    Área de texto que cresce automaticamente conforme o usuário digita (até
+    "maxRows"), com contador de caracteres opcional e uma faixa de ações
+    (slot "actions") abaixo. Componente genérico do kit de UI, ainda não
+    usado em nenhuma tela deste projeto.
+--}}
 @props([
     'label' => null,
     'placeholder' => null,

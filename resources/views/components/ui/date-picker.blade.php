@@ -1,3 +1,8 @@
+{{--
+    Campo de data: botão que abre um <x-ui.calendar> num popover e exibe a
+    data escolhida formatada (dd/mm/aaaa). Componente genérico do kit de
+    UI, ainda não usado em nenhuma tela deste projeto.
+--}}
 @props([
     'label' => null,
     'placeholder' => 'Selecione uma data...',

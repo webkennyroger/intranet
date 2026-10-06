@@ -1,3 +1,9 @@
+{{--
+    Item individual de um <x-ui.accordion> (painel expansível). Depende do
+    x-data do componente pai (toggle/isOpen) — não funciona isolado.
+    Componente genérico do kit de UI, ainda não usado em nenhuma tela deste
+    projeto.
+--}}
 @props([
     'heading' => null,
     'expanded' => false,

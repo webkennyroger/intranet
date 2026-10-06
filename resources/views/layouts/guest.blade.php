@@ -1,3 +1,8 @@
+{{--
+    Layout minimalista usado pela tela de login (e outras telas sem
+    autenticação): sem header, sidebar ou menu, só o essencial pra
+    renderizar o conteúdo (slot) centralizado na página.
+--}}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>

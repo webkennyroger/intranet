@@ -1,3 +1,7 @@
+{{--
+    Cartão genérico com cantos arredondados e slots opcionais de "header" e
+    "footer". Usado em algumas telas do admin para agrupar conteúdo.
+--}}
 @props([
     'padding' => true,
 ])

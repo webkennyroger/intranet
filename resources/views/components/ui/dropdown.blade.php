@@ -1,3 +1,9 @@
+{{--
+    Menu suspenso genérico: o slot "trigger" é o elemento clicável e o
+    slot padrão é o conteúdo do menu que aparece/desaparece ao clicar.
+    Componente genérico do kit de UI, ainda não usado em nenhuma tela
+    deste projeto.
+--}}
 @props([
     'align' => 'right',
     'width' => '48',

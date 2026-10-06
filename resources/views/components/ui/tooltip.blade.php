@@ -1,3 +1,8 @@
+{{--
+    Dica flutuante que aparece ao passar o mouse (ou focar) sobre o conteúdo do
+    slot. Usado nos ícones de ação das tabelas do admin (ex.: "Editar",
+    "Excluir") para identificar cada botão.
+--}}
 @props([
     'text' => '',
     'position' => 'top',

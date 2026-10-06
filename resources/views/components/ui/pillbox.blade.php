@@ -1,3 +1,9 @@
+{{--
+    Campo de "tags"/pílulas: digita um valor, aperta Enter (ou vírgula) e ele
+    vira uma pílula removível na lista. Componente genérico do kit de UI, ainda
+    não usado em nenhuma tela deste projeto. Integra com wire:model via
+    $wire.entangle.
+--}}
 @props([
     'label' => null,
     'placeholder' => 'Adicionar e pressionar Enter...',

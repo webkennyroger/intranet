@@ -1,3 +1,9 @@
+{{--
+    Quadro Kanban com colunas e cartões arrastáveis (drag-and-drop em Alpine puro).
+    Componente genérico do kit de UI, ainda não usado em nenhuma tela deste projeto.
+    Ao mover um cartão, dispara o evento "kanban-card-moved" (cardId, fromColumn,
+    toColumn) para quem quiser persistir a mudança no backend.
+--}}
 @props([
     'columns' => [],
 ])

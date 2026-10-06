@@ -1,19 +1,15 @@
+{{--
+    Paleta de comandos "Cmd+K": abre com o atalho Cmd/Ctrl+{shortcut}, filtra
+    os itens de "items" (label/icon/kbd/href/action) enquanto o usuário
+    digita e permite navegar com as setas + Enter (Esc fecha). "action"
+    dispara um CustomEvent no window, deixando a regra de negócio pra quem
+    escuta. Componente genérico do kit de UI, ainda não usado em nenhuma
+    tela deste projeto.
+--}}
 @props([
     'items' => [],
     'shortcut' => 'k',
 ])
-
-{{--
-    Paleta de comandos "Cmd+K". Abre com o atalho Cmd/Ctrl+{shortcut}, com um
-    <x-ui.icon> ou slot de trigger opcional, filtra os itens conforme o usuário
-    digita e permite navegar com as setas + Enter (Esc fecha).
-
-    Cada item de $items aceita: 'label' (obrigatório), 'icon' (nome pra
-    <x-ui.icon>), 'kbd' (atalho exibido à direita), 'href' (navega ao
-    executar) e/ou 'action' (dispara um CustomEvent no window com esse nome,
-    pra quem estiver ouvindo via `x-on:{action}.window` ou Livewire#dispatch
-    decidir o que fazer — o componente em si não conhece regra de negócio).
---}}
 
 <div
     x-data="{

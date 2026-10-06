@@ -1,3 +1,8 @@
+{{--
+    Logo + nome da aplicação (ícone/imagem num box com gradiente ao lado do
+    nome). Usado pelo <x-ui.navbar> deste kit de UI; aceita o logo via slot
+    nomeado (<x-slot:logo>) ou via atributo "logo" com a URL da imagem.
+--}}
 @props([
     'name' => null,
     'logo' => null,

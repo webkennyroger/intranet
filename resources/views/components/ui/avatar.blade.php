@@ -1,3 +1,9 @@
+{{--
+    Avatar circular (ou quadrado) de usuário: mostra a imagem em "src" e,
+    se ela falhar ao carregar (ou não houver "src"), cai para as iniciais
+    calculadas a partir de "name" (ou um ícone genérico). Usado em várias
+    telas do admin para representar usuários.
+--}}
 @props([
     'src' => null,
     'name' => null,

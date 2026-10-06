@@ -1,3 +1,8 @@
+{{--
+    Painel flutuante que abre ao clicar num "trigger" (slot) e fecha ao clicar
+    fora, apertar Esc ou no botão "x". Componente genérico do kit de UI, ainda
+    não usado em nenhuma tela deste projeto.
+--}}
 @props([
     'position' => 'bottom',
     'align' => 'start',

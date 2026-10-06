@@ -1,3 +1,8 @@
+{{--
+    Spinner de carregamento com texto. Componente genérico do kit de UI, ainda
+    não usado em nenhuma tela deste projeto. "full" alterna entre uma versão
+    inline compacta e uma versão centralizada ocupando a área toda.
+--}}
 @props([
     'text' => 'Carregando...',
     'full' => false,

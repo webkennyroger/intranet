@@ -1,3 +1,8 @@
+{{--
+    Texto genérico (parágrafo ou span) com tamanho e variante de cor padronizados.
+    Componente genérico do kit de UI, ainda não usado em nenhuma tela deste
+    projeto.
+--}}
 @props([
     'size' => 'md',
     'variant' => 'default',

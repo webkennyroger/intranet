@@ -1,3 +1,8 @@
+{{--
+    Linha do tempo vertical (lista de eventos com data/título/descrição ligados
+    por uma linha). Componente genérico do kit de UI, ainda não usado em
+    nenhuma tela deste projeto.
+--}}
 @props([
     'items' => [],
 ])
