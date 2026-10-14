@@ -2,23 +2,21 @@
 
 namespace App\Livewire\Birthdays;
 
-use App\Models\User;
+use App\Models\BirthdayBanner;
 use Livewire\Component;
 
 /**
- * Página de aniversariantes do mês: lista os usuários que fazem
- * aniversário no mês atual, ordenados pelo dia do mês.
+ * Página de aniversariantes do mês: exibe o banner comemorativo
+ * daquele mês, cadastrado no admin (se houver um publicado).
  */
 class BirthdaysIndex extends Component
 {
     public function render()
     {
         return view('livewire.birthdays.birthdays-index', [
-            'birthdays' => User::whereNotNull('birth_date')
-                ->whereMonth('birth_date', now()->month)
-                ->get()
-                ->sortBy(fn ($user) => $user->birth_date->day)
-                ->values(),
+            'banner' => BirthdayBanner::where('month', now()->month)
+                ->where('is_published', true)
+                ->first(),
         ]);
     }
 }

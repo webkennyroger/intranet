@@ -54,7 +54,7 @@
             x-model="hex"
             @input="hex = normalize($event.target.value)"
             {{ $attributes->whereDoesntStartWith('wire:model')->merge([
-                'class' => 'flex-1 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition-all duration-200 px-4 py-2.5 text-sm font-mono ' .
+                'class' => 'flex-1 rounded-xl focus:outline-none focus:ring-2 focus:ring-(--focus-ring)/40 focus:border-(--focus-ring) transition-all duration-200 px-4 py-2.5 text-sm font-mono ' .
                     ($error ? 'border-red-500/50 focus:ring-red-500/40' : ''),
                 'placeholder' => '#10b981',
                 'maxlength' => 9,

@@ -1,25 +1,16 @@
 <?php
 
 use App\Livewire\Admin\Users\UserForm;
+use App\Models\BirthdayBanner;
 use App\Models\User;
 use Database\Seeders\AclSeeder;
 
-test('the birthdays page only shows users born in the current month, ordered by day', function () {
+test('the birthdays page shows an empty state when no banner is published for the current month', function () {
     $user = User::factory()->create();
-    $laterInMonth = User::factory()->create(['name' => 'Aniversariante Dia 25', 'birth_date' => now()->setDay(25)]);
-    $earlierInMonth = User::factory()->create(['name' => 'Aniversariante Dia 05', 'birth_date' => now()->setDay(5)]);
-    $otherMonth = User::factory()->create(['name' => 'Aniversariante Outro Mês', 'birth_date' => now()->subMonths(2)]);
-    $noBirthDate = User::factory()->create(['name' => 'Sem Data', 'birth_date' => null]);
 
-    $response = $this->actingAs($user)->get(route('birthdays.index'))
+    $this->actingAs($user)->get(route('birthdays.index'))
         ->assertOk()
-        ->assertSee('Aniversariante Dia 25')
-        ->assertSee('Aniversariante Dia 05')
-        ->assertDontSee('Aniversariante Outro Mês')
-        ->assertDontSee('Sem Data');
-
-    $content = $response->getContent();
-    expect(strpos($content, 'Aniversariante Dia 05'))->toBeLessThan(strpos($content, 'Aniversariante Dia 25'));
+        ->assertSee('Nenhum banner cadastrado para este mês.');
 });
 
 test('a user can have a birth date set via the admin user form', function () {
@@ -38,4 +29,24 @@ test('a user can have a birth date set via the admin user form', function () {
 
     $created = User::where('email', 'novo@exemplo.com')->first();
     expect($created->birth_date->format('Y-m-d'))->toBe('1990-05-15');
+});
+
+test('the birthdays page shows the current month\'s published banner image', function () {
+    $user = User::factory()->create();
+    $banner = BirthdayBanner::factory()->create(['month' => now()->month, 'is_published' => true]);
+    $otherMonthBanner = BirthdayBanner::factory()->create(['month' => now()->subMonths(2)->month === now()->month ? now()->addMonths(2)->month : now()->subMonths(2)->month]);
+
+    $this->actingAs($user)->get(route('birthdays.index'))
+        ->assertOk()
+        ->assertSee($banner->imageUrl(), false)
+        ->assertDontSee($otherMonthBanner->imageUrl(), false);
+});
+
+test('the birthdays page does not show an unpublished banner for the current month', function () {
+    $user = User::factory()->create();
+    $banner = BirthdayBanner::factory()->create(['month' => now()->month, 'is_published' => false]);
+
+    $this->actingAs($user)->get(route('birthdays.index'))
+        ->assertOk()
+        ->assertDontSee($banner->imageUrl(), false);
 });

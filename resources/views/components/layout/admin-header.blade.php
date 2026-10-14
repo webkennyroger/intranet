@@ -46,21 +46,21 @@
             </button>
 
             <div x-show="userMenuOpen" @click.outside="userMenuOpen = false" x-cloak
-                class="absolute right-0 mt-2 w-56 rounded-xl shadow-lg overflow-hidden bg-white dark:bg-[#0c221a] border border-transparent dark:border-[#16352a] text-slate-700 dark:text-[#e6f2ec] z-50">
-                <div class="px-4 py-3 border-b border-slate-100 dark:border-[#16352a]">
+                class="absolute right-0 mt-2 w-56 rounded-xl shadow-lg overflow-hidden bg-white dark:bg-(--bg-card) border border-transparent dark:border-(--border-color) text-slate-700 dark:text-(--text-primary) z-50">
+                <div class="px-4 py-3 border-b border-slate-100 dark:border-(--border-color)">
                     <span class="block text-sm font-semibold">{{ auth()->user()->name }}</span>
                     <span
-                        class="block text-xs text-slate-400 dark:text-[#8aa39a] truncate">{{ auth()->user()->email }}</span>
+                        class="block text-xs text-slate-400 dark:text-(--text-secondary) truncate">{{ auth()->user()->email }}</span>
                 </div>
 
                 <div class="py-1">
                     <a href="{{ route('dashboard') }}"
-                        class="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-600 dark:text-[#8aa39a] hover:bg-emerald-50 dark:hover:bg-[#16352a] hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
+                        class="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-600 dark:text-(--text-secondary) hover:bg-emerald-50 dark:hover:bg-(--bg-hover) hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
                         <i class="fa-solid fa-arrow-left w-4 text-center"></i> Voltar à intranet
                     </a>
                 </div>
 
-                <div class="border-t border-slate-100 dark:border-[#16352a] py-1">
+                <div class="border-t border-slate-100 dark:border-(--border-color) py-1">
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit"

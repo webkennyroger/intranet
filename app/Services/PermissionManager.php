@@ -5,29 +5,58 @@ namespace App\Services;
 use Spatie\Permission\Models\Permission;
 
 /**
- * Centraliza a lista de permissões do sistema (ACL) e garante que todas
- * existam no banco, servindo de fonte única para seeders e telas de papéis.
+ * Centraliza o registro de módulos administráveis (um por recurso real do
+ * portal) e gera as permissões "{módulo}.{ação}" de cada um, servindo de
+ * fonte única para o seeder de papéis e para a Matriz de Permissões.
  */
 class PermissionManager
 {
+    public const ACTIONS = ['view', 'create', 'update', 'delete'];
+
     /**
-     * Lista mestre de todas as permissões conhecidas pelo sistema. Qualquer
-     * nova permissão precisa ser adicionada aqui para existir no banco e
-     * poder ser atribuída a papéis.
+     * Módulos administráveis do portal, na ordem em que aparecem na Matriz
+     * de Permissões. Cada chave gera 4 permissões ("{chave}.view" etc.).
+     *
+     * @return array<string, array{label: string, icon: string}>
+     */
+    public static function modules(): array
+    {
+        return [
+            'articles' => ['label' => 'Mural', 'icon' => 'newspaper'],
+            'categories' => ['label' => 'Categorias', 'icon' => 'folder'],
+            'media' => ['label' => 'Biblioteca de Mídia', 'icon' => 'photo-film'],
+            'photos' => ['label' => 'Fotos', 'icon' => 'images'],
+            'videos' => ['label' => 'Vídeos', 'icon' => 'video'],
+            'documents' => ['label' => 'Documentos', 'icon' => 'file-lines'],
+            'events' => ['label' => 'Eventos', 'icon' => 'calendar-days'],
+            'trainings' => ['label' => 'Capacitações', 'icon' => 'graduation-cap'],
+            'birthday-banners' => ['label' => 'Banners de Aniversariantes', 'icon' => 'cake-candles'],
+            'services' => ['label' => 'Serviços', 'icon' => 'sliders'],
+            'council' => ['label' => 'Conselho Superior', 'icon' => 'user-tie'],
+            'forum' => ['label' => 'Fórum', 'icon' => 'bullhorn'],
+            'users' => ['label' => 'Usuários', 'icon' => 'users'],
+            'appearance' => ['label' => 'Aparência', 'icon' => 'palette'],
+            'activity-log' => ['label' => 'Histórico de Atividades', 'icon' => 'clock-rotate-left'],
+        ];
+    }
+
+    /**
+     * Lista mestre de todas as permissões conhecidas pelo sistema: as 4 ações
+     * de cada módulo acima, mais a permissão de gerenciar papéis em si (que
+     * não é um módulo com matriz própria). Qualquer nova permissão precisa
+     * ser adicionada aqui para existir no banco e poder ser atribuída a papéis.
      */
     public static function inventory(): array
     {
-        return [
-            'users.view', 'users.create', 'users.update', 'users.delete', 'users.manage',
-            'roles.view',
-            'content.view', 'content.create', 'content.update', 'content.delete', 'content.publish',
-            'media.upload',
-            'settings.manage',
-            'services.manage',
-            'council.manage',
-            'forum.manage',
-            'activity-log.view',
-        ];
+        $permissions = ['roles.manage'];
+
+        foreach (array_keys(self::modules()) as $module) {
+            foreach (self::ACTIONS as $action) {
+                $permissions[] = "{$module}.{$action}";
+            }
+        }
+
+        return $permissions;
     }
 
     public function ensureAll(): void

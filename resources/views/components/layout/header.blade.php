@@ -39,8 +39,8 @@
 
         <div class="relative">
             <button @click="userMenuOpen = !userMenuOpen" class="flex items-center gap-2.5 cursor-pointer p-1 rounded-lg hover:bg-black/10 transition">
-                <div class="w-8 h-8 rounded-full bg-black/20 overflow-hidden border border-white/30 flex items-center justify-center text-white font-bold text-xs">
-                    {{ auth()->user()->getAvatarInitials() }}
+                <div class="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden">
+                    <i class="fa-solid fa-user-tie text-sm text-white"></i>
                 </div>
                 <div class="hidden sm:block text-left">
                     <span class="text-xs font-semibold text-white block leading-tight">{{ auth()->user()->name }}</span>
@@ -49,10 +49,10 @@
             </button>
 
             <div x-show="userMenuOpen" @click.outside="userMenuOpen = false" x-cloak
-                class="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white text-slate-700 py-1 z-50">
+                class="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white dark:bg-(--bg-card) text-slate-700 dark:text-(--text-primary) py-1 z-50">
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="w-full text-left px-4 py-2 text-sm hover:bg-slate-100">Sair</button>
+                    <button type="submit" class="w-full text-left px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-(--bg-hover)">Sair</button>
                 </form>
             </div>
         </div>

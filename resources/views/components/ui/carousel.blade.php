@@ -61,7 +61,7 @@
     @mouseleave="play()"
     {{ $attributes->merge(['class' => 'relative']) }}
 >
-    <div class="overflow-hidden rounded-xl" style="border: 1px solid var(--border-color);">
+    <div class="overflow-hidden">
         <div x-ref="track">
             @if(count($items))
                 @foreach($items as $item)

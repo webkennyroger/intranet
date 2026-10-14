@@ -18,26 +18,44 @@
         $brand = \App\Models\SiteSetting::current();
         $darkSurface = \App\Models\SiteSetting::darkBgFor($brand->primary_color);
         $darkBody = \App\Models\SiteSetting::darkBodyBgFor($brand->primary_color);
+        $darkElevated = \App\Models\SiteSetting::darkElevatedBgFor($brand->primary_color);
+        $darkHover = \App\Models\SiteSetting::darkHoverBgFor($brand->primary_color);
     @endphp
     <style>
         :root {
             --brand-primary: {{ $brand->primary_color }};
             --brand-primary-dark: {{ $brand->primaryHoverColor() }};
             --brand-primary-light: {{ $brand->primaryLightColor() }};
+            --sidebar-active-bg: {{ \App\Models\SiteSetting::lightActiveHighlightBgFor($brand->primary_color) }};
+            --focus-ring: var(--brand-primary);
         }
         /* No escuro, o item ativo usa o mesmo matiz da cor escolhida, só
            escurecido/clareado para continuar legível. O mesmo vale pro
            fundo da página e dos cards (variáveis do app.css, usadas pelos
            componentes compartilhados). Classes simples + seletor direto —
            a sintaxe dark:bg-(--var) do Tailwind não aplicava de forma
-           confiável no navegador. */
-        .dark {
+           confiável no navegador. Essas variáveis não têm mais valor fixo
+           no app.css — sem isso, a declaração estática carregada depois
+           deste bloco (pelo Vite, mais abaixo) sempre ganhava do cascade e
+           o modo escuro nunca acompanhava a cor escolhida aqui. */
+        /* "html.dark" (não só ".dark") de propósito: --bg-base/-surface/
+           -card/-border-color (e as novas -elevated/-hover/-input/-subtle)
+           também têm valor padrão no ":root" do app.css — ":root" e
+           ".dark" têm a MESMA especificidade, então sem o "html" extra
+           aqui essa regra perderia pro ":root" do app.css (carregado
+           depois) sempre que ambos baterem no mesmo elemento <html>. */
+        html.dark {
             --brand-primary-dark: {{ $brand->darkActiveTextColor() }};
             --brand-primary-light: {{ $brand->darkActiveBgColor() }};
+            --sidebar-active-bg: {{ $brand->darkActiveBgColor() }};
             --bg-base: {{ $darkBody }};
             --bg-surface: {{ $darkSurface }};
+            --bg-elevated: {{ $darkElevated }};
+            --bg-hover: {{ $darkHover }};
+            --bg-input: {{ $darkHover }}80;
             --bg-card: {{ $darkSurface }}f2;
-            --border-color: {{ $darkSurface }};
+            --border-color: {{ $darkElevated }};
+            --border-subtle: {{ $darkElevated }}80;
         }
         html.dark .sidebar-card { background-color: var(--bg-card); border-color: var(--border-color); }
         html.dark .sidebar-muted-bg { background-color: var(--border-color); }
@@ -48,27 +66,36 @@
     @vite(['resources/css/app.css'])
     @livewireStyles
 </head>
-<body class="site-dark-bg h-full font-sans antialiased bg-slate-100 dark:text-[#e6f2ec] flex flex-col text-slate-800" x-data="{ sidebarCollapsed: false, mobileSidebarOpen: false }">
+<body
+    class="site-dark-bg font-sans antialiased bg-slate-100 dark:text-(--text-primary) text-slate-800"
+    x-data="{ sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true', mobileSidebarOpen: false }"
+    x-init="$watch('sidebarCollapsed', (value) => localStorage.setItem('sidebarCollapsed', value))"
+>
     <!-- Header -->
     <x-layout.header />
 
-    <div class="flex flex-1 overflow-hidden relative">
-        <!-- Overlay do menu mobile -->
-        <div
-            x-show="mobileSidebarOpen"
-            x-cloak
-            @click="mobileSidebarOpen = false"
-            class="fixed inset-0 bg-black/40 z-40 lg:hidden"
-        ></div>
+    <!-- Overlay do menu mobile -->
+    <div
+        x-show="mobileSidebarOpen"
+        x-cloak
+        @click="mobileSidebarOpen = false"
+        class="fixed inset-0 bg-black/40 z-40 lg:hidden"
+    ></div>
 
-        <!-- Sidebar -->
-        <x-layout.sidebar />
+    <!-- Sidebar (fixa, não acompanha o scroll da página) -->
+    <x-layout.sidebar />
 
-        <!-- Conteúdo principal (slot) -->
-        <main class="site-dark-bg flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-slate-100">
+    <!-- Conteúdo principal (slot) -->
+    <div class="flex flex-col min-h-[calc(100vh-4rem)] lg:ml-64 transition-all duration-300" :class="sidebarCollapsed ? 'lg:ml-26!' : ''">
+        <main class="site-dark-bg flex-1 p-4 md:p-6 bg-slate-50">
             {{ $slot }}
         </main>
     </div>
+
+    <x-ui.confirm-modal />
+
+    <!-- Notificações (toast) de toda ação de criar/editar/excluir/atualizar -->
+    <x-ui.toast />
 
     @livewireScripts
 </body>

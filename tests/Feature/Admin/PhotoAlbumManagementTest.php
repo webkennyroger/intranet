@@ -45,6 +45,25 @@ test('creating an album with photos stores each photo and sets the first as the 
         ->and($album->cover_image_path)->not->toBeNull();
 });
 
+test('removing a pending photo before saving excludes it from the album', function () {
+    Storage::fake('public');
+    actingAsRoleForPhotos('Administrador');
+
+    Livewire::test(PhotoAlbumForm::class)
+        ->set('title', 'Removendo Antes de Salvar')
+        ->set('newPhotos', [
+            UploadedFile::fake()->image('foto1.jpg'),
+            UploadedFile::fake()->image('foto2.jpg'),
+            UploadedFile::fake()->image('foto3.jpg'),
+        ])
+        ->call('removeNewPhoto', 1)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $album = PhotoAlbum::where('title', 'Removendo Antes de Salvar')->first();
+    expect($album->photos)->toHaveCount(2);
+});
+
 test('creating an album without a title is rejected', function () {
     actingAsRoleForPhotos('Administrador');
 
@@ -66,6 +85,65 @@ test('removing a photo from an album deletes it', function () {
     expect(Photo::find($photo->id))->toBeNull();
 });
 
+test('removing selected photos deletes all of them at once', function () {
+    actingAsRoleForPhotos('Administrador');
+    $album = PhotoAlbum::factory()->create();
+    $photo1 = Photo::factory()->for($album, 'album')->create();
+    $photo2 = Photo::factory()->for($album, 'album')->create();
+    $keptPhoto = Photo::factory()->for($album, 'album')->create();
+
+    Livewire::test(PhotoAlbumForm::class, ['album' => $album])
+        ->set('selectedPhotoIds', [$photo1->id, $photo2->id])
+        ->call('removeSelectedPhotos')
+        ->assertHasNoErrors()
+        ->assertSet('selectedPhotoIds', []);
+
+    expect(Photo::find($photo1->id))->toBeNull()
+        ->and(Photo::find($photo2->id))->toBeNull()
+        ->and(Photo::find($keptPhoto->id))->not->toBeNull();
+});
+
+test('deleting the cover photo (alone or in bulk) reassigns the cover to a remaining photo', function () {
+    actingAsRoleForPhotos('Administrador');
+    $album = PhotoAlbum::factory()->create();
+    $coverPhoto = Photo::factory()->for($album, 'album')->create(['image_path' => 'photos/cover.jpg']);
+    $otherPhoto = Photo::factory()->for($album, 'album')->create(['image_path' => 'photos/other.jpg']);
+    $album->update(['cover_image_path' => 'photos/cover.jpg']);
+
+    Livewire::test(PhotoAlbumForm::class, ['album' => $album])
+        ->set('selectedPhotoIds', [$coverPhoto->id])
+        ->call('removeSelectedPhotos');
+
+    expect($album->refresh()->cover_image_path)->toBe('photos/other.jpg');
+});
+
+test('a Defensor cannot remove selected photos from an album', function () {
+    actingAsRoleForPhotos('Defensor');
+    $album = PhotoAlbum::factory()->create();
+    $photo = Photo::factory()->for($album, 'album')->create();
+
+    Livewire::test(PhotoAlbumForm::class, ['album' => $album])
+        ->set('selectedPhotoIds', [$photo->id])
+        ->call('removeSelectedPhotos');
+
+    expect(Photo::find($photo->id))->not->toBeNull();
+});
+
+test('toggling select all photos selects then deselects every photo in the album', function () {
+    actingAsRoleForPhotos('Administrador');
+    $album = PhotoAlbum::factory()->create();
+    $photo1 = Photo::factory()->for($album, 'album')->create();
+    $photo2 = Photo::factory()->for($album, 'album')->create();
+
+    $component = Livewire::test(PhotoAlbumForm::class, ['album' => $album])
+        ->call('toggleSelectAllPhotos');
+
+    expect($component->get('selectedPhotoIds'))->toEqualCanonicalizing([$photo1->id, $photo2->id]);
+
+    $component->call('toggleSelectAllPhotos');
+    expect($component->get('selectedPhotoIds'))->toBe([]);
+});
+
 test('a Defensor cannot delete an album', function () {
     actingAsRoleForPhotos('Defensor');
     $album = PhotoAlbum::factory()->create();
@@ -82,4 +160,78 @@ test('an Administrador can delete an album', function () {
     Livewire::test(PhotoAlbumIndex::class)->call('delete', $album->id);
 
     expect(PhotoAlbum::find($album->id))->toBeNull();
+});
+
+test('bulkPublish publishes only the selected draft albums and leaves others untouched', function () {
+    actingAsRoleForPhotos('Administrador');
+    $draft1 = PhotoAlbum::factory()->create(['is_published' => false]);
+    $draft2 = PhotoAlbum::factory()->create(['is_published' => false]);
+    $notSelected = PhotoAlbum::factory()->create(['is_published' => false]);
+
+    Livewire::test(PhotoAlbumIndex::class)
+        ->set('selected', [$draft1->id, $draft2->id])
+        ->call('bulkPublish');
+
+    expect($draft1->refresh()->is_published)->toBeTrue()
+        ->and($draft2->refresh()->is_published)->toBeTrue()
+        ->and($notSelected->refresh()->is_published)->toBeFalse();
+});
+
+test('bulkUnpublish unpublishes only the selected published albums', function () {
+    actingAsRoleForPhotos('Administrador');
+    $published = PhotoAlbum::factory()->create(['is_published' => true]);
+    $notSelected = PhotoAlbum::factory()->create(['is_published' => true]);
+
+    Livewire::test(PhotoAlbumIndex::class)
+        ->set('selected', [$published->id])
+        ->call('bulkUnpublish');
+
+    expect($published->refresh()->is_published)->toBeFalse()
+        ->and($notSelected->refresh()->is_published)->toBeTrue();
+});
+
+test('a Defensor cannot bulk publish or bulk unpublish albums', function () {
+    actingAsRoleForPhotos('Defensor');
+    $draft = PhotoAlbum::factory()->create(['is_published' => false]);
+    $published = PhotoAlbum::factory()->create(['is_published' => true]);
+
+    Livewire::test(PhotoAlbumIndex::class)->set('selected', [$draft->id])->call('bulkPublish');
+    Livewire::test(PhotoAlbumIndex::class)->set('selected', [$published->id])->call('bulkUnpublish');
+
+    expect($draft->refresh()->is_published)->toBeFalse()
+        ->and($published->refresh()->is_published)->toBeTrue();
+});
+
+test('bulkDelete removes every selected album and clears the selection', function () {
+    actingAsRoleForPhotos('Administrador');
+    $album1 = PhotoAlbum::factory()->create();
+    $album2 = PhotoAlbum::factory()->create();
+
+    $component = Livewire::test(PhotoAlbumIndex::class)
+        ->set('selected', [$album1->id, $album2->id])
+        ->call('bulkDelete');
+
+    expect(PhotoAlbum::find($album1->id))->toBeNull()
+        ->and(PhotoAlbum::find($album2->id))->toBeNull();
+    $component->assertSet('selected', []);
+});
+
+test('a Defensor cannot bulk delete albums', function () {
+    actingAsRoleForPhotos('Defensor');
+    $album = PhotoAlbum::factory()->create();
+
+    Livewire::test(PhotoAlbumIndex::class)->set('selected', [$album->id])->call('bulkDelete');
+
+    expect(PhotoAlbum::find($album->id))->not->toBeNull();
+});
+
+test('toggleSelectAllOnPage selects then deselects every album on the current page', function () {
+    actingAsRoleForPhotos('Administrador');
+    PhotoAlbum::factory()->count(3)->create();
+
+    $component = Livewire::test(PhotoAlbumIndex::class)->call('toggleSelectAllOnPage');
+    expect($component->get('selected'))->toHaveCount(3);
+
+    $component->call('toggleSelectAllOnPage');
+    expect($component->get('selected'))->toHaveCount(0);
 });

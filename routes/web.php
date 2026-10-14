@@ -2,13 +2,18 @@
 
 use App\Livewire\Admin\ActivityLogIndex;
 use App\Livewire\Admin\Appearance\AppearanceForm;
+use App\Livewire\Admin\Articles\ArticleForm;
 use App\Livewire\Admin\Articles\ArticleIndex;
+use App\Livewire\Admin\Birthdays\BirthdayBannerIndex;
+use App\Livewire\Admin\Categories\CategoryIndex;
 use App\Livewire\Admin\Council\CouncilMemberIndex;
 use App\Livewire\Admin\Dashboard;
 use App\Livewire\Admin\Documents\DocumentIndex;
 use App\Livewire\Admin\Events\EventIndex;
 use App\Livewire\Admin\Forum\AdminForumIndex;
+use App\Livewire\Admin\MediaLibraryIndex;
 use App\Livewire\Admin\Photos\PhotoAlbumIndex;
+use App\Livewire\Admin\Roles\RoleIndex;
 use App\Livewire\Admin\Services\ServiceLinkIndex;
 use App\Livewire\Admin\Trainings\TrainingIndex;
 use App\Livewire\Admin\Users\UserIndex;
@@ -20,6 +25,7 @@ use App\Livewire\Documents\DocumentsIndex;
 use App\Livewire\Events\EventsIndex;
 use App\Livewire\Forum\ForumIndex;
 use App\Livewire\Forum\ForumShow;
+use App\Livewire\Home\HomeIndex;
 use App\Livewire\Mural\ArticleShow;
 use App\Livewire\Mural\MuralIndex;
 use App\Livewire\Noticias\NoticiasIndex;
@@ -28,7 +34,6 @@ use App\Livewire\Photos\PhotosIndex;
 use App\Livewire\Services\ServicesIndex;
 use App\Livewire\Sos\SosIndex;
 use App\Livewire\Trainings\TrainingsIndex;
-use App\Livewire\Videos\VideosIndex;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -47,7 +52,7 @@ Route::post('/logout', function () {
 })->middleware('auth')->name('logout');
 
 // Página inicial da intranet, após o login.
-Route::get('/inicio', fn () => view('inicio'))
+Route::get('/inicio', HomeIndex::class)
     ->middleware('auth')
     ->name('inicio');
 
@@ -83,9 +88,7 @@ Route::get('/fotos/{album}', PhotoAlbumShow::class)
     ->middleware('auth')
     ->name('photos.show');
 
-Route::get('/videos', VideosIndex::class)
-    ->middleware('auth')
-    ->name('videos.index');
+Route::redirect('/videos', '/fotos');
 
 Route::get('/eventos', EventsIndex::class)
     ->middleware('auth')
@@ -138,28 +141,61 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
         Route::get('/usuarios', UserIndex::class)->name('users.index');
     });
 
-    Route::middleware('permission:forum.manage')->group(function () {
+    Route::middleware('permission:roles.manage')->group(function () {
+        Route::get('/papeis-e-permissoes', RoleIndex::class)->name('roles.index');
+    });
+
+    Route::middleware('permission:forum.view')->group(function () {
         Route::get('/forum', AdminForumIndex::class)->name('forum.index');
     });
 
-    Route::middleware('permission:services.manage')->group(function () {
+    Route::middleware('permission:services.view')->group(function () {
         Route::get('/servicos', ServiceLinkIndex::class)->name('services.index');
     });
 
-    Route::middleware('permission:council.manage')->group(function () {
+    Route::middleware('permission:council.view')->group(function () {
         Route::get('/conselho-superior', CouncilMemberIndex::class)->name('council.index');
     });
 
-    Route::middleware('permission:content.view')->group(function () {
-        Route::get('/mural', ArticleIndex::class)->name('articles.index');
+    Route::middleware('permission:articles.view')->group(function () {
+        Route::get('/noticias', ArticleIndex::class)->name('articles.index');
+        Route::get('/noticias/novo', ArticleForm::class)->name('articles.create');
+        Route::get('/noticias/{article}/editar', ArticleForm::class)->name('articles.edit');
+    });
+
+    Route::middleware('permission:categories.view')->group(function () {
+        Route::get('/categorias', CategoryIndex::class)->name('categories.index');
+    });
+
+    Route::middleware('permission:media.view')->group(function () {
+        Route::get('/biblioteca-de-midia', MediaLibraryIndex::class)->name('media.index');
+    });
+
+    Route::middleware('permission:documents.view')->group(function () {
         Route::get('/documentos', DocumentIndex::class)->name('documents.index');
+    });
+
+    Route::middleware('permission:photos.view')->group(function () {
         Route::get('/fotos', PhotoAlbumIndex::class)->name('photos.index');
+    });
+
+    Route::middleware('permission:videos.view')->group(function () {
         Route::get('/videos', VideoIndex::class)->name('videos.index');
+    });
+
+    Route::middleware('permission:events.view')->group(function () {
         Route::get('/eventos', EventIndex::class)->name('events.index');
+    });
+
+    Route::middleware('permission:trainings.view')->group(function () {
         Route::get('/capacitacoes', TrainingIndex::class)->name('trainings.index');
     });
 
-    Route::middleware('permission:settings.manage')->group(function () {
+    Route::middleware('permission:birthday-banners.view')->group(function () {
+        Route::get('/banners-aniversariantes', BirthdayBannerIndex::class)->name('birthday-banners.index');
+    });
+
+    Route::middleware('permission:appearance.view')->group(function () {
         Route::get('/aparencia', AppearanceForm::class)->name('appearance.edit');
     });
 

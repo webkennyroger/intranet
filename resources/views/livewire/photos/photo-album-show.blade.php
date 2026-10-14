@@ -1,33 +1,38 @@
 {{--
     Tela de um álbum de fotos específico.
     Mostra o título e a descrição do álbum e exibe todas as fotos em
-    grade, abrindo a imagem original ao clicar.
+    grade, abrindo a imagem original no lightbox (x-ui.lightbox) ao clicar
+    — com setas pra navegar entre todas as fotos do álbum, não só a clicada.
 --}}
-<div class="max-w-7xl mx-auto space-y-6">
+@php
+    $lightboxItems = $photos->map(fn ($photo) => [
+        'url' => \Illuminate\Support\Facades\Storage::url($photo->image_path),
+        'name' => $photo->caption,
+    ])->values();
+@endphp
+<div class="space-y-4">
     <!-- Cabeçalho da página -->
-    <div>
-        <a href="{{ route('photos.index') }}" class="text-sm text-emerald-700 hover:underline">
-            <i class="fa-solid fa-arrow-left mr-1"></i> Voltar para Fotos
-        </a>
-        <h1 class="text-3xl font-black text-slate-800 tracking-tight mt-2">{{ $album->title }}</h1>
-        @if ($album->description)
-            <p class="text-slate-500 text-sm mt-1 font-medium">{{ $album->description }}</p>
-        @endif
-    </div>
+    <x-site.page-header icon="camera" :title="$album->title" :subtitle="$album->description" :back="route('photos.index')" />
 
     @if ($photos->isEmpty())
         <!-- Estado vazio -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-500">
+        <div class="ui-card p-12 text-center text-slate-500 dark:text-(--text-secondary)">
             Este álbum ainda não tem fotos.
         </div>
     @else
         <!-- Grade de fotos -->
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            @foreach ($photos as $photo)
-                <a href="{{ \Illuminate\Support\Facades\Storage::url($photo->image_path) }}" target="_blank" class="block rounded-xl overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-md transition">
-                    <img src="{{ \Illuminate\Support\Facades\Storage::url($photo->image_path) }}" alt="{{ $photo->caption }}" class="w-full h-32 object-cover">
-                </a>
+            @foreach ($photos as $index => $photo)
+                <button
+                    type="button"
+                    @click="window.dispatchEvent(new CustomEvent('open-lightbox', { detail: { items: @js($lightboxItems), index: {{ $index }} } }))"
+                    class="ui-card overflow-hidden hover:shadow-md transition group cursor-pointer"
+                >
+                    <img src="{{ \Illuminate\Support\Facades\Storage::url($photo->image_path) }}" alt="{{ $photo->caption }}" class="w-full h-32 object-cover group-hover:scale-105 transition duration-500">
+                </button>
             @endforeach
         </div>
     @endif
+
+    <x-ui.lightbox />
 </div>

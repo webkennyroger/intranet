@@ -69,3 +69,77 @@ test('an Administrador can delete an event', function () {
 
     expect(Event::find($event->id))->toBeNull();
 });
+
+test('bulkPublish publishes only the selected draft events and leaves others untouched', function () {
+    actingAsRoleForEvents('Administrador');
+    $draft1 = Event::factory()->create(['is_published' => false]);
+    $draft2 = Event::factory()->create(['is_published' => false]);
+    $notSelected = Event::factory()->create(['is_published' => false]);
+
+    Livewire::test(EventIndex::class)
+        ->set('selected', [$draft1->id, $draft2->id])
+        ->call('bulkPublish');
+
+    expect($draft1->refresh()->is_published)->toBeTrue()
+        ->and($draft2->refresh()->is_published)->toBeTrue()
+        ->and($notSelected->refresh()->is_published)->toBeFalse();
+});
+
+test('bulkUnpublish unpublishes only the selected published events', function () {
+    actingAsRoleForEvents('Administrador');
+    $published = Event::factory()->create(['is_published' => true]);
+    $notSelected = Event::factory()->create(['is_published' => true]);
+
+    Livewire::test(EventIndex::class)
+        ->set('selected', [$published->id])
+        ->call('bulkUnpublish');
+
+    expect($published->refresh()->is_published)->toBeFalse()
+        ->and($notSelected->refresh()->is_published)->toBeTrue();
+});
+
+test('a Defensor cannot bulk publish or bulk unpublish events', function () {
+    actingAsRoleForEvents('Defensor');
+    $draft = Event::factory()->create(['is_published' => false]);
+    $published = Event::factory()->create(['is_published' => true]);
+
+    Livewire::test(EventIndex::class)->set('selected', [$draft->id])->call('bulkPublish');
+    Livewire::test(EventIndex::class)->set('selected', [$published->id])->call('bulkUnpublish');
+
+    expect($draft->refresh()->is_published)->toBeFalse()
+        ->and($published->refresh()->is_published)->toBeTrue();
+});
+
+test('bulkDelete removes every selected event and clears the selection', function () {
+    actingAsRoleForEvents('Administrador');
+    $event1 = Event::factory()->create();
+    $event2 = Event::factory()->create();
+
+    $component = Livewire::test(EventIndex::class)
+        ->set('selected', [$event1->id, $event2->id])
+        ->call('bulkDelete');
+
+    expect(Event::find($event1->id))->toBeNull()
+        ->and(Event::find($event2->id))->toBeNull();
+    $component->assertSet('selected', []);
+});
+
+test('a Defensor cannot bulk delete events', function () {
+    actingAsRoleForEvents('Defensor');
+    $event = Event::factory()->create();
+
+    Livewire::test(EventIndex::class)->set('selected', [$event->id])->call('bulkDelete');
+
+    expect(Event::find($event->id))->not->toBeNull();
+});
+
+test('toggleSelectAllOnPage selects then deselects every event on the current page', function () {
+    actingAsRoleForEvents('Administrador');
+    Event::factory()->count(3)->create();
+
+    $component = Livewire::test(EventIndex::class)->call('toggleSelectAllOnPage');
+    expect($component->get('selected'))->toHaveCount(3);
+
+    $component->call('toggleSelectAllOnPage');
+    expect($component->get('selected'))->toHaveCount(0);
+});

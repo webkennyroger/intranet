@@ -59,39 +59,38 @@ class SiteSetting extends Model
     }
 
     /**
-     * Background for an active/accent highlight in dark mode: same hue as
-     * the given color, but dark and muted (matches the hand-picked ESDEP
-     * green #16352a — H~159°, S~41%, L~15% — reproduced for any hue).
+     * Superfície neutra no modo escuro (sidebar, header, fundo de card) —
+     * cinza-chumbo neutro ("zinc"), igual à referência (uicolors.app):
+     * fundo/sidebar/header ficam pretos independente da cor escolhida, e só
+     * os ACENTOS (item ativo, botão, ícone — ver darkActiveBgColor() e
+     * darkActiveHighlightBgFor()) usam a cor da marca. $hex não entra na
+     * conta de propósito — mantido só pra não precisar mudar quem chama.
      */
     public static function darkBgFor(string $hex): string
     {
-        [$hue, $saturation] = static::toHsl($hex);
-
-        if ($saturation === 0.0) {
-            return '#0c221a';
-        }
-
-        return static::fromHsl($hue, 0.41, 0.15);
+        return '#18181b';
     }
 
     /**
      * Background for the sidebar's active menu-item highlight: same hue as
-     * the given color, but noticeably lighter than darkBgFor()'s surface
-     * lightness (0.15 → 0.26). The sidebar's own background is darkBgFor()
-     * of whatever color was chosen for it — if that happens to share a hue
-     * with the primary color (e.g. both left at the default green), a
-     * highlight built from darkBgFor() too would be nearly the same shade
-     * and disappear into the sidebar. This stays visibly lighter regardless.
+     * the given color, bright enough to stand out as an accent against the
+     * neutral dark sidebar from darkBgFor() (matches the hand-picked ESDEP
+     * green #16352a — H~159°, S~41%, L~26% — reproduced for any hue).
      */
     public static function darkActiveHighlightBgFor(string $hex): string
     {
-        [$hue, $saturation] = static::toHsl($hex);
+        return static::hueMatchedDark($hex, 0.41, 0.26, '#16352a');
+    }
 
-        if ($saturation === 0.0) {
-            return '#16352a';
-        }
-
-        return static::fromHsl($hue, 0.41, 0.26);
+    /**
+     * Background for the sidebar's active menu-item highlight in light
+     * mode: same hue as the given color, as a solid pale tint instead of
+     * primaryLightColor()'s alpha-over-white — that 10% alpha reads as
+     * near-invisible next to the solid accent bar beside it.
+     */
+    public static function lightActiveHighlightBgFor(string $hex): string
+    {
+        return static::hueMatchedDark($hex, 0.55, 0.93, '#eef2f6');
     }
 
     /**
@@ -101,39 +100,67 @@ class SiteSetting extends Model
      */
     public static function darkTextFor(string $hex): string
     {
-        [$hue, $saturation] = static::toHsl($hex);
-
-        if ($saturation === 0.0) {
-            return '#e6f2ec';
-        }
-
-        return static::fromHsl($hue, 0.59, 0.57);
+        return static::hueMatchedDark($hex, 0.59, 0.57, '#f4f4f5');
     }
 
     /**
-     * The page/body canvas in dark mode: same hue as the given color, but
-     * much darker than darkBgFor() so cards/header/sidebar still read as
-     * "sitting on top of" the page (matches ESDEP's #081712 — L~6%).
+     * O "canvas" da página no modo escuro — preto neutro, mais escuro que
+     * darkBgFor() pra cards/header/sidebar lerem como "em cima" da página
+     * (zinc-950, igual à referência). Ignora $hex pelo mesmo motivo de
+     * darkBgFor().
      */
     public static function darkBodyBgFor(string $hex): string
     {
-        [$hue, $saturation] = static::toHsl($hex);
+        return '#0e0e11';
+    }
 
-        if ($saturation === 0.0) {
-            return '#081712';
-        }
+    /**
+     * Fundo "elevado" no modo escuro (ex.: linha de tabela em destaque,
+     * bloco de ícone, borda do card) — neutro, um degrau mais claro que
+     * darkBgFor() (zinc-800), mantendo a escada: body < surface < elevated
+     * < hover. Ignora $hex pelo mesmo motivo de darkBgFor().
+     */
+    public static function darkElevatedBgFor(string $hex): string
+    {
+        return '#27272a';
+    }
 
-        return static::fromHsl($hue, 0.35, 0.06);
+    /**
+     * Fundo de hover/campo de formulário no modo escuro — neutro, o degrau
+     * mais claro da escada acima (zinc-700). Ignora $hex pelo mesmo motivo
+     * de darkBgFor().
+     */
+    public static function darkHoverBgFor(string $hex): string
+    {
+        return '#3f3f46';
     }
 
     public function darkActiveBgColor(): string
     {
-        return static::darkBgFor($this->primary_color);
+        return static::hueMatchedDark($this->primary_color, 0.41, 0.15, '#0c221a');
     }
 
     public function darkActiveTextColor(): string
     {
         return static::darkTextFor($this->primary_color);
+    }
+
+    /**
+     * Shared implementation behind the hue-matched dark accents
+     * (darkActiveBgColor/darkActiveHighlightBgFor/darkTextFor) — same hue
+     * as $hex, fixed saturation/lightness, falling back to a hand-picked
+     * hex when $hex itself is achromatic (grey/white, so there's no hue to
+     * match).
+     */
+    private static function hueMatchedDark(string $hex, float $saturation, float $lightness, string $achromaticFallback): string
+    {
+        [$hue, $inputSaturation] = static::toHsl($hex);
+
+        if ($inputSaturation === 0.0) {
+            return $achromaticFallback;
+        }
+
+        return static::fromHsl($hue, $saturation, $lightness);
     }
 
     /**
@@ -145,7 +172,7 @@ class SiteSetting extends Model
         [$red, $green, $blue] = sscanf($hex, '#%02x%02x%02x');
         $brightness = ($red * 299 + $green * 587 + $blue * 114) / 1000;
 
-        return $brightness > 150 ? '#312a2a' : '#e6f2ec';
+        return $brightness > 150 ? '#312a2a' : '#f4f4f5';
     }
 
     private static function darken(string $hex, float $factor): string

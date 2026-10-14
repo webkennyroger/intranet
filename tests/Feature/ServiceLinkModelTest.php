@@ -18,20 +18,23 @@ test('a service link can be created with the expected fields', function () {
         ->and($link->is_active)->toBeTrue();
 });
 
-test('services.manage is in the permission inventory', function () {
-    expect(PermissionManager::inventory())->toContain('services.manage');
+test('services.view is in the permission inventory', function () {
+    expect(PermissionManager::inventory())->toContain('services.view');
 });
 
-test('Administrador role has services.manage after seeding', function () {
+test('Administrador role has full services access after seeding', function () {
     $this->seed(AclSeeder::class);
 
     $role = Role::where('name', 'Administrador')->first();
 
-    expect($role->hasPermissionTo('services.manage'))->toBeTrue();
+    expect($role->hasPermissionTo('services.view'))->toBeTrue()
+        ->and($role->hasPermissionTo('services.create'))->toBeTrue()
+        ->and($role->hasPermissionTo('services.update'))->toBeTrue()
+        ->and($role->hasPermissionTo('services.delete'))->toBeTrue();
 });
 
-test('Defensor role does not have services.manage', function () {
+test('Defensor role does not have services.view', function () {
     $this->seed(AclSeeder::class);
 
-    expect(Role::where('name', 'Defensor')->first()->hasPermissionTo('services.manage'))->toBeFalse();
+    expect(Role::where('name', 'Defensor')->first()->hasPermissionTo('services.view'))->toBeFalse();
 });

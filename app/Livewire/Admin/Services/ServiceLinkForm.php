@@ -54,10 +54,12 @@ class ServiceLinkForm extends Component
             if ($changes !== []) {
                 ActivityLogger::updated($this->link, $changes);
             }
+            $this->dispatch('toast', title: 'Serviço', message: 'Serviço atualizado com sucesso.', variant: 'success');
         } else {
             $data['order'] = (ServiceLink::max('order') ?? 0) + 1;
             $link = ServiceLink::create($data);
             ActivityLogger::created($link);
+            $this->dispatch('toast', title: 'Serviço', message: 'Serviço criado com sucesso.', variant: 'success');
         }
 
         $this->dispatch('service-link-saved');

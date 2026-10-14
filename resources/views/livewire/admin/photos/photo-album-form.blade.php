@@ -8,7 +8,7 @@
 
     <div class="space-y-1.5">
         <label class="block text-sm font-medium" style="color: var(--text-secondary);">Descrição</label>
-        <textarea wire:model="description" rows="2" class="w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition-all duration-200 px-4 py-2.5 text-sm" style="background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-primary);"></textarea>
+        <textarea wire:model="description" rows="2" class="w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-(--focus-ring)/40 focus:border-(--focus-ring) transition-all duration-200 px-4 py-2.5 text-sm" style="background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-primary);"></textarea>
     </div>
 
     <x-ui.input wire:model="eventDate" type="date" label="Data do evento" />
@@ -16,12 +16,28 @@
     <!-- Fotos do Álbum (Existentes) -->
     @if ($album?->photos->isNotEmpty())
         <div class="space-y-1.5">
-            <label class="block text-sm font-medium" style="color: var(--text-secondary);">Fotos do álbum</label>
+            <div class="flex items-center justify-between">
+                <label class="block text-sm font-medium" style="color: var(--text-secondary);">Fotos do álbum</label>
+                <div class="flex items-center gap-3">
+                    @if (! empty($selectedPhotoIds))
+                        <span class="text-xs font-semibold" style="color: var(--text-muted);">{{ count($selectedPhotoIds) }} selecionada(s)</span>
+                        <button type="button" @click="confirmAction('Confirma a exclusão de {{ count($selectedPhotoIds) }} foto(s) selecionada(s)?', () => $wire.removeSelectedPhotos())" class="text-xs font-semibold text-red-500 hover:underline">
+                            Excluir selecionadas
+                        </button>
+                    @endif
+                    <button type="button" wire:click="toggleSelectAllPhotos" class="text-xs font-semibold hover:underline" style="color: var(--admin-primary);">
+                        {{ count($selectedPhotoIds) === $album->photos->count() ? 'Desmarcar todas' : 'Selecionar todas' }}
+                    </button>
+                </div>
+            </div>
             <div class="grid grid-cols-4 gap-2">
                 @foreach ($album->photos as $photo)
                     <div class="relative group" wire:key="photo-{{ $photo->id }}">
                         <img src="{{ \Illuminate\Support\Facades\Storage::url($photo->image_path) }}" alt="{{ $photo->caption }}" class="w-full h-20 object-cover rounded-lg">
-                        <button type="button" wire:click="removePhoto({{ $photo->id }})" wire:confirm="Remover esta foto?" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center">
+                        <div class="absolute top-1 left-1 rounded-md bg-white/90 p-0.5 shadow-sm">
+                            <x-ui.checkbox wire:model.live="selectedPhotoIds" value="{{ $photo->id }}" />
+                        </div>
+                        <button type="button" @click="confirmAction('Remover esta foto?', () => $wire.removePhoto({{ $photo->id }}))" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center">
                             &times;
                         </button>
                     </div>
@@ -32,13 +48,22 @@
 
     <!-- Adicionar Novas Fotos -->
     <div class="space-y-1.5">
-        <label class="block text-sm font-medium" style="color: var(--text-secondary);">Adicionar fotos</label>
-        <input type="file" wire:model="newPhotos" multiple accept="image/*" class="block w-full text-sm" style="color: var(--text-secondary);">
-        <div wire:loading wire:target="newPhotos" class="text-xs" style="color: var(--text-muted);">Enviando...</div>
+        <x-ui.file-upload wire:model="newPhotos" multiple accept="image/*" label="Adicionar fotos" />
         @error('newPhotos.*') <p class="text-xs text-red-400">{{ $message }}</p> @enderror
-    </div>
 
-    <x-ui.checkbox wire:model="isPublished" label="Publicado" />
+        @if (! empty($newPhotos))
+            <div class="grid grid-cols-4 gap-2">
+                @foreach ($newPhotos as $index => $photo)
+                    <div class="relative group" wire:key="new-photo-{{ $index }}">
+                        <img src="{{ $photo->temporaryUrl() }}" alt="Pré-visualização" class="w-full h-20 object-cover rounded-lg">
+                        <button type="button" wire:click="removeNewPhoto({{ $index }})" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center">
+                            &times;
+                        </button>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
 
     <x-ui.button type="submit">Salvar</x-ui.button>
 </form>

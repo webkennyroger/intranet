@@ -9,7 +9,7 @@ use Livewire\Component;
 
 /**
  * Formulário admin de criação/edição de capacitações (título, descrição,
- * link externo do curso, carga horária, data de início e publicação).
+ * link externo do curso, carga horária e data de início).
  */
 class TrainingForm extends Component
 {
@@ -30,8 +30,6 @@ class TrainingForm extends Component
     #[Validate('nullable|date')]
     public string $startsAt = '';
 
-    public bool $isPublished = true;
-
     public function mount(?Training $training = null): void
     {
         if ($training) {
@@ -41,13 +39,12 @@ class TrainingForm extends Component
             $this->externalUrl = $training->external_url;
             $this->workloadHours = (string) ($training->workload_hours ?? '');
             $this->startsAt = $training->starts_at?->format('Y-m-d') ?? '';
-            $this->isPublished = $training->is_published;
         }
     }
 
     public function save(): void
     {
-        abort_unless(auth()->user()->can($this->training ? 'content.update' : 'content.create'), 403);
+        abort_unless(auth()->user()->can($this->training ? 'trainings.update' : 'trainings.create'), 403);
 
         $this->validate();
 
@@ -57,7 +54,6 @@ class TrainingForm extends Component
             'external_url' => $this->externalUrl,
             'workload_hours' => $this->workloadHours !== '' ? (int) $this->workloadHours : null,
             'starts_at' => $this->startsAt !== '' ? $this->startsAt : null,
-            'is_published' => $this->isPublished,
         ];
 
         if ($this->training) {
@@ -66,14 +62,18 @@ class TrainingForm extends Component
             if ($changes !== []) {
                 ActivityLogger::updated($this->training, $changes);
             }
+            $this->dispatch('toast', title: 'Capacitação', message: 'Capacitação atualizada com sucesso.', variant: 'success');
         } else {
-            $training = Training::create($data);
+            // Capacitação nova entra publicada — despublicar é uma ação
+            // separada na tabela (togglePublish), não um campo deste
+            // formulário.
+            $training = Training::create($data + ['is_published' => true]);
             ActivityLogger::created($training);
+            $this->dispatch('toast', title: 'Capacitação', message: 'Capacitação criada com sucesso.', variant: 'success');
         }
 
         $this->dispatch('training-saved');
         $this->reset(['title', 'description', 'externalUrl', 'workloadHours', 'startsAt']);
-        $this->isPublished = true;
     }
 
     public function render()

@@ -11,9 +11,9 @@
     <x-ui.input wire:model="password" type="password" label="Senha" :hint="$user ? 'Deixe em branco para manter a senha atual.' : null" />
 
     <x-ui.select wire:model.live="role" label="Papel">
-        <option value="Super Administrador">Super Administrador</option>
-        <option value="Administrador">Administrador</option>
-        <option value="Defensor">Defensor</option>
+        @foreach ($roles as $r)
+            <option value="{{ $r->name }}">{{ $r->name }}</option>
+        @endforeach
     </x-ui.select>
 
     <x-ui.input wire:model="department" label="Departamento/Setor" />

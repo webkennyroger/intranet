@@ -6,13 +6,16 @@ use App\Models\Event;
 use App\Services\ActivityLogger;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 /**
  * Formulário admin de criação/edição de eventos da agenda (título, local,
- * datas de início/fim e status de publicação).
+ * imagem de capa e datas de início/fim).
  */
 class EventForm extends Component
 {
+    use WithFileUploads;
+
     public ?Event $event = null;
 
     #[Validate('required|string|max:255')]
@@ -30,7 +33,9 @@ class EventForm extends Component
     #[Validate('nullable|date|after_or_equal:startsAt')]
     public string $endsAt = '';
 
-    public bool $isPublished = true;
+    public $coverImage = null;
+
+    public ?string $existingCoverImage = null;
 
     public function mount(?Event $event = null): void
     {
@@ -41,15 +46,28 @@ class EventForm extends Component
             $this->location = (string) $event->location;
             $this->startsAt = $event->starts_at->format('Y-m-d\TH:i');
             $this->endsAt = $event->ends_at?->format('Y-m-d\TH:i') ?? '';
-            $this->isPublished = $event->is_published;
+            $this->existingCoverImage = $event->cover_image;
         }
+    }
+
+    public function removeCoverImage(): void
+    {
+        $this->existingCoverImage = null;
+        $this->coverImage = null;
     }
 
     public function save(): void
     {
-        abort_unless(auth()->user()->can($this->event ? 'content.update' : 'content.create'), 403);
+        abort_unless(auth()->user()->can($this->event ? 'events.update' : 'events.create'), 403);
 
-        $this->validate();
+        $this->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'location' => 'nullable|string|max:255',
+            'startsAt' => 'required|date',
+            'endsAt' => 'nullable|date|after_or_equal:startsAt',
+            'coverImage' => 'nullable|image|max:4096',
+        ]);
 
         $data = [
             'title' => $this->title,
@@ -57,8 +75,13 @@ class EventForm extends Component
             'location' => $this->location !== '' ? $this->location : null,
             'starts_at' => $this->startsAt,
             'ends_at' => $this->endsAt !== '' ? $this->endsAt : null,
-            'is_published' => $this->isPublished,
         ];
+
+        if ($this->coverImage) {
+            $data['cover_image'] = $this->coverImage->store('events', 'public');
+        } elseif ($this->existingCoverImage === null) {
+            $data['cover_image'] = null;
+        }
 
         if ($this->event) {
             $changes = ActivityLogger::diff($this->event, $data);
@@ -66,14 +89,17 @@ class EventForm extends Component
             if ($changes !== []) {
                 ActivityLogger::updated($this->event, $changes);
             }
+            $this->dispatch('toast', title: 'Evento', message: 'Evento atualizado com sucesso.', variant: 'success');
         } else {
-            $event = Event::create($data);
+            // Evento novo entra publicado — despublicar é uma ação separada
+            // na tabela (togglePublish), não um campo deste formulário.
+            $event = Event::create($data + ['is_published' => true]);
             ActivityLogger::created($event);
+            $this->dispatch('toast', title: 'Evento', message: 'Evento criado com sucesso.', variant: 'success');
         }
 
         $this->dispatch('event-saved');
-        $this->reset(['title', 'description', 'location', 'startsAt', 'endsAt']);
-        $this->isPublished = true;
+        $this->reset(['title', 'description', 'location', 'startsAt', 'endsAt', 'coverImage', 'existingCoverImage']);
     }
 
     public function render()

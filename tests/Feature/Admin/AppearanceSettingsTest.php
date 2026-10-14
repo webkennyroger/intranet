@@ -121,8 +121,8 @@ test('the sidebar active item keeps readable contrast when the sidebar color is 
 
 test('readable text color flips between dark and light based on background brightness', function () {
     expect(SiteSetting::readableTextFor('#FFFFFF'))->toBe('#312a2a')
-        ->and(SiteSetting::readableTextFor('#000000'))->toBe('#e6f2ec')
-        ->and(SiteSetting::readableTextFor('#0C4A34'))->toBe('#e6f2ec');
+        ->and(SiteSetting::readableTextFor('#000000'))->toBe('#f4f4f5')
+        ->and(SiteSetting::readableTextFor('#0C4A34'))->toBe('#f4f4f5');
 });
 
 test('hero gradient stops get progressively darker and follow the primary color', function () {

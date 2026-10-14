@@ -6,14 +6,15 @@ use App\Models\Category;
 use Illuminate\Database\Seeder;
 
 /**
- * Garante que as categorias padrão do Mural ("Notícia" e "SOS DPEMT") existam,
+ * Garante que as categorias das seções dedicadas de artigo existam ("Mural",
+ * "Notícia" e "SOS DPEMT" — cada uma com sua própria página pública),
  * sem duplicar caso o seeder seja executado mais de uma vez.
  */
 class CategorySeeder extends Seeder
 {
     public function run(): void
     {
-        foreach (['Notícia' => 'noticia', 'SOS DPEMT' => 'sos-dpemt'] as $name => $slug) {
+        foreach (['Mural' => 'mural', 'Notícia' => 'noticia', 'SOS DPEMT' => 'sos-dpemt'] as $name => $slug) {
             Category::firstOrCreate(['slug' => $slug], ['name' => $name]);
         }
     }

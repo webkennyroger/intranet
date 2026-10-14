@@ -3,14 +3,13 @@
 namespace App\Livewire\Mural;
 
 use App\Models\Article;
-use App\Models\Category;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 /**
- * Feed público do Mural: lista as matérias publicadas com busca por
- * texto, filtro por categoria e por período, além de permitir curtir
- * cada artigo direto na listagem.
+ * Feed público do Mural: lista as matérias publicadas da categoria "Mural"
+ * (Notícias e SOS DPEMT têm suas próprias páginas), com busca por texto e
+ * filtro por período, além de permitir curtir cada artigo direto na listagem.
  */
 class MuralIndex extends Component
 {
@@ -18,22 +17,25 @@ class MuralIndex extends Component
 
     public string $search = '';
 
-    public string $categoryId = '';
-
     public string $period = '';
 
     public function updated(string $property): void
     {
         // Volta para a primeira página sempre que um filtro muda, para não
         // deixar o usuário "preso" numa página que não existe mais no resultado filtrado.
-        if (in_array($property, ['search', 'categoryId', 'period'], true)) {
+        if (in_array($property, ['search', 'period'], true)) {
             $this->resetPage();
         }
     }
 
+    public function clearFilters(): void
+    {
+        $this->reset('search', 'period');
+    }
+
     public function toggleLike(int $articleId): void
     {
-        $article = Article::findOrFail($articleId);
+        $article = $this->muralQuery()->findOrFail($articleId);
         $user = auth()->user();
 
         if ($article->isLikedBy($user)) {
@@ -43,19 +45,20 @@ class MuralIndex extends Component
         }
     }
 
+    private function muralQuery()
+    {
+        return Article::published()->whereHas('categories', fn ($q) => $q->where('slug', 'mural'));
+    }
+
     public function render()
     {
-        $query = Article::published()->with('category');
+        $query = $this->muralQuery()->with('categories');
 
         if ($this->search !== '') {
             $query->where(function ($q) {
                 $q->where('title', 'like', '%'.$this->search.'%')
                     ->orWhere('excerpt', 'like', '%'.$this->search.'%');
             });
-        }
-
-        if ($this->categoryId !== '') {
-            $query->where('category_id', $this->categoryId);
         }
 
         if ($this->period !== '') {
@@ -73,7 +76,6 @@ class MuralIndex extends Component
 
         return view('livewire.mural.mural-index', [
             'articles' => $query->orderByDesc('published_at')->paginate(9),
-            'categories' => Category::orderBy('name')->get(),
         ]);
     }
 }

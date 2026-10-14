@@ -30,7 +30,8 @@ class PhotoAlbumForm extends Component
 
     public array $newPhotos = [];
 
-    public bool $isPublished = true;
+    /** @var array<int, int> */
+    public array $selectedPhotoIds = [];
 
     public function mount(?PhotoAlbum $album = null): void
     {
@@ -39,20 +40,78 @@ class PhotoAlbumForm extends Component
             $this->title = $album->title;
             $this->description = (string) $album->description;
             $this->eventDate = $album->event_date?->format('Y-m-d') ?? '';
-            $this->isPublished = $album->is_published;
         }
     }
 
     public function removePhoto(int $photoId): void
     {
-        abort_unless(auth()->user()->can('content.delete'), 403);
+        abort_unless(auth()->user()->can('photos.delete'), 403);
 
-        Photo::where('id', $photoId)->where('photo_album_id', $this->album?->id)->delete();
+        $this->deletePhotos([$photoId]);
+    }
+
+    /**
+     * Exclui de uma vez todas as fotos marcadas na grade "Fotos do álbum"
+     * — sem isso o admin precisava clicar no "×" foto por foto, inviável
+     * num álbum com dezenas/centenas de fotos.
+     */
+    public function removeSelectedPhotos(): void
+    {
+        abort_unless(auth()->user()->can('photos.delete'), 403);
+
+        $this->deletePhotos($this->selectedPhotoIds);
+        $this->selectedPhotoIds = [];
+    }
+
+    /**
+     * Marca/desmarca de uma vez todas as fotos já salvas do álbum.
+     */
+    public function toggleSelectAllPhotos(): void
+    {
+        $allIds = $this->album?->photos->pluck('id')->all() ?? [];
+
+        $this->selectedPhotoIds = count($this->selectedPhotoIds) === count($allIds) ? [] : $allIds;
+    }
+
+    /**
+     * Remove as fotos informadas (restrito a este álbum) e, se a capa do
+     * álbum estava entre as apagadas, reatribui pra próxima foto que
+     * sobrou — sem isso o álbum ficaria com uma capa quebrada/inexistente.
+     *
+     * @param  array<int, int>  $photoIds
+     */
+    private function deletePhotos(array $photoIds): void
+    {
+        if (! $this->album || $photoIds === []) {
+            return;
+        }
+
+        $deletingCover = Photo::whereIn('id', $photoIds)
+            ->where('photo_album_id', $this->album->id)
+            ->where('image_path', $this->album->cover_image_path)
+            ->exists();
+
+        Photo::whereIn('id', $photoIds)->where('photo_album_id', $this->album->id)->delete();
+
+        if ($deletingCover) {
+            $this->album->update(['cover_image_path' => $this->album->photos()->first()?->image_path]);
+        }
+    }
+
+    /**
+     * Tira uma foto da lista de uploads pendentes (ainda não salvos) antes
+     * de clicar em "Salvar" — ex. o admin escolheu/arrastou fotos demais
+     * e quer tirar uma antes de enviar.
+     */
+    public function removeNewPhoto(int $index): void
+    {
+        unset($this->newPhotos[$index]);
+        $this->newPhotos = array_values($this->newPhotos);
     }
 
     public function save(): void
     {
-        abort_unless(auth()->user()->can($this->album ? 'content.update' : 'content.create'), 403);
+        abort_unless(auth()->user()->can($this->album ? 'photos.update' : 'photos.create'), 403);
 
         $this->validate([
             'title' => 'required|string|max:255',
@@ -65,8 +124,9 @@ class PhotoAlbumForm extends Component
             'title' => $this->title,
             'description' => $this->description !== '' ? $this->description : null,
             'event_date' => $this->eventDate !== '' ? $this->eventDate : null,
-            'is_published' => $this->isPublished,
         ];
+
+        $isNew = ! $this->album;
 
         if ($this->album) {
             $changes = ActivityLogger::diff($this->album, $data);
@@ -76,7 +136,9 @@ class PhotoAlbumForm extends Component
             }
             $album = $this->album;
         } else {
-            $album = PhotoAlbum::create($data);
+            // Álbum novo entra publicado — despublicar é uma ação separada
+            // na tabela (togglePublish), não um campo deste formulário.
+            $album = PhotoAlbum::create($data + ['is_published' => true]);
             ActivityLogger::created($album);
         }
 
@@ -98,8 +160,8 @@ class PhotoAlbumForm extends Component
         }
 
         $this->dispatch('photo-album-saved');
+        $this->dispatch('toast', title: 'Álbum de Fotos', message: $isNew ? 'Álbum criado com sucesso.' : 'Álbum atualizado com sucesso.', variant: 'success');
         $this->reset(['title', 'description', 'eventDate', 'newPhotos']);
-        $this->isPublished = true;
     }
 
     public function render()

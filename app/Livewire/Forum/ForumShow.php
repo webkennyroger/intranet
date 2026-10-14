@@ -44,6 +44,7 @@ class ForumShow extends Component
         ]);
 
         $this->reset(['replyBody']);
+        $this->dispatch('toast', title: 'Fórum', message: 'Resposta enviada com sucesso.', variant: 'success');
     }
 
     public function deleteTopic(): void
@@ -52,6 +53,7 @@ class ForumShow extends Component
 
         $this->topic->delete();
 
+        session()->flash('toast', ['title' => 'Fórum', 'message' => 'Tópico excluído com sucesso.', 'variant' => 'danger']);
         $this->redirect(route('forum.index'));
     }
 
@@ -79,6 +81,7 @@ class ForumShow extends Component
 
         $reply->update(['body' => $this->editingReplyBody]);
         $this->cancelEditReply();
+        $this->dispatch('toast', title: 'Fórum', message: 'Resposta atualizada com sucesso.', variant: 'success');
     }
 
     public function deleteReply(int $replyId): void
@@ -87,6 +90,7 @@ class ForumShow extends Component
         abort_unless($reply->author_id === auth()->id() || $this->canModerate(), 403);
 
         $reply->delete();
+        $this->dispatch('toast', title: 'Fórum', message: 'Resposta excluída com sucesso.', variant: 'danger');
     }
 
     public function render()

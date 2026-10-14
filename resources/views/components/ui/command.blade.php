@@ -72,13 +72,13 @@
     >
         <!-- Backdrop -->
         <div
-            class="fixed inset-0 backdrop-blur-sm"
+            class="fixed inset-0"
             style="background-color: rgba(0, 0, 0, 0.5);"
             @click="open = false"
         ></div>
 
         <!-- Painel -->
-        <div class="flex min-h-full items-start justify-center p-4" style="padding-top: 15vh;">
+        <div class="relative flex min-h-full items-start justify-center p-4" style="padding-top: 15vh;">
             <div
                 x-show="open"
                 x-transition:enter="transition ease-out duration-200"

@@ -1,81 +1,113 @@
 {{--
-    Tela do Mural (feed de notícias).
-    Lista as matérias publicadas, com busca por palavra-chave e
-    filtros por categoria e período.
+    Tela do Mural (feed de notícias). Lista as matérias publicadas da
+    categoria "Mural" (Notícias e SOS DPEMT têm páginas próprias), com
+    busca por palavra-chave e filtro por período.
 --}}
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="mx-auto space-y-4">
     <!-- Cabeçalho da página -->
-    <div>
-        <h1 class="text-3xl font-black text-slate-800 tracking-tight">Mural</h1>
-        <p class="text-slate-500 text-sm mt-1 font-medium">Acompanhe as últimas notícias e informações.</p>
-    </div>
+    <x-site.page-header icon="newspaper" title="Mural" subtitle="Acompanhe as últimas notícias e informações." />
 
     <!-- Filtros e busca -->
-    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-            <div class="md:col-span-5">
-                <x-ui.input wire:model.live.debounce.400ms="search" label="Buscar por palavra chave" />
+    <div class="ui-card p-5 sm:p-6">
+        @if ($search !== '' || $period !== '')
+            <div class="flex justify-end mb-3 -mt-1">
+                <button type="button" wire:click="clearFilters" class="flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-(--text-muted) hover:text-rose-600 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                    Limpar filtros
+                </button>
             </div>
-            <div class="md:col-span-4">
-                <x-ui.select wire:model.live="categoryId" label="Categoria">
-                    <option value="">Todas</option>
-                    @foreach ($categories as $category)
-                        <option value="{{ $category->id }}">{{ $category->name }}</option>
-                    @endforeach
-                </x-ui.select>
+        @endif
+
+        <div class="flex flex-col md:flex-row md:items-center gap-3">
+            <div class="relative flex-1">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-400 dark:text-(--text-muted)"></i>
+                <input
+                    type="text"
+                    wire:model.live.debounce.400ms="search"
+                    placeholder="Buscar por palavra-chave..."
+                    class="w-full rounded-full pl-11 pr-4 py-3 text-sm border border-slate-200 dark:border-(--border-color) bg-slate-50 dark:bg-(--bg-hover) dark:text-(--text-primary) focus:bg-white dark:focus:bg-(--bg-input) focus:outline-none focus:ring-2 focus:ring-(--focus-ring)/40 focus:border-(--focus-ring) transition-all duration-200"
+                />
             </div>
-            <div class="md:col-span-3">
-                <x-ui.select wire:model.live="period" label="Período">
-                    <option value="">Todos</option>
-                    <option value="7d">Últimos 7 dias</option>
-                    <option value="30d">Últimos 30 dias</option>
-                    <option value="year">Este ano</option>
-                </x-ui.select>
+
+            <div class="flex items-center gap-3">
+                <div class="relative shrink-0">
+                    <i class="fa-solid fa-calendar-days absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-400 dark:text-(--text-muted) pointer-events-none z-10"></i>
+                    <x-ui.select wire:model.live="period" placeholder="Período" class="rounded-full! pl-11! pr-8! py-3! border-slate-200! dark:border-(--border-color)! bg-slate-50! dark:bg-(--bg-hover)! dark:text-(--text-primary)! w-44">
+                        <option value="7d">Últimos 7 dias</option>
+                        <option value="30d">Últimos 30 dias</option>
+                        <option value="year">Este ano</option>
+                    </x-ui.select>
+                </div>
+
+                <button
+                    type="button"
+                    wire:click="$refresh"
+                    class="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white shadow-sm hover:brightness-110 active:brightness-95 transition shrink-0"
+                    style="background-color: var(--brand-primary, #0C4A34);"
+                >
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                    <span>Buscar</span>
+                </button>
             </div>
         </div>
     </div>
 
     @if ($articles->isEmpty())
         <!-- Estado vazio -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-500">
+        <div class="ui-card p-12 text-center text-slate-500 dark:text-(--text-secondary)">
             Nenhuma notícia encontrada.
         </div>
     @else
         <!-- Grade de notícias -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach ($articles as $article)
-                <article class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
-                    <div class="relative h-52 flex items-center justify-center p-4 overflow-hidden" style="background-color: {{ $article->cover_color }};">
-                        <div class="absolute top-3 right-3 z-10">
-                            <span class="bg-emerald-800/90 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">Notícia</span>
-                        </div>
-                        <div class="text-center text-white space-y-2 z-10 p-2">
-                            <i class="fa-solid fa-{{ $article->cover_icon }} text-3xl"></i>
+                <article class="ui-card card hover:shadow-md transition flex flex-col">
+                    <!-- Capa (imagem ou cor + ícone) -->
+                    <div class="p-2.5">
+                        <div class="relative h-48 w-full rounded-lg flex items-center justify-center overflow-hidden" style="background-color: {{ $article->cover_color }};">
+                            @if ($article->featuredImageUrl())
+                                <img src="{{ $article->featuredImageUrl() }}" class="absolute inset-0 w-full h-full object-cover" alt="{{ $article->title }}" />
+                            @endif
+                            <div class="absolute top-2 right-2 z-10 flex items-center gap-1.5">
+                                <x-ui.view-count :count="$article->views_count" class="rounded-full border border-slate-200 dark:border-(--border-color) bg-white/90 dark:bg-(--bg-card) px-3 py-1.5 text-xs font-bold text-slate-500 dark:text-(--text-secondary)" />
+                                <button wire:click="toggleLike({{ $article->id }})" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-(--border-color) bg-white/90 dark:bg-(--bg-card) px-3 py-1.5 text-xs font-bold transition hover:bg-white dark:hover:bg-(--bg-hover) {{ $article->isLikedBy(auth()->user()) ? 'text-(--brand-primary)' : 'text-slate-500 dark:text-(--text-secondary)' }}">
+                                    <i class="fa-{{ $article->isLikedBy(auth()->user()) ? 'solid' : 'regular' }} fa-heart"></i>
+                                    <span>{{ $article->likedByUsers()->count() }}</span>
+                                </button>
+                            </div>
+                            @unless ($article->featuredImageUrl())
+                                <div class="text-center text-white space-y-2 z-10 p-2">
+                                    <i class="fa-solid fa-{{ $article->cover_icon }} text-3xl"></i>
+                                </div>
+                            @endunless
                             @if ($article->cover_label)
-                                <p class="text-xs font-bold uppercase tracking-widest">{{ $article->cover_label }}</p>
+                                <span class="absolute bottom-2 left-2 z-10 rounded-md px-2 py-1 text-xs font-bold uppercase tracking-widest text-white" style="background-color: rgba(0, 0, 0, 0.4);">
+                                    {{ $article->cover_label }}
+                                </span>
                             @endif
                         </div>
                     </div>
 
-                    <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
-                        <div class="space-y-2">
-                            <div class="flex items-center justify-between text-xs text-slate-400">
-                                <button wire:click="toggleLike({{ $article->id }})" class="flex items-center gap-1.5 {{ $article->isLikedBy(auth()->user()) ? 'text-emerald-700' : 'text-slate-500' }} hover:text-emerald-700 font-medium">
-                                    <i class="fa-{{ $article->isLikedBy(auth()->user()) ? 'solid' : 'regular' }} fa-thumbs-up"></i>
-                                    <span>{{ $article->likedByUsers()->count() }}</span>
-                                </button>
-                                <span class="flex items-center gap-1">
-                                    <i class="fa-regular fa-calendar"></i>
-                                    {{ $article->published_at?->format('d/m/Y') }}
-                                </span>
-                            </div>
-                            <h2 class="font-extrabold text-slate-800 text-sm leading-snug">{{ $article->title }}</h2>
-                            <p class="text-xs text-slate-600 line-clamp-3 leading-relaxed">{{ $article->excerpt }}</p>
+                    <!-- Conteúdo -->
+                    <div class="flex grow flex-col px-4 pb-5 pt-1 text-center sm:px-5">
+                        @php($muralCategory = $article->categories->firstWhere('slug', 'mural'))
+                        <div>
+                            <span class="inline-block text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded" style="background-color: {{ $muralCategory?->lightColor() ?? 'var(--brand-primary-light, #0C4A341a)' }}; color: {{ $muralCategory?->color ?? 'var(--brand-primary, #0C4A34)' }};">{{ $muralCategory?->name ?? 'Geral' }}</span>
                         </div>
-
-                        <div class="pt-2">
-                            <a href="{{ Route::has('mural.show') ? route('mural.show', $article) : '#' }}" class="text-emerald-700 font-bold text-xs hover:underline inline-flex items-center gap-1">
-                                Saiba mais <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        <div class="mt-1">
+                            <a href="{{ Route::has('mural.show') ? route('mural.show', $article) : '#' }}" class="text-lg font-medium text-slate-700 dark:text-(--text-primary) hover:text-emerald-700 focus:text-emerald-700">
+                                {{ $article->title }}
+                            </a>
+                        </div>
+                        <div class="my-2 flex items-center space-x-3 text-xs text-slate-400 dark:text-(--text-muted)">
+                            <div class="h-px flex-1 bg-slate-200 dark:bg-(--border-color)"></div>
+                            <p>{{ $article->published_at?->locale('pt_BR')->isoFormat('D [de] MMMM [de] YYYY') }}</p>
+                            <div class="h-px flex-1 bg-slate-200 dark:bg-(--border-color)"></div>
+                        </div>
+                        <p class="my-2 grow text-left text-sm text-slate-600 dark:text-(--text-secondary) line-clamp-3">{{ $article->excerpt }}</p>
+                        <div>
+                            <a href="{{ Route::has('mural.show') ? route('mural.show', $article) : '#' }}" class="inline-flex items-center justify-center rounded-full px-5 py-2 mt-4 text-sm font-bold text-white shadow-sm hover:brightness-110 active:brightness-95 transition" style="background-color: var(--brand-primary, #0C4A34);">
+                                Leia o artigo
                             </a>
                         </div>
                     </div>

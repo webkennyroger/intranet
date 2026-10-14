@@ -19,8 +19,13 @@ test('a different chosen hue produces a different dark-mode active color, not a 
         ->and($pink->darkActiveTextColor())->toBe('#d25191');
 });
 
-test('an achromatic default color (white) falls back to the app\'s standard dark surface tokens, not a computed gray or a reddish tint', function () {
-    expect(SiteSetting::darkBgFor('#FFFFFF'))->toBe('#0c221a')
-        ->and(SiteSetting::darkTextFor('#FFFFFF'))->toBe('#e6f2ec')
-        ->and(SiteSetting::darkBodyBgFor('#FFFFFF'))->toBe('#081712');
+test('dark surface tokens are neutral regardless of the chosen hue', function () {
+    expect(SiteSetting::darkBgFor('#FFFFFF'))->toBe('#18181b')
+        ->and(SiteSetting::darkBgFor('#0C4A34'))->toBe('#18181b')
+        ->and(SiteSetting::darkBodyBgFor('#FFFFFF'))->toBe('#0e0e11')
+        ->and(SiteSetting::darkBodyBgFor('#0C4A34'))->toBe('#0e0e11');
+});
+
+test('an achromatic default color (white) falls back to the app\'s standard light text token for dark-mode accents', function () {
+    expect(SiteSetting::darkTextFor('#FFFFFF'))->toBe('#f4f4f5');
 });

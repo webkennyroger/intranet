@@ -44,7 +44,7 @@
             type="button"
             @click="open = !open"
             {{ $attributes->whereDoesntStartWith('wire:model')->merge([
-                'class' => 'w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition-all duration-200 pl-10 pr-4 py-2.5 text-sm text-left ' .
+                'class' => 'w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-(--focus-ring)/40 focus:border-(--focus-ring) transition-all duration-200 pl-10 pr-4 py-2.5 text-sm text-left ' .
                     ($error ? 'border-red-500/50 focus:ring-red-500/40' : '')
             ]) }}
             style="background-color: var(--bg-input); border: 1px solid {{ $error ? 'rgba(239, 68, 68, 0.5)' : 'var(--border-color)' }}; color: var(--text-primary);"

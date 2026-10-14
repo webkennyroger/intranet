@@ -17,6 +17,8 @@ class ArticleShow extends Component
     {
         abort_unless($article->is_published, 404);
 
+        $article->incrementViews();
+
         $this->article = $article;
     }
 

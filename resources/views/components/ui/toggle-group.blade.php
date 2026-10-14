@@ -28,8 +28,7 @@
             />
 
             <span
-                class="relative z-10 block whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium text-center transition-colors duration-150 peer-checked:bg-emerald-500 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500/40"
-                style="color: var(--text-secondary);"
+                class="relative z-10 block whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium text-center transition-colors duration-150 text-(--text-secondary) peer-checked:bg-[var(--admin-primary,var(--brand-primary,#0C4A34))] peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-(--focus-ring)/40"
             >
                 {{ $optionLabel }}
             </span>

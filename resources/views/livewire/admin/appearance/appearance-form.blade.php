@@ -10,15 +10,11 @@
         icon="palette"
         title="Aparência"
         subtitle="Define as cores do painel administrativo. Útil para campanhas sazonais (ex.: Outubro Rosa, Novembro Azul)."
+        :breadcrumbs="[['label' => 'Painel', 'href' => route('dashboard')], ['label' => 'Aparência']]"
     />
 
-    <!-- Mensagem de Sucesso -->
-    @if (session('appearance-saved'))
-        <div class="rounded-lg bg-emerald-50 dark:bg-[#16352a] text-emerald-800 dark:text-[#4fd1a5] text-sm px-4 py-2">Cores salvas com sucesso.</div>
-    @endif
-
     <!-- Formulário de Cores -->
-    <form wire:submit="save" class="bg-white dark:bg-[#0c221a] rounded-2xl border border-slate-200 dark:border-[#16352a] p-6 space-y-6">
+    <form wire:submit="save" class="ui-card p-6 space-y-6">
         <div class="grid sm:grid-cols-2 gap-6">
             @php $paletteWithWhite = [...$palette, 'Branco' => '#FFFFFF']; @endphp
             <x-admin.color-picker field="primaryColor" label="Cor de destaque (Primary)" :value="$primaryColor" :palette="$palette" default="#0C4A34" />

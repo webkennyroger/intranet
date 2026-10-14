@@ -10,6 +10,7 @@
         icon="clock-rotate-left"
         title="Histórico de Atividades"
         subtitle="Registro completo de todas as ações realizadas no sistema."
+        :breadcrumbs="[['label' => 'Painel', 'href' => route('dashboard')], ['label' => 'Histórico de Atividades']]"
     />
 
     <!-- Estatísticas (Cards) -->

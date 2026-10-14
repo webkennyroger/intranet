@@ -9,11 +9,22 @@
         icon="bullhorn"
         title="Fórum"
         subtitle="Modere os tópicos e respostas criados pelos servidores."
+        :breadcrumbs="[['label' => 'Painel', 'href' => route('dashboard')], ['label' => 'Fórum']]"
     >
         <x-slot:actions>
-            <x-ui.button href="{{ route('forum.index') }}" variant="secondary">
-                Ver no site
-            </x-ui.button>
+            @if (count($selected) > 0)
+                <span class="text-xs font-semibold" style="color: var(--text-muted);">{{ count($selected) }} selecionado(s)</span>
+                @can('forum.delete')
+                    <x-ui.button type="button" @click="confirmAction('Confirma a exclusão de {{ count($selected) }} tópico(s) selecionado(s) e de todas as respostas?', () => $wire.bulkDelete())" variant="danger" size="sm">
+                        <i class="fa-solid fa-trash mr-1"></i> Excluir
+                    </x-ui.button>
+                @endcan
+                <x-ui.button type="button" wire:click="deselectAll" variant="ghost" size="sm">Cancelar</x-ui.button>
+            @else
+                <x-ui.button href="{{ route('forum.index') }}" variant="secondary">
+                    Ver no site
+                </x-ui.button>
+            @endif
         </x-slot:actions>
     </x-admin.page-header>
 
@@ -29,7 +40,7 @@
     @else
         <x-ui.data-table selectable>
             <x-slot:header>
-                <th class="px-4 py-3 w-8"><x-ui.table-checkbox header /></th>
+                <th class="px-4 py-3 w-8"><x-ui.table-checkbox header wire:click="toggleSelectAllOnPage" :checked="$allSelectedOnPage" /></th>
                 <th class="px-6 py-3"><i class="fa-solid fa-bullhorn mr-1 opacity-60"></i> Tópico</th>
                 <th class="px-6 py-3"><i class="fa-solid fa-user mr-1 opacity-60"></i> Autor</th>
                 <th class="px-6 py-3"><i class="fa-solid fa-comments mr-1 opacity-60"></i> Respostas</th>
@@ -39,7 +50,7 @@
 
             @foreach ($topics as $topic)
                 <tr wire:key="forum-topic-{{ $topic->id }}">
-                    <td class="px-4 py-3"><x-ui.table-checkbox /></td>
+                    <td class="px-4 py-3"><x-ui.table-checkbox wire:model.live="selected" value="{{ $topic->id }}" /></td>
                     <td class="px-6 py-3">
                         <a href="{{ route('forum.show', $topic) }}" target="_blank" class="text-emerald-700 hover:underline">{{ $topic->title }}</a>
                     </td>
@@ -47,11 +58,13 @@
                     <td class="px-6 py-3">{{ $topic->replies_count }}</td>
                     <td class="px-6 py-3">{{ $topic->created_at->format('d/m/Y H:i') }}</td>
                     <td class="px-6 py-3">
-                        <x-ui.tooltip text="Excluir">
-                            <button wire:click="delete({{ $topic->id }})" wire:confirm="Confirma a exclusão deste tópico e de todas as respostas?" class="text-red-700">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </x-ui.tooltip>
+                        @can('forum.delete')
+                            <x-ui.tooltip text="Excluir">
+                                <button @click="confirmAction('Confirma a exclusão deste tópico e de todas as respostas?', () => $wire.delete({{ $topic->id }}))" class="w-9 h-9 inline-flex items-center justify-center rounded transition hover:brightness-95" style="background-color: rgba(220, 38, 38, 0.1); color: #DC2626;">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </x-ui.tooltip>
+                        @endcan
                     </td>
                 </tr>
             @endforeach

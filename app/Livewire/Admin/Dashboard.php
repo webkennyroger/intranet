@@ -19,9 +19,9 @@ class Dashboard extends Component
     public function render()
     {
         $user = auth()->user();
-        $canViewContent = $user->can('content.view');
+        $canViewContent = $user->can('articles.view');
         $canViewUsers = $user->can('users.view');
-        $canViewServices = $user->can('services.manage');
+        $canViewServices = $user->can('services.view');
 
         $monthLabels = collect(range(11, 0))
             ->map(fn ($monthsAgo) => now()->subMonths($monthsAgo))
@@ -37,7 +37,7 @@ class Dashboard extends Component
             'draftArticles' => $canViewContent ? Article::where('is_published', false)->count() : 0,
             'totalLikes' => $canViewContent ? DB::table('article_likes')->count() : 0,
             'totalCategories' => $canViewContent ? Category::count() : 0,
-            'recentArticles' => $canViewContent ? Article::with(['category', 'author'])->latest()->take(5)->get() : collect(),
+            'recentArticles' => $canViewContent ? Article::with(['categories', 'author'])->latest()->take(5)->get() : collect(),
 
             'articleActivityLabels' => $monthLabels->pluck('label')->all(),
             'articleActivityValues' => $canViewContent

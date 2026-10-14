@@ -34,6 +34,7 @@ class ForumIndex extends Component
         $this->reset(['title', 'body']);
         $this->dispatch('close-modal', 'new-topic');
 
+        session()->flash('toast', ['title' => 'Fórum', 'message' => 'Tópico criado com sucesso.', 'variant' => 'success']);
         $this->redirect(route('forum.show', $topic));
     }
 

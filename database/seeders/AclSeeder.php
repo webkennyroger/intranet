@@ -23,25 +23,34 @@ class AclSeeder extends Seeder
         // Garante que todas as permissões cadastradas em PermissionManager existam no banco.
         (new PermissionManager)->ensureAll();
 
-        // Mapa de papel => lista de permissões concedidas a esse papel.
+        $contentModules = ['articles', 'categories', 'media', 'photos', 'videos', 'documents', 'events', 'trainings', 'birthday-banners', 'services'];
+
+        // Mapa de papel => [descrição, lista de permissões concedidas a esse papel].
         $roleDefinitions = [
-            'Super Administrador' => PermissionManager::inventory(),
+            'Super Administrador' => [
+                'description' => 'Acesso total a todos os módulos e configurações do portal.',
+                'permissions' => PermissionManager::inventory(),
+            ],
 
             'Administrador' => [
-                'content.view', 'content.create', 'content.update', 'content.delete', 'content.publish',
-                'media.upload',
-                'services.manage',
-                'forum.manage',
+                'description' => 'Gerencia o conteúdo do portal (Mural, mídia, serviços) e modera o Fórum.',
+                'permissions' => [
+                    ...self::crudFor($contentModules),
+                    'forum.view', 'forum.delete',
+                ],
             ],
 
             'Defensor' => [
-                'council.manage',
+                'description' => 'Gerencia os membros exibidos na página do Conselho Superior.',
+                'permissions' => self::crudFor(['council']),
             ],
         ];
 
-        foreach ($roleDefinitions as $roleName => $permissions) {
+        foreach ($roleDefinitions as $roleName => $definition) {
             $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
-            $role->syncPermissions($permissions);
+            $role->description = $definition['description'];
+            $role->save();
+            $role->syncPermissions($definition['permissions']);
         }
 
         // Default dev credential (admin@defensoria.am.gov.br / password) — must be rotated before any shared/staging/production deployment.
@@ -56,5 +65,22 @@ class AclSeeder extends Seeder
         );
 
         $admin->syncRoles(['Super Administrador']);
+    }
+
+    /**
+     * @param  array<int, string>  $modules
+     * @return array<int, string>
+     */
+    private static function crudFor(array $modules): array
+    {
+        $permissions = [];
+
+        foreach ($modules as $module) {
+            foreach (PermissionManager::ACTIONS as $action) {
+                $permissions[] = "{$module}.{$action}";
+            }
+        }
+
+        return $permissions;
     }
 }

@@ -14,7 +14,7 @@
             <img src="{{ \Illuminate\Support\Facades\Storage::url($member->photo_path) }}" alt="{{ $member->name }}" class="w-16 h-16 rounded-full object-cover mb-2">
         @endif
         <input type="file" wire:model="photo" accept="image/*" class="block w-full text-sm" style="color: var(--text-secondary);">
-        <div wire:loading wire:target="photo" class="text-xs" style="color: var(--text-muted);">Enviando...</div>
+        <x-ui.upload-progress target="photo" class="mt-2" />
         @error('photo') <p class="text-xs text-red-400">{{ $message }}</p> @enderror
     </div>
 

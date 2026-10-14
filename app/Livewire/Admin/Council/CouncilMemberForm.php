@@ -41,7 +41,7 @@ class CouncilMemberForm extends Component
 
     public function save(): void
     {
-        abort_unless(auth()->user()->can('council.manage'), 403);
+        abort_unless(auth()->user()->can($this->member ? 'council.update' : 'council.create'), 403);
 
         $this->validate();
 
@@ -61,10 +61,12 @@ class CouncilMemberForm extends Component
             if ($changes !== []) {
                 ActivityLogger::updated($this->member, $changes);
             }
+            $this->dispatch('toast', title: 'Conselho Superior', message: 'Membro atualizado com sucesso.', variant: 'success');
         } else {
             $data['order'] = (CouncilMember::max('order') ?? 0) + 1;
             $member = CouncilMember::create($data);
             ActivityLogger::created($member);
+            $this->dispatch('toast', title: 'Conselho Superior', message: 'Membro criado com sucesso.', variant: 'success');
         }
 
         $this->dispatch('council-member-saved');

@@ -13,13 +13,13 @@
 ])
 
 <div>
-    <span class="block text-sm font-medium text-slate-700 dark:text-[#e6f2ec] mb-2">{{ $label }}</span>
+    <span class="block text-sm font-medium text-slate-700 dark:text-(--text-primary) mb-2">{{ $label }}</span>
 
     <div class="flex flex-wrap gap-2.5 mb-3">
         <button
             type="button"
             wire:click="pick('{{ $field }}', '{{ $default }}')"
-            class="w-9 h-9 rounded-lg border-2 transition bg-white dark:bg-[#112a21] {{ $value === $default ? 'border-slate-800 dark:border-[#e6f2ec] scale-110' : 'border-slate-300 dark:border-[#16352a]' }}"
+            class="w-9 h-9 rounded-lg border-2 transition bg-white dark:bg-(--bg-elevated) {{ $value === $default ? 'border-slate-800 dark:border-(--text-primary) scale-110' : 'border-slate-300 dark:border-(--border-color)' }}"
             style="background-image: repeating-linear-gradient(45deg, #cbd5e1 0, #cbd5e1 1px, transparent 1px, transparent 6px);"
             title="Padrão (restaurar)"
         ></button>
@@ -28,7 +28,7 @@
             <button
                 type="button"
                 wire:click="pick('{{ $field }}', '{{ $color }}')"
-                class="w-9 h-9 rounded-lg border-2 transition {{ $value === $color ? 'border-slate-800 dark:border-[#e6f2ec] scale-110' : ($color === '#FFFFFF' ? 'border-slate-300 dark:border-[#16352a]' : 'border-transparent') }}"
+                class="w-9 h-9 rounded-lg border-2 transition {{ $value === $color ? 'border-slate-800 dark:border-(--text-primary) scale-110' : ($color === '#FFFFFF' ? 'border-slate-300 dark:border-(--border-color)' : 'border-transparent') }}"
                 style="background-color: {{ $color }};"
                 title="{{ $swatchLabel }}"
             ></button>

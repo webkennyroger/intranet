@@ -3,13 +3,12 @@
 namespace Database\Factories;
 
 use App\Models\Article;
-use App\Models\Category;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * Gera artigos de teste para o Mural, com categoria e autor próprios
- * (criados via factory) e não publicados por padrão.
+ * Gera artigos de teste para o Mural, com autor próprio (criado via
+ * factory), sem nenhuma categoria vinculada e não publicados por padrão.
  */
 class ArticleFactory extends Factory
 {
@@ -18,7 +17,6 @@ class ArticleFactory extends Factory
     public function definition(): array
     {
         return [
-            'category_id' => Category::factory(),
             'author_id' => User::factory(),
             'title' => fake()->sentence(),
             'excerpt' => fake()->paragraph(),
@@ -26,6 +24,8 @@ class ArticleFactory extends Factory
             'cover_color' => '#064e3b',
             'cover_icon' => 'newspaper',
             'cover_label' => null,
+            'featured_image' => null,
+            'custom_fields' => null,
             'is_published' => false,
             'published_at' => null,
         ];

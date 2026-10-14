@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
+use Spatie\Permission\Models\Role;
 
 /**
  * Formulário admin de criação/edição de usuários do sistema: dados
@@ -28,7 +29,6 @@ class UserForm extends Component
 
     public string $password = '';
 
-    #[Validate('required|in:Super Administrador,Administrador,Defensor')]
     public string $role = 'Administrador';
 
     public string $department = '';
@@ -55,7 +55,7 @@ class UserForm extends Component
             'name' => 'required|string|max:255',
             'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($this->user?->id)],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->user?->id)],
-            'role' => 'required|in:Super Administrador,Administrador,Defensor',
+            'role' => ['required', Rule::in(Role::pluck('name'))],
             'department' => 'nullable|string|max:255',
             'birthDate' => 'nullable|date',
         ];
@@ -110,10 +110,12 @@ class UserForm extends Component
             if ($changes !== []) {
                 ActivityLogger::updated($this->user, $changes);
             }
+            $this->dispatch('toast', title: 'Usuário', message: "Usuário {$this->name} atualizado com sucesso.", variant: 'success');
         } else {
             $user = User::create($data + ['password' => Hash::make($this->password)]);
             $user->assignRole($this->role);
             ActivityLogger::created($user);
+            $this->dispatch('toast', title: 'Usuário', message: "Usuário {$this->name} criado com sucesso.", variant: 'success');
         }
 
         $this->dispatch('user-saved');
@@ -123,6 +125,8 @@ class UserForm extends Component
 
     public function render()
     {
-        return view('livewire.admin.users.user-form');
+        return view('livewire.admin.users.user-form', [
+            'roles' => Role::orderBy('name')->get(),
+        ]);
     }
 }

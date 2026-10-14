@@ -5,6 +5,8 @@ namespace App\Models;
 use Database\Factories\VideoFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Vídeo institucional divulgado aos usuários, cuja URL original (YouTube
@@ -40,5 +42,39 @@ class Video extends Model
         }
 
         return $this->url;
+    }
+
+    /**
+     * Capa pra exibir nos cards de listagem: usa o arquivo enviado em
+     * `thumbnail_path`, se houver; senão tenta a miniatura automática do
+     * YouTube (gratuita, previsível pela URL) — vídeos de outras origens
+     * sem thumbnail enviado ficam sem capa (o card mostra um ícone no lugar).
+     */
+    public function thumbnailUrl(): ?string
+    {
+        if ($this->thumbnail_path) {
+            return Storage::url($this->thumbnail_path);
+        }
+
+        if (preg_match('/(?:youtu\.be\/|youtube\.com\/watch\?v=)([A-Za-z0-9_-]+)/', $this->url, $matches)) {
+            return "https://img.youtube.com/vi/{$matches[1]}/hqdefault.jpg";
+        }
+
+        return null;
+    }
+
+    public function likedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'video_likes')->withTimestamps();
+    }
+
+    public function isLikedBy(User $user): bool
+    {
+        return $this->likedByUsers()->where('user_id', $user->id)->exists();
+    }
+
+    public function incrementViews(): void
+    {
+        $this->increment('views_count');
     }
 }

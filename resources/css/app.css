@@ -7,21 +7,33 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+/* O preflight do Tailwind deixa o cursor padrão (seta) em botões, checkbox
+   e radio — em vez de caçar cursor-pointer em cada botão do admin
+   (tabelas, abas, cards de pasta etc.), força a mãozinha aqui pra todos de
+   uma vez. */
+button:not(:disabled),
+[role='button']:not(:disabled),
+input[type='checkbox']:not(:disabled),
+input[type='radio']:not(:disabled) {
+    cursor: pointer;
+}
+
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 
-    --color-primary-50: #ecfdf5;
-    --color-primary-100: #d1fae5;
-    --color-primary-200: #a7f3d0;
-    --color-primary-300: #6ee7b7;
-    --color-primary-400: #34d399;
-    --color-primary-500: #10b981;
-    --color-primary-600: #059669;
-    --color-primary-700: #047857;
-    --color-primary-800: #065f46;
-    --color-primary-900: #064e3b;
-    --color-primary-950: #022c22;
+    --color-primary-50: #eefbf3;
+    --color-primary-100: #d5f6e1;
+    --color-primary-200: #aeecc8;
+    --color-primary-300: #79dca9;
+    --color-primary-400: #43c486;
+    --color-primary-500: #22b573;
+    --color-primary-600: #138856;
+    --color-primary-700: #0f6d47;
+    --color-primary-800: #0e573a;
+    --color-primary-900: #0d4731;
+    --color-primary-950: #06281c;
+
 }
 
 :root {
@@ -38,22 +50,45 @@
     --border-subtle: rgba(203, 213, 225, 0.5);
     --scrollbar-thumb: #cbd5e1;
     --scrollbar-hover: #94a3b8;
+    --card-shadow-color: rgba(15, 23, 42, 0.1);
 }
 
+/* --bg-base/-surface/-elevated/-hover/-card/-input e --border-color/-subtle
+   NÃO entram aqui de propósito: layouts/app.blade.php e layouts/admin.blade.php
+   já definem esses valores por requisição (derivados da cor de Aparência,
+   acompanhando o matiz escolhido) — se também tivessem valor fixo aqui, o
+   <style> deste arquivo (carregado via @vite DEPOIS do <style> inline dos
+   layouts) sempre venceria o cascade e o modo escuro nunca acompanharia a
+   cor escolhida. Só o que não varia com a marca (texto, scrollbar) fica fixo. */
 .dark {
-    --bg-base: #081712;
-    --bg-surface: #0c221a;
-    --bg-elevated: #112a21;
-    --bg-hover: #16352a;
-    --bg-card: #0c221af2;
-    --bg-input: #16352a80;
-    --text-primary: #e6f2ec;
-    --text-secondary: #8aa39a;
-    --text-muted: #70847d;
-    --border-color: #16352a;
-    --border-subtle: #16352a80;
-    --scrollbar-thumb: #16352a;
-    --scrollbar-hover: #1e4433;
+    --text-primary: #f4f4f5;
+    --text-secondary: #d4d4d8;
+    --text-muted: #a1a1aa;
+    --scrollbar-thumb: #3f3f46;
+    --scrollbar-hover: #52525b;
+    --card-shadow-color: rgba(0, 0, 0, 0.55);
+}
+
+/* Padrão de card inspirado no uicolors.app/generate (seção "Cards" da
+   demo): em vez de borda sólida, usa raio maior (20px) e sombra colorida —
+   a "borda" vem do próprio box-shadow (0 0 0 1px), então funciona com
+   qualquer --bg-card/--border-color (claro ou escuro) sem precisar de
+   dark: em cada arquivo. Troque bg-white/rounded-2xl/border/shadow-sm por
+   esta única classe (ver x-ui.card). */
+.ui-card {
+    position: relative;
+    border-radius: 20px;
+    background-color: var(--bg-card);
+    box-shadow: 0 0 0 1px var(--border-color), 0 10px 15px -3px var(--card-shadow-color), 0 4px 6px -4px var(--card-shadow-color);
+}
+
+/* Variante "de destaque": fundo sólido num tom da paleta (300/400/500/600,
+   ver x-ui.card :tone) em vez do neutro --bg-card — pra chamar atenção num
+   card específico (resumo, CTA), igual aos cards coloridos da demo
+   uicolors.app ("Track your expenses" / "Gain control"). */
+.ui-card-accent {
+    box-shadow: 0 10px 15px -3px var(--card-shadow-color), 0 4px 6px -4px var(--card-shadow-color);
+    color: #fff;
 }
 
 html, body {
@@ -69,12 +104,245 @@ html.dark .site-dark-bg {
     display: none !important;
 }
 
+/* Linha decorativa sob os títulos de seção da página Início (portal). */
+.section-title-line {
+    position: relative;
+}
+.section-title-line::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background-color: var(--brand-primary, #0C4A34);
+    border-radius: 2px;
+}
+
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
 
+/* Barra de rolagem do sidebar só aparece com o mouse em cima — some de
+   novo quando o cursor sai, pra não ficar poluindo a tela o tempo todo. */
+.sidebar-card { scrollbar-color: transparent transparent; }
+.sidebar-card:hover { scrollbar-color: var(--scrollbar-thumb) transparent; }
+.sidebar-card::-webkit-scrollbar-thumb { background: transparent; }
+.sidebar-card:hover::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); }
+
 :focus-visible {
     outline: 3px solid #059669;
     outline-offset: 2px;
+}
+
+/* Cores de realce de sintaxe do modal "Ver código" (ver highlightHtml() em
+   app.js) — acompanha o tema claro/escuro do próprio site (classe "dark"
+   na <html>, controlada pelo theme-toggle do header), sem alternância
+   própria dentro do modal. */
+.tok-bracket { color: #6e7781; }
+.tok-tag { color: #22863a; }
+.tok-attr { color: #6f42c1; }
+.tok-string { color: #032f62; }
+.tok-comment { color: #6a737d; }
+
+.dark .tok-bracket { color: #808080; }
+.dark .tok-tag { color: #4ec9b0; }
+.dark .tok-attr { color: #9cdcfe; }
+.dark .tok-string { color: #ce9178; }
+.dark .tok-comment { color: #6a9955; }
+
+/* Dica (tooltip) preta ao passar o mouse nos botões da toolbar do editor,
+   igual ao TinyMCE — "title" nativo some antes de aparecer e varia de cor
+   com o navegador/SO, então cada botão usa "data-tip" (texto) em vez de
+   "title", e este CSS desenha a dica de verdade (sem JS/Alpine extra). */
+.editor-toolbar [data-tip] {
+    position: relative;
+}
+
+.editor-toolbar [data-tip]:hover::after,
+.editor-toolbar [data-tip]:focus-visible::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 6px;
+    background-color: #1e293b;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+    padding: 4px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 30;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, .25);
+}
+
+/* Editor Tiptap (x-editor.tiptap): o pacote prosemirror-view não é importado
+   separadamente, então sem isso o editor fica sem CSS base nenhum — o <p>
+   fica sem largura/altura mínimas e herda nosso outline global de foco,
+   que (como o parágrafo vazio não tem largura própria) aparece como uma
+   caixinha minúscula em vez de preencher a área do editor. */
+.ProseMirror {
+    width: 100%;
+    min-height: inherit;
+    outline: none;
+}
+
+.ProseMirror:focus-visible {
+    outline: none;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+/* O NodeView do ResizableImage gerencia cursor e outline de seleção inline
+   via selectNode/deselectNode — aqui garantimos apenas o max-width. */
+.ProseMirror img {
+    max-width: 100%;
+}
+
+/* Marcas do submenu "Styles" do menu de formato (ver window.tiptapEditor()
+   em app.js — SmallCaps/Subtitle) — Highlight (a terceira opção do
+   submenu) já tem seu próprio CSS via a extensão @tiptap/extension-highlight.
+   ".prose" (além de ".ProseMirror") porque esse HTML também é exibido fora
+   do editor — ex. a matéria publicada no Mural usa a mesma classe
+   ".prose" do Tailwind Typography pra renderizar o corpo salvo. */
+.ProseMirror .ts-small-caps,
+.prose .ts-small-caps {
+    font-variant: small-caps;
+    letter-spacing: 0.02em;
+}
+
+.ProseMirror .ts-subtitle,
+.prose .ts-subtitle {
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+/* Fallback para nós sem NodeView personalizado. */
+.ProseMirror-selectednode {
+    outline: 2px solid var(--admin-primary, #0C4A34);
+    outline-offset: 2px;
+}
+
+/* Checklist (@tiptap/extension-task-list): sem isso os itens saem com
+   marcador de lista normal ATRÁS do checkbox, em vez de só o checkbox.
+   Também em ".prose" pelo mesmo motivo do bloco acima. */
+.ProseMirror ul[data-type="taskList"],
+.prose ul[data-type="taskList"] {
+    list-style: none;
+    padding-left: 0;
+}
+
+.ProseMirror li[data-type="taskItem"],
+.prose li[data-type="taskItem"] {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.ProseMirror li[data-type="taskItem"] > label,
+.prose li[data-type="taskItem"] > label {
+    margin-top: 0.2rem;
+    user-select: none;
+}
+
+.ProseMirror li[data-type="taskItem"] > div,
+.prose li[data-type="taskItem"] > div {
+    flex: 1 1 auto;
+}
+
+/* Tabela (@tiptap/extension-table): bordas visíveis e alça de
+   redimensionar coluna (resizable: true) — sem isso a tabela existe mas
+   fica sem contorno nenhum, parecendo que "não funcionou". A parte visual
+   (borda, colapso, cabeçalho) também vale pra ".prose" — senão a tabela
+   aparece sem nenhuma borda fora do editor (ex. matéria publicada no
+   Mural), já que o Tailwind Typography não estiliza <table> sem <thead>
+   (o Tiptap não gera <thead>, só <tr> de <th> dentro do <tbody>). O resto
+   deste bloco (table-layout fixed, min-width das colunas sem largura
+   definida, e o overlay azul de ".selectedCell") é só interação do editor
+   — não faz sentido fora dele, por isso continua só em ".ProseMirror":
+   é o CSS padrão que o próprio pacote prosemirror-tables espera (style/
+   tables.css); sem ele o plugin de seleção/redimensionar colunas funciona
+   por baixo dos panos, mas não aparece nada na tela, parecendo que "não
+   seleciona a coluna". --default-cell-min-width precisa bater com
+   "cellMinWidth" do TableWithStyle.configure() em app.js (padrão 25, não
+   alteramos). */
+.ProseMirror {
+    --default-cell-min-width: 25px;
+}
+
+.ProseMirror table,
+.prose table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+    margin: 0.75rem 0;
+}
+
+.ProseMirror table td,
+.ProseMirror table th,
+.prose table td,
+.prose table th {
+    border: 1px solid var(--border-color);
+    padding: 0.375rem 0.625rem;
+    position: relative;
+    vertical-align: top;
+}
+
+.ProseMirror table td:not([data-colwidth]):not(.column-resize-dragging),
+.ProseMirror table th:not([data-colwidth]):not(.column-resize-dragging) {
+    min-width: var(--default-cell-min-width);
+}
+
+.ProseMirror table th,
+.prose table th {
+    background-color: var(--bg-elevated);
+    font-weight: 600;
+    text-align: left;
+}
+
+.ProseMirror .column-resize-handle {
+    position: absolute;
+    right: -2px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    z-index: 20;
+    background-color: var(--admin-primary, #0C4A34);
+    pointer-events: none;
+}
+
+/* Alça de redimensionar ALTURA da linha (eixo vertical) — TableRowResizing
+   em app.js; some do eixo horizontal (column-resize-handle, acima) de
+   propósito, pra mover só uma dimensão por vez, igual TinyMCE. */
+.table-row-resize-handle:hover {
+    background-color: var(--admin-primary, #0C4A34);
+    opacity: 0.5;
+}
+
+.ProseMirror.resize-cursor {
+    cursor: col-resize;
+}
+
+.ProseMirror .selectedCell:after {
+    z-index: 2;
+    position: absolute;
+    content: '';
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: rgba(200, 200, 255, 0.4);
+    pointer-events: none;
 }

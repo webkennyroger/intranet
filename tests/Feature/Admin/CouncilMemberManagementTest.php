@@ -73,3 +73,67 @@ test('a Defensor can delete a council member', function () {
 
     expect(CouncilMember::find($member->id))->toBeNull();
 });
+
+test('bulkActivate activates only the selected inactive members and leaves others untouched', function () {
+    actingAsRoleForCouncil('Defensor');
+    $inactive1 = CouncilMember::factory()->create(['is_active' => false]);
+    $inactive2 = CouncilMember::factory()->create(['is_active' => false]);
+    $notSelected = CouncilMember::factory()->create(['is_active' => false]);
+
+    Livewire::test(CouncilMemberIndex::class)
+        ->set('selected', [$inactive1->id, $inactive2->id])
+        ->call('bulkActivate');
+
+    expect($inactive1->refresh()->is_active)->toBeTrue()
+        ->and($inactive2->refresh()->is_active)->toBeTrue()
+        ->and($notSelected->refresh()->is_active)->toBeFalse();
+});
+
+test('bulkDeactivate deactivates only the selected active members', function () {
+    actingAsRoleForCouncil('Defensor');
+    $active = CouncilMember::factory()->create(['is_active' => true]);
+    $notSelected = CouncilMember::factory()->create(['is_active' => true]);
+
+    Livewire::test(CouncilMemberIndex::class)
+        ->set('selected', [$active->id])
+        ->call('bulkDeactivate');
+
+    expect($active->refresh()->is_active)->toBeFalse()
+        ->and($notSelected->refresh()->is_active)->toBeTrue();
+});
+
+test('an Administrador (no council permission) cannot bulk activate, deactivate or delete council members', function () {
+    actingAsRoleForCouncil('Administrador');
+    $member = CouncilMember::factory()->create(['is_active' => false]);
+
+    Livewire::test(CouncilMemberIndex::class)->set('selected', [$member->id])->call('bulkActivate');
+    expect($member->refresh()->is_active)->toBeFalse();
+
+    Livewire::test(CouncilMemberIndex::class)->set('selected', [$member->id])->call('bulkDelete');
+    expect(CouncilMember::find($member->id))->not->toBeNull();
+});
+
+test('bulkDelete removes every selected council member and clears the selection', function () {
+    actingAsRoleForCouncil('Defensor');
+    $member1 = CouncilMember::factory()->create();
+    $member2 = CouncilMember::factory()->create();
+
+    $component = Livewire::test(CouncilMemberIndex::class)
+        ->set('selected', [$member1->id, $member2->id])
+        ->call('bulkDelete');
+
+    expect(CouncilMember::find($member1->id))->toBeNull()
+        ->and(CouncilMember::find($member2->id))->toBeNull();
+    $component->assertSet('selected', []);
+});
+
+test('toggleSelectAllOnPage selects then deselects every council member', function () {
+    actingAsRoleForCouncil('Defensor');
+    CouncilMember::factory()->count(3)->create();
+
+    $component = Livewire::test(CouncilMemberIndex::class)->call('toggleSelectAllOnPage');
+    expect($component->get('selected'))->toHaveCount(3);
+
+    $component->call('toggleSelectAllOnPage');
+    expect($component->get('selected'))->toHaveCount(0);
+});

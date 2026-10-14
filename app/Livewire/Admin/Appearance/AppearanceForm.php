@@ -25,6 +25,7 @@ class AppearanceForm extends Component
      */
     public array $palette = [
         'Verde (padrão)' => '#0C4A34',
+        'Jade' => '#22B573',
         'Rosa' => '#EC4899',
         'Azul' => '#2563EB',
         'Amarelo' => '#F59E0B',
@@ -75,7 +76,7 @@ class AppearanceForm extends Component
 
     private function applyColors(): void
     {
-        abort_unless(auth()->user()->can('settings.manage'), 403);
+        abort_unless(auth()->user()->can('appearance.update'), 403);
 
         SiteSetting::current()->update([
             'primary_color' => $this->primaryColor,
@@ -84,7 +85,7 @@ class AppearanceForm extends Component
             'sidebar_color' => $this->sidebarColor,
         ]);
 
-        session()->flash('appearance-saved', true);
+        session()->flash('toast', ['title' => 'Aparência', 'message' => 'Cores salvas com sucesso.', 'variant' => 'success']);
 
         // A real browser reload (not Livewire's redirect-to-self, which some
         // browsers can short-circuit without a real round-trip) so the <head>

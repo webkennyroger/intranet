@@ -17,6 +17,8 @@ class PhotoAlbumShow extends Component
     {
         abort_unless($album->is_published, 404);
 
+        $album->incrementViews();
+
         $this->album = $album;
     }
 

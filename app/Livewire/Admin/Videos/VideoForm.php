@@ -24,8 +24,6 @@ class VideoForm extends Component
     #[Validate('required|url|max:2048')]
     public string $url = '';
 
-    public bool $isPublished = true;
-
     public function mount(?Video $video = null): void
     {
         if ($video) {
@@ -33,13 +31,12 @@ class VideoForm extends Component
             $this->title = $video->title;
             $this->description = (string) $video->description;
             $this->url = $video->url;
-            $this->isPublished = $video->is_published;
         }
     }
 
     public function save(): void
     {
-        abort_unless(auth()->user()->can($this->video ? 'content.update' : 'content.create'), 403);
+        abort_unless(auth()->user()->can($this->video ? 'videos.update' : 'videos.create'), 403);
 
         $this->validate();
 
@@ -47,7 +44,6 @@ class VideoForm extends Component
             'title' => $this->title,
             'description' => $this->description !== '' ? $this->description : null,
             'url' => $this->url,
-            'is_published' => $this->isPublished,
         ];
 
         if ($this->video) {
@@ -56,14 +52,17 @@ class VideoForm extends Component
             if ($changes !== []) {
                 ActivityLogger::updated($this->video, $changes);
             }
+            $this->dispatch('toast', title: 'Vídeo', message: 'Vídeo atualizado com sucesso.', variant: 'success');
         } else {
-            $video = Video::create($data);
+            // Vídeo novo entra publicado — despublicar é uma ação separada
+            // na tabela (togglePublish), não um campo deste formulário.
+            $video = Video::create($data + ['is_published' => true]);
             ActivityLogger::created($video);
+            $this->dispatch('toast', title: 'Vídeo', message: 'Vídeo criado com sucesso.', variant: 'success');
         }
 
         $this->dispatch('video-saved');
         $this->reset(['title', 'description', 'url']);
-        $this->isPublished = true;
     }
 
     public function render()

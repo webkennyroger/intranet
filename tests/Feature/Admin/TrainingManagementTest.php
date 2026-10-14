@@ -68,3 +68,77 @@ test('an Administrador can delete a training', function () {
 
     expect(Training::find($training->id))->toBeNull();
 });
+
+test('bulkPublish publishes only the selected draft trainings and leaves others untouched', function () {
+    actingAsRoleForTrainings('Administrador');
+    $draft1 = Training::factory()->create(['is_published' => false]);
+    $draft2 = Training::factory()->create(['is_published' => false]);
+    $notSelected = Training::factory()->create(['is_published' => false]);
+
+    Livewire::test(TrainingIndex::class)
+        ->set('selected', [$draft1->id, $draft2->id])
+        ->call('bulkPublish');
+
+    expect($draft1->refresh()->is_published)->toBeTrue()
+        ->and($draft2->refresh()->is_published)->toBeTrue()
+        ->and($notSelected->refresh()->is_published)->toBeFalse();
+});
+
+test('bulkUnpublish unpublishes only the selected published trainings', function () {
+    actingAsRoleForTrainings('Administrador');
+    $published = Training::factory()->create(['is_published' => true]);
+    $notSelected = Training::factory()->create(['is_published' => true]);
+
+    Livewire::test(TrainingIndex::class)
+        ->set('selected', [$published->id])
+        ->call('bulkUnpublish');
+
+    expect($published->refresh()->is_published)->toBeFalse()
+        ->and($notSelected->refresh()->is_published)->toBeTrue();
+});
+
+test('a Defensor cannot bulk publish or bulk unpublish trainings', function () {
+    actingAsRoleForTrainings('Defensor');
+    $draft = Training::factory()->create(['is_published' => false]);
+    $published = Training::factory()->create(['is_published' => true]);
+
+    Livewire::test(TrainingIndex::class)->set('selected', [$draft->id])->call('bulkPublish');
+    Livewire::test(TrainingIndex::class)->set('selected', [$published->id])->call('bulkUnpublish');
+
+    expect($draft->refresh()->is_published)->toBeFalse()
+        ->and($published->refresh()->is_published)->toBeTrue();
+});
+
+test('bulkDelete removes every selected training and clears the selection', function () {
+    actingAsRoleForTrainings('Administrador');
+    $training1 = Training::factory()->create();
+    $training2 = Training::factory()->create();
+
+    $component = Livewire::test(TrainingIndex::class)
+        ->set('selected', [$training1->id, $training2->id])
+        ->call('bulkDelete');
+
+    expect(Training::find($training1->id))->toBeNull()
+        ->and(Training::find($training2->id))->toBeNull();
+    $component->assertSet('selected', []);
+});
+
+test('a Defensor cannot bulk delete trainings', function () {
+    actingAsRoleForTrainings('Defensor');
+    $training = Training::factory()->create();
+
+    Livewire::test(TrainingIndex::class)->set('selected', [$training->id])->call('bulkDelete');
+
+    expect(Training::find($training->id))->not->toBeNull();
+});
+
+test('toggleSelectAllOnPage selects then deselects every training on the current page', function () {
+    actingAsRoleForTrainings('Administrador');
+    Training::factory()->count(3)->create();
+
+    $component = Livewire::test(TrainingIndex::class)->call('toggleSelectAllOnPage');
+    expect($component->get('selected'))->toHaveCount(3);
+
+    $component->call('toggleSelectAllOnPage');
+    expect($component->get('selected'))->toHaveCount(0);
+});

@@ -16,12 +16,14 @@
 
 @php
     $tag = $href ? 'a' : 'button';
-    $base = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+    $base = 'inline-flex items-center justify-center cursor-pointer font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
 
     $variantStyles = [
         'primary' => 'background-color: var(--admin-primary, var(--brand-primary, #0C4A34)); color: #fff;',
         'secondary' => 'background-color: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border-color);',
-        'danger' => 'background-color: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);',
+        'danger' => 'background-color: #ef4444; color: #fff;',
+        'warning' => 'background-color: #f97316; color: #fff;',
+        'info' => 'background-color: #3b82f6; color: #fff;',
         'ghost' => 'color: var(--text-secondary);',
         'link' => 'color: var(--admin-primary, var(--brand-primary, #0C4A34));',
         'outline' => 'border: 2px solid var(--admin-primary, var(--brand-primary, #0C4A34)); color: var(--admin-primary, var(--brand-primary, #0C4A34));',
@@ -29,9 +31,11 @@
 
     $variants = [
         'primary' => 'hover:brightness-110 active:brightness-95 focus:ring-black/20 shadow-lg shadow-black/10',
-        'secondary' => 'hover:opacity-80 focus:ring-emerald-500/30',
-        'danger' => 'hover:opacity-80 focus:ring-red-500/50',
-        'ghost' => 'hover:bg-[var(--bg-hover)] focus:ring-emerald-500/30',
+        'secondary' => 'hover:brightness-95 active:brightness-90 focus:ring-(--focus-ring)/30',
+        'danger' => 'hover:brightness-110 active:brightness-95 focus:ring-red-500/50 shadow-lg shadow-black/10',
+        'warning' => 'hover:brightness-110 active:brightness-95 focus:ring-orange-500/50 shadow-lg shadow-black/10',
+        'info' => 'hover:brightness-110 active:brightness-95 focus:ring-blue-500/50 shadow-lg shadow-black/10',
+        'ghost' => 'hover:bg-slate-200 dark:hover:bg-white/10 focus:ring-(--focus-ring)/30',
         'link' => 'hover:brightness-110 underline-offset-4 hover:underline p-0 h-auto focus:ring-0',
         'outline' => 'hover:brightness-110 focus:ring-black/20',
     ];

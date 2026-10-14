@@ -1,7 +1,5 @@
 {{--
     Interruptor on/off (checkbox nativo escondido + trilho/bolinha customizados).
-    Componente genérico do kit de UI, ainda não usado em nenhuma tela deste
-    projeto.
 --}}
 @props([
     'label' => null,

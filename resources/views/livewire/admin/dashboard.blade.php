@@ -125,7 +125,7 @@
                         <div class="px-6 py-3 flex items-center justify-between gap-4" style="border-color: var(--border-color);">
                             <div class="min-w-0">
                                 <div class="font-medium truncate" style="color: var(--text-primary);">{{ $article->title }}</div>
-                                <div class="text-xs" style="color: var(--text-muted);">{{ $article->category?->name ?? '—' }} · {{ $article->created_at->format('d/m/Y') }}</div>
+                                <div class="text-xs" style="color: var(--text-muted);">{{ $article->categories->pluck('name')->implode(', ') ?: '—' }} · {{ $article->created_at->format('d/m/Y') }}</div>
                             </div>
                             <x-ui.badge :variant="$article->is_published ? 'success' : 'warning'">{{ $article->is_published ? 'Publicado' : 'Rascunho' }}</x-ui.badge>
                         </div>

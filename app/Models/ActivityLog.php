@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Permission\Models\Role;
 
 /**
  * Registro de uma ação (criação, atualização, ativação/desativação ou
@@ -85,7 +86,9 @@ class ActivityLog extends Model
         return Attribute::make(
             get: fn () => match ($this->subject_type) {
                 Article::class => 'Mural',
+                Category::class => 'Categoria',
                 Document::class => 'Documento',
+                DocumentCategory::class => 'Pasta de Documentos',
                 CouncilMember::class => 'Conselho Superior',
                 ServiceLink::class => 'Serviço',
                 PhotoAlbum::class => 'Álbum de Fotos',
@@ -94,6 +97,7 @@ class ActivityLog extends Model
                 Training::class => 'Capacitação',
                 User::class => 'Usuário',
                 ForumTopic::class => 'Fórum',
+                Role::class => 'Papel',
                 default => $this->subject_type ? class_basename($this->subject_type) : 'Sistema',
             },
         );

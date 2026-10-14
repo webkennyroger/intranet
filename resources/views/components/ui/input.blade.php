@@ -29,7 +29,7 @@
 
         <input
             {{ $attributes->merge([
-                'class' => 'w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition-all duration-200 ' .
+                'class' => 'w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-(--focus-ring)/40 focus:border-(--focus-ring) transition-all duration-200 ' .
                     ($icon ? 'pl-10 pr-4 ' : 'px-4 ') .
                     'py-2.5 text-sm ' .
                     ($error ? 'border-red-500/50 focus:ring-red-500/40' : '')

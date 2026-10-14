@@ -3,8 +3,10 @@
     (usuários, artigos, serviços etc.). "sortable" liga o drag-and-drop de
     linhas (via Alpine dragDrop($wire, sortMethod), que chama o método
     Livewire indicado em "sortMethod" a cada reordenação, normalmente junto
-    com <x-ui.drag-handle>) e "selectable" habilita o estado "selectAll"
-    usado pelos checkboxes de seleção em massa nas linhas.
+    com <x-ui.drag-handle>). "selectable" é só documentação da intenção do
+    call site (que deve ter x-ui.table-checkbox + um array "selected" no
+    componente Livewire, ver PhotoAlbumIndex/ArticleIndex) — não muda nada
+    aqui, a seleção em massa é controlada inteiramente pelo Livewire agora.
 --}}
 @props([
     'striped' => true,
@@ -18,7 +20,6 @@
 <div
     {{ $attributes->merge(['class' => 'rounded-2xl overflow-hidden']) }}
     style="background-color: var(--bg-card); border: 1px solid var(--border-color);"
-    @if ($selectable) x-data="{ selectAll: false }" @endif
 >
     <div class="overflow-x-auto">
         <table class="w-full text-sm text-left">
@@ -31,7 +32,7 @@
             @endif
 
             <tbody
-                class="divide-y divide-(--border-color) {{ $hoverable ? '[&>tr]:transition-colors [&>tr:hover]:bg-(--bg-hover)' : '' }}"
+                class="divide-y divide-(--border-color) {{ $hoverable ? '[&>tr]:transition-colors [&>tr:hover]:bg-(--admin-primary)/4' : '' }}"
                 style="color: var(--text-primary);"
                 @if ($sortable) x-data="dragDrop($wire, '{{ $sortMethod }}')" @endif
             >

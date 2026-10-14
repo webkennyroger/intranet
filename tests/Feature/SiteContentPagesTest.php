@@ -48,12 +48,21 @@ test('an unpublished album returns 404 on its show page', function () {
     $this->actingAs($user)->get(route('photos.show', $album))->assertNotFound();
 });
 
-test('the videos page only shows published videos', function () {
+test('visiting an album show page increments its views count', function () {
+    $user = User::factory()->create();
+    $album = PhotoAlbum::factory()->create(['is_published' => true, 'views_count' => 0]);
+
+    $this->actingAs($user)->get(route('photos.show', $album));
+
+    expect($album->refresh()->views_count)->toBe(1);
+});
+
+test('the media page only shows published videos', function () {
     $user = User::factory()->create();
     Video::factory()->create(['title' => 'Vídeo Público', 'is_published' => true]);
     Video::factory()->create(['title' => 'Vídeo Rascunho', 'is_published' => false]);
 
-    $this->actingAs($user)->get(route('videos.index'))
+    $this->actingAs($user)->get(route('photos.index'))
         ->assertOk()
         ->assertSee('Vídeo Público')
         ->assertDontSee('Vídeo Rascunho');

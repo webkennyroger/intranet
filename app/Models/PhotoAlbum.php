@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\PhotoAlbumFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -29,5 +30,20 @@ class PhotoAlbum extends Model
     public function photos(): HasMany
     {
         return $this->hasMany(Photo::class)->orderBy('order');
+    }
+
+    public function likedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'photo_album_likes')->withTimestamps();
+    }
+
+    public function isLikedBy(User $user): bool
+    {
+        return $this->likedByUsers()->where('user_id', $user->id)->exists();
+    }
+
+    public function incrementViews(): void
+    {
+        $this->increment('views_count');
     }
 }

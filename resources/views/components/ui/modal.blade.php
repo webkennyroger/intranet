@@ -26,7 +26,7 @@
 <div
     x-data="{ open: false }"
     x-on:open-modal.window="(Array.isArray($event.detail) ? $event.detail[0] : $event.detail) === '{{ $name }}' && (open = true)"
-    x-on:close-modal.window="$event.detail === '{{ $name }}' && (open = false)"
+    x-on:close-modal.window="(Array.isArray($event.detail) ? $event.detail[0] : $event.detail) === '{{ $name }}' && (open = false)"
     x-on:keydown.escape.window="open = false"
     x-show="open"
     x-cloak
@@ -42,13 +42,13 @@
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="fixed inset-0 backdrop-blur-sm"
+        class="fixed inset-0"
         style="background-color: rgba(0, 0, 0, 0.5);"
         @click="open = false"
     ></div>
 
     <!-- Modal Panel -->
-    <div class="flex min-h-full items-center justify-center p-4">
+    <div class="relative flex min-h-full items-center justify-center p-4">
         <div
             x-show="open"
             x-transition:enter="transition ease-out duration-300"

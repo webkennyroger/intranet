@@ -14,8 +14,8 @@
     :class="{
         'translate-x-0': mobileSidebarOpen,
         '-translate-x-full lg:translate-x-0': !mobileSidebarOpen,
-        'lg:w-20': sidebarCollapsed,
-        'lg:w-64': !sidebarCollapsed,
+        'lg:w-26': sidebarCollapsed,
+        'lg:w-56': !sidebarCollapsed,
     }"
     class="w-64 fixed inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out border-r border-black/10 flex flex-col shrink-0 overflow-y-auto"
 >
@@ -46,7 +46,7 @@
             @php
                 $items = collect($section['items'] ?? [$section])
                     ->filter(fn ($item) => $item['permission'] === null || auth()->user()->can($item['permission']));
-                $isSubmenuGroup = in_array($section['group'] ?? null, ['CONTEÚDO', 'DEFENSORES', 'GESTÃO', 'OUTROS', 'ADMINISTRAÇÃO'], true);
+                $isSubmenuGroup = in_array($section['group'] ?? null, ['CONTEÚDO', 'DEFENSORES', 'OUTROS', 'ADMINISTRAÇÃO'], true);
             @endphp
 
             @if ($items->isNotEmpty())
@@ -55,13 +55,13 @@
                         <button
                             type="button"
                             @click="open = !open"
-                            class="relative w-full flex flex-row items-center gap-3 pl-3 pr-3 py-2.5 rounded-xl font-medium transition hover:bg-black/5 text-slate-600 dark:text-[#8aa39a]"
+                            class="relative w-full flex flex-row items-center gap-3 pl-3 pr-3 py-2.5 rounded-xl font-medium transition hover:bg-black/5 text-slate-600 dark:text-(--text-secondary)"
                             :class="sidebarCollapsed ? 'lg:flex-col lg:gap-0.5 lg:justify-center lg:px-1 lg:py-2.5' : ''"
                         >
-                            <i class="fa-solid fa-{{ $section['icon'] }} w-4 text-center text-slate-400 dark:text-[#70847d]"></i>
+                            <i class="fa-solid fa-{{ $section['icon'] }} w-4 text-center text-slate-400 dark:text-(--text-muted)"></i>
                             <span class="flex-1 text-left" :class="sidebarCollapsed ? 'lg:text-[9px] lg:text-center lg:leading-tight' : ''">{{ $section['group'] }}</span>
                             <i
-                                class="fa-solid text-[10px] text-slate-400 dark:text-[#70847d]"
+                                class="fa-solid text-[10px] text-slate-400 dark:text-(--text-muted)"
                                 :class="open ? 'fa-minus' : 'fa-plus'"
                                 x-show="!sidebarCollapsed"
                             ></i>
@@ -72,7 +72,7 @@
                                 @php $isActive = ! ($item['alias'] ?? false) && request()->routeIs($item['route']); @endphp
                                 <a
                                     href="{{ route($item['route']) }}"
-                                    class="relative flex items-center gap-2.5 pl-4 pr-3 py-2 rounded-lg transition text-xs {{ $isActive ? 'font-semibold' : 'font-medium text-slate-500 dark:text-[#70847d] hover:bg-black/5' }}"
+                                    class="relative flex items-center gap-2.5 pl-4 pr-3 py-2 rounded-lg transition text-xs {{ $isActive ? 'font-semibold' : 'font-medium text-slate-500 dark:text-(--text-muted) hover:bg-black/5' }}"
                                     @if ($isActive)
                                         style="color: var(--admin-sidebar-active-text); background-color: var(--admin-sidebar-active-bg);"
                                     @else
@@ -108,11 +108,11 @@
                                     @if ($isActive) style="background-color: color-mix(in srgb, var(--admin-sidebar-active-text) 18%, transparent);" @endif
                                 >
                                     <i
-                                        class="fa-solid fa-{{ $item['icon'] }} text-sm {{ $isActive ? '' : 'text-slate-400 dark:text-[#70847d]' }}"
+                                        class="fa-solid fa-{{ $item['icon'] }} text-sm {{ $isActive ? '' : 'text-slate-400 dark:text-(--text-muted)' }}"
                                         @if ($isActive) style="color: var(--admin-sidebar-active-text);" @endif
                                     ></i>
                                 </span>
-                                <span class="flex-1 {{ $isActive ? '' : 'text-slate-600 dark:text-[#8aa39a]' }}" :class="sidebarCollapsed ? 'lg:text-[9px] lg:text-center lg:leading-tight' : ''">{{ $item['label'] }}</span>
+                                <span class="flex-1 {{ $isActive ? '' : 'text-slate-600 dark:text-(--text-secondary)' }}" :class="sidebarCollapsed ? 'lg:text-[9px] lg:text-center lg:leading-tight' : ''">{{ $item['label'] }}</span>
                                 @if ($isActive)
                                     <span class="absolute right-0.5 inset-y-0 w-1" style="background-color: var(--admin-sidebar-active-text);"></span>
                                 @endif

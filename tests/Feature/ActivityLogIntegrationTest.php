@@ -44,7 +44,7 @@ function actingAsSuperAdminForLogging(): User
     return $admin;
 }
 
-test('creating and publishing an article logs created and activated', function () {
+test('creating, unpublishing and republishing an article logs each action', function () {
     actingAsSuperAdminForLogging();
 
     Livewire::test(ArticleForm::class)
@@ -55,14 +55,16 @@ test('creating and publishing an article logs created and activated', function (
         ->set('coverIcon', 'newspaper')
         ->call('save');
 
+    // Artigo novo já entra publicado, então o log de criação já basta aqui.
     $article = Article::where('title', 'Nota de Imprensa')->first();
-    expect(ActivityLog::where('action', 'created')->where('subject_id', $article->id)->exists())->toBeTrue();
-
-    Livewire::test(ArticleIndex::class)->call('togglePublish', $article->id);
-    expect(ActivityLog::where('action', 'activated')->where('subject_id', $article->id)->exists())->toBeTrue();
+    expect($article->is_published)->toBeTrue()
+        ->and(ActivityLog::where('action', 'created')->where('subject_id', $article->id)->exists())->toBeTrue();
 
     Livewire::test(ArticleIndex::class)->call('togglePublish', $article->id);
     expect(ActivityLog::where('action', 'deactivated')->where('subject_id', $article->id)->exists())->toBeTrue();
+
+    Livewire::test(ArticleIndex::class)->call('togglePublish', $article->id);
+    expect(ActivityLog::where('action', 'activated')->where('subject_id', $article->id)->exists())->toBeTrue();
 
     Livewire::test(ArticleIndex::class)->call('delete', $article->id);
     expect(ActivityLog::where('action', 'deleted')->where('subject_id', $article->id)->exists())->toBeTrue();
@@ -86,7 +88,7 @@ test('document create, publish toggle and delete are logged', function () {
 
     Livewire::test(DocumentForm::class)
         ->set('title', 'Edital')
-        ->set('file', UploadedFile::fake()->create('edital.pdf', 10))
+        ->set('files', [UploadedFile::fake()->create('edital.pdf', 10)])
         ->call('save');
 
     $document = Document::where('title', 'Edital')->first();

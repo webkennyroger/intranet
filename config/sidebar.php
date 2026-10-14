@@ -36,8 +36,7 @@ return [
         'items' => [
             ['label' => 'Conselho Superior', 'icon' => 'scale-balanced', 'uri' => '/conselho-superior', 'route' => 'council.index', 'permission' => null],
             ['label' => 'Notícias', 'icon' => 'comment-dots', 'uri' => '/noticias', 'route' => 'noticias.index', 'permission' => null],
-            ['label' => 'Fotos', 'icon' => 'camera', 'uri' => '/fotos', 'route' => 'photos.index', 'permission' => null],
-            ['label' => 'Vídeos', 'icon' => 'video', 'uri' => '/videos', 'route' => 'videos.index', 'permission' => null],
+            ['label' => 'Mídias', 'icon' => 'photo-film', 'uri' => '/fotos', 'route' => 'photos.index', 'permission' => null],
         ],
     ],
     [
