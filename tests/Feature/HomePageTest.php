@@ -3,6 +3,7 @@
 use App\Livewire\Home\HomeIndex;
 use App\Models\Article;
 use App\Models\BirthdayBanner;
+use App\Models\Category;
 use App\Models\Event;
 use App\Models\Photo;
 use App\Models\PhotoAlbum;
@@ -73,6 +74,25 @@ test('the home page does not show the birthdays section when no banner is publis
     $this->actingAs($user)
         ->get(route('inicio'))
         ->assertDontSee('Aniversariantes de');
+});
+
+test('articles already shown in Em Destaque do not also appear in Últimas Notícias', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $noticia = Category::firstOrCreate(['slug' => 'noticia'], ['name' => 'Notícia']);
+    $mural = Category::firstOrCreate(['slug' => 'mural'], ['name' => 'Mural']);
+
+    Article::factory()->create(['title' => 'Manchete', 'is_published' => true, 'published_at' => now()]);
+    Article::factory()->hasAttached($noticia)->create(['title' => 'Notícia Destaque', 'is_published' => true, 'published_at' => now()->subMinute()]);
+    Article::factory()->hasAttached($mural)->create(['title' => 'Mural Destaque', 'is_published' => true, 'published_at' => now()->subMinutes(2)]);
+    Article::factory()->create(['title' => 'Notícia Comum', 'is_published' => true, 'published_at' => now()->subMinutes(3)]);
+
+    $component = Livewire::test(HomeIndex::class);
+    $latestNews = $component->viewData('latestNewsSlides')->flatten(1);
+
+    expect($latestNews->pluck('title')->all())
+        ->toBe(['Notícia Comum'])
+        ->and($latestNews->pluck('title'))->not->toContain('Notícia Destaque', 'Mural Destaque');
 });
 
 test('toggling the like button likes and unlikes the headline article', function () {

@@ -14,14 +14,62 @@
     />
 
     <!-- Formulário de Cores -->
-    <form wire:submit="save" class="ui-card p-6 space-y-6">
-        <div class="grid sm:grid-cols-2 gap-6">
-            @php $paletteWithWhite = [...$palette, 'Branco' => '#FFFFFF']; @endphp
-            <x-admin.color-picker field="primaryColor" label="Cor de destaque (Primary)" :value="$primaryColor" :palette="$palette" default="#0C4A34" />
-            <x-admin.color-picker field="navHeaderColor" label="Canto da marca (Navigation Header)" :value="$navHeaderColor" :palette="$paletteWithWhite" default="#FFFFFF" />
-            <x-admin.color-picker field="headerColor" label="Barra superior (Header)" :value="$headerColor" :palette="$paletteWithWhite" default="#FFFFFF" />
-            <x-admin.color-picker field="sidebarColor" label="Menu lateral (Sidebar)" :value="$sidebarColor" :palette="$paletteWithWhite" default="#FFFFFF" />
-        </div>
+    <form wire:submit="save" class="space-y-6">
+        <x-ui.card :padding="false">
+            <div>
+                <div class="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div class="flex items-start gap-3 sm:w-72 shrink-0">
+                        <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--bg-elevated); color: var(--text-secondary);">
+                            <i class="fa-solid fa-droplet"></i>
+                        </span>
+                        <div>
+                            <p class="font-semibold text-sm" style="color: var(--text-primary);">Cor de destaque</p>
+                            <p class="text-xs mt-0.5" style="color: var(--text-muted);">Botões, links e realces em todo o painel.</p>
+                        </div>
+                    </div>
+                    <x-admin.color-picker field="primaryColor" :value="$primaryColor" :palette="$palette" default="#0C4A34" />
+                </div>
+
+                <div class="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4" style="border-top: 1px solid var(--border-color);">
+                    <div class="flex items-start gap-3 sm:w-72 shrink-0">
+                        <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--bg-elevated); color: var(--text-secondary);">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </span>
+                        <div>
+                            <p class="font-semibold text-sm" style="color: var(--text-primary);">Canto da marca</p>
+                            <p class="text-xs mt-0.5" style="color: var(--text-muted);">Fundo do emblema no topo do menu lateral.</p>
+                        </div>
+                    </div>
+                    <x-admin.color-picker field="navHeaderColor" :value="$navHeaderColor" :palette="$palette" default="#FFFFFF" />
+                </div>
+
+                <div class="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4" style="border-top: 1px solid var(--border-color);">
+                    <div class="flex items-start gap-3 sm:w-72 shrink-0">
+                        <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--bg-elevated); color: var(--text-secondary);">
+                            <i class="fa-solid fa-bars"></i>
+                        </span>
+                        <div>
+                            <p class="font-semibold text-sm" style="color: var(--text-primary);">Barra superior</p>
+                            <p class="text-xs mt-0.5" style="color: var(--text-muted);">Fundo da barra fixa no topo de cada página.</p>
+                        </div>
+                    </div>
+                    <x-admin.color-picker field="headerColor" :value="$headerColor" :palette="$palette" default="#FFFFFF" />
+                </div>
+
+                <div class="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4" style="border-top: 1px solid var(--border-color);">
+                    <div class="flex items-start gap-3 sm:w-72 shrink-0">
+                        <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--bg-elevated); color: var(--text-secondary);">
+                            <i class="fa-solid fa-table-columns"></i>
+                        </span>
+                        <div>
+                            <p class="font-semibold text-sm" style="color: var(--text-primary);">Menu lateral</p>
+                            <p class="text-xs mt-0.5" style="color: var(--text-muted);">Fundo da coluna de navegação à esquerda.</p>
+                        </div>
+                    </div>
+                    <x-admin.color-picker field="sidebarColor" :value="$sidebarColor" :palette="$palette" default="#FFFFFF" />
+                </div>
+            </div>
+        </x-ui.card>
 
         <x-ui.button type="submit">Salvar cores</x-ui.button>
     </form>

@@ -92,9 +92,11 @@
                                 @foreach ($selectedCategories as $category)
                                     <span class="inline-flex items-center gap-1.5 rounded-full text-xs font-semibold px-2.5 py-1" style="background-color: {{ $category->lightColor() }}; color: {{ $category->color }};">
                                         {{ $category->name }}
-                                        <button type="button" wire:click="removeCategory({{ $category->id }})" class="hover:opacity-70">
-                                            <i class="fa-solid fa-xmark"></i>
-                                        </button>
+                                        <x-ui.tooltip text="Remover categoria">
+                                            <button type="button" wire:click="removeCategory({{ $category->id }})" class="hover:opacity-70">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
+                                        </x-ui.tooltip>
                                     </span>
                                 @endforeach
                             </div>
@@ -160,9 +162,11 @@
                                             <option value="imagem">Imagem</option>
                                         </x-ui.select>
                                     </div>
-                                    <button type="button" wire:click="removeCustomField({{ $index }})" class="text-red-600 hover:text-red-700 mt-6">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
+                                    <x-ui.tooltip text="Remover campo" class="mt-6">
+                                        <button type="button" wire:click="removeCustomField({{ $index }})" class="text-red-600 hover:text-red-700">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </x-ui.tooltip>
                                 </div>
 
                                 <x-ui.input wire:model="customFields.{{ $index }}.label" label="Rótulo" placeholder="Ex: Edital, Manual, Vídeo institucional..." />

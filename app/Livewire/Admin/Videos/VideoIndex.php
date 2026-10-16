@@ -18,8 +18,16 @@ class VideoIndex extends Component
 
     public ?int $editingVideoId = null;
 
+    public string $search = '';
+
     /** @var array<int, int> */
     public array $selected = [];
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+    }
 
     #[On('video-saved')]
     public function refreshList(): void
@@ -61,7 +69,8 @@ class VideoIndex extends Component
 
     public function toggleSelectAllOnPage(): void
     {
-        $pageIds = Video::latest()->paginate(10)->pluck('id')->all();
+        $pageIds = Video::when($this->search !== '', fn ($query) => $query->where('title', 'like', "%{$this->search}%"))
+            ->latest()->paginate(10)->pluck('id')->all();
 
         if (array_diff($pageIds, $this->selected) === []) {
             $this->selected = array_values(array_diff($this->selected, $pageIds));
@@ -124,7 +133,8 @@ class VideoIndex extends Component
 
     public function render()
     {
-        $videos = Video::latest()->paginate(10);
+        $videos = Video::when($this->search !== '', fn ($query) => $query->where('title', 'like', "%{$this->search}%"))
+            ->latest()->paginate(10);
 
         return view('livewire.admin.videos.video-index', [
             'videos' => $videos,

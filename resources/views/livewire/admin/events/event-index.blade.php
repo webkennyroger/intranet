@@ -42,6 +42,11 @@
         <x-admin.stat-card label="Próximos" :value="$upcomingEvents" sublabel="Ainda não ocorreram" valueColor="var(--admin-primary-dark)" />
     </div>
 
+    <!-- Busca -->
+    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por título ou local..."
+        class="w-full rounded-lg px-4 py-2.5 text-sm placeholder:text-slate-400"
+        style="background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary);" />
+
     <!-- Tabela de Eventos -->
     @if ($events->isEmpty())
         <x-ui.empty-state title="Nenhum evento cadastrado ainda." icon="calendar" />

@@ -49,7 +49,7 @@
             </button>
 
             <div x-show="userMenuOpen" @click.outside="userMenuOpen = false" x-cloak
-                class="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white dark:bg-(--bg-card) text-slate-700 dark:text-(--text-primary) py-1 z-50">
+                class="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white dark:bg-(--bg-surface) text-slate-700 dark:text-(--text-primary) py-1 z-50">
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="w-full text-left px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-(--bg-hover)">Sair</button>

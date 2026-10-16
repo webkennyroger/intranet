@@ -3,6 +3,7 @@
 use App\Livewire\Admin\Trainings\TrainingForm;
 use App\Livewire\Admin\Trainings\TrainingIndex;
 use App\Models\Training;
+use App\Models\TrainingCategory;
 use App\Models\User;
 use Database\Seeders\AclSeeder;
 use Livewire\Livewire;
@@ -23,32 +24,94 @@ test('an Administrador can view the trainings management page', function () {
     $this->get(route('admin.trainings.index'))->assertStatus(200);
 });
 
-test('creating a training saves its external link and workload', function () {
+test('creating a training saves its link and workload', function () {
     actingAsRoleForTrainings('Administrador');
 
     Livewire::test(TrainingForm::class)
         ->set('title', 'LGPD na Prática')
-        ->set('externalUrl', 'https://cursos.exemplo.com/lgpd')
+        ->set('links.0.url', 'https://cursos.exemplo.com/lgpd')
         ->set('workloadHours', '20')
         ->call('save')
         ->assertHasNoErrors();
 
     $training = Training::where('title', 'LGPD na Prática')->first();
     expect($training)->not->toBeNull()
-        ->and($training->external_url)->toBe('https://cursos.exemplo.com/lgpd')
+        ->and($training->links)->toBe([['label' => null, 'url' => 'https://cursos.exemplo.com/lgpd']])
         ->and($training->workload_hours)->toBe(20);
 });
 
-test('creating a training without an external link is rejected', function () {
+test('creating a training without any link is rejected', function () {
     actingAsRoleForTrainings('Administrador');
 
     Livewire::test(TrainingForm::class)
         ->set('title', 'Sem Link')
-        ->set('externalUrl', '')
+        ->set('links.0.url', '')
         ->call('save')
-        ->assertHasErrors(['externalUrl']);
+        ->assertHasErrors(['links']);
 
     expect(Training::where('title', 'Sem Link')->exists())->toBeFalse();
+});
+
+test('creating a training with multiple links saves each one with its label', function () {
+    actingAsRoleForTrainings('Administrador');
+
+    Livewire::test(TrainingForm::class)
+        ->set('title', 'Curso com Etapas')
+        ->set('links.0.label', 'Módulo 1')
+        ->set('links.0.url', 'https://cursos.exemplo.com/modulo-1')
+        ->call('addLink')
+        ->set('links.1.label', 'Módulo 2')
+        ->set('links.1.url', 'https://cursos.exemplo.com/modulo-2')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $training = Training::where('title', 'Curso com Etapas')->first();
+    expect($training->links)->toBe([
+        ['label' => 'Módulo 1', 'url' => 'https://cursos.exemplo.com/modulo-1'],
+        ['label' => 'Módulo 2', 'url' => 'https://cursos.exemplo.com/modulo-2'],
+    ]);
+});
+
+test('removeLink discards the link row and blank rows are ignored on save', function () {
+    actingAsRoleForTrainings('Administrador');
+
+    Livewire::test(TrainingForm::class)
+        ->set('title', 'Curso com Linha Vazia')
+        ->set('links.0.url', 'https://cursos.exemplo.com/unico')
+        ->call('addLink')
+        ->call('removeLink', 1)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $training = Training::where('title', 'Curso com Linha Vazia')->first();
+    expect($training->links)->toBe([['label' => null, 'url' => 'https://cursos.exemplo.com/unico']]);
+});
+
+test('creating a training with a non-existent category is rejected', function () {
+    actingAsRoleForTrainings('Administrador');
+
+    Livewire::test(TrainingForm::class)
+        ->set('title', 'Capacitação Qualquer')
+        ->set('links.0.url', 'https://cursos.exemplo.com/qualquer')
+        ->set('trainingCategoryId', '999999')
+        ->call('save')
+        ->assertHasErrors(['trainingCategoryId']);
+
+    expect(Training::where('title', 'Capacitação Qualquer')->exists())->toBeFalse();
+});
+
+test('creating a training with a valid category saves it', function () {
+    actingAsRoleForTrainings('Administrador');
+    $category = TrainingCategory::factory()->create();
+
+    Livewire::test(TrainingForm::class)
+        ->set('title', 'Capacitação com Pasta')
+        ->set('links.0.url', 'https://cursos.exemplo.com/pasta')
+        ->set('trainingCategoryId', (string) $category->id)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(Training::where('title', 'Capacitação com Pasta')->first()->training_category_id)->toBe($category->id);
 });
 
 test('a Defensor cannot publish a training', function () {
@@ -141,4 +204,15 @@ test('toggleSelectAllOnPage selects then deselects every training on the current
 
     $component->call('toggleSelectAllOnPage');
     expect($component->get('selected'))->toHaveCount(0);
+});
+
+test('searching filters the trainings table by title', function () {
+    actingAsRoleForTrainings('Administrador');
+    Training::factory()->create(['title' => 'Capacitação em LGPD']);
+    Training::factory()->create(['title' => 'Outro Assunto']);
+
+    Livewire::test(TrainingIndex::class)
+        ->set('search', 'LGPD')
+        ->assertSee('Capacitação em LGPD')
+        ->assertDontSee('Outro Assunto');
 });

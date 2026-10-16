@@ -235,3 +235,14 @@ test('toggleSelectAllOnPage selects then deselects every album on the current pa
     $component->call('toggleSelectAllOnPage');
     expect($component->get('selected'))->toHaveCount(0);
 });
+
+test('searching filters the photo albums table by title', function () {
+    actingAsRoleForPhotos('Administrador');
+    PhotoAlbum::factory()->create(['title' => 'Formatura 2026']);
+    PhotoAlbum::factory()->create(['title' => 'Outro Assunto']);
+
+    Livewire::test(PhotoAlbumIndex::class)
+        ->set('search', 'Formatura')
+        ->assertSee('Formatura 2026')
+        ->assertDontSee('Outro Assunto');
+});

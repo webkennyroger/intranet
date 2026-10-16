@@ -5,6 +5,8 @@ use App\Livewire\Admin\Events\EventIndex;
 use App\Models\Event;
 use App\Models\User;
 use Database\Seeders\AclSeeder;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 function actingAsRoleForEvents(string $role): User
@@ -142,4 +144,60 @@ test('toggleSelectAllOnPage selects then deselects every event on the current pa
 
     $component->call('toggleSelectAllOnPage');
     expect($component->get('selected'))->toHaveCount(0);
+});
+
+test('searching filters the events table by title', function () {
+    actingAsRoleForEvents('Administrador');
+    Event::factory()->create(['title' => 'Palestra de Direitos Humanos']);
+    Event::factory()->create(['title' => 'Outro Assunto']);
+
+    Livewire::test(EventIndex::class)
+        ->set('search', 'Direitos Humanos')
+        ->assertSee('Palestra de Direitos Humanos')
+        ->assertDontSee('Outro Assunto');
+});
+
+test('creating an event saves its link and attached file of any type', function () {
+    Storage::fake('public');
+    actingAsRoleForEvents('Administrador');
+
+    Livewire::test(EventForm::class)
+        ->set('title', 'Semana Jurídica')
+        ->set('startsAt', '2026-11-10T09:00')
+        ->set('link', 'https://meet.exemplo.com/semana-juridica')
+        ->set('file', UploadedFile::fake()->create('programacao.zip', 100))
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $event = Event::where('title', 'Semana Jurídica')->first();
+    expect($event->link)->toBe('https://meet.exemplo.com/semana-juridica')
+        ->and($event->file_path)->not->toBeNull()
+        ->and($event->fileIcon())->toBe('file-zipper');
+    Storage::disk('public')->assertExists($event->file_path);
+});
+
+test('creating an event with an invalid link is rejected', function () {
+    actingAsRoleForEvents('Administrador');
+
+    Livewire::test(EventForm::class)
+        ->set('title', 'Link Inválido')
+        ->set('startsAt', '2026-11-10T09:00')
+        ->set('link', 'nao-e-uma-url')
+        ->call('save')
+        ->assertHasErrors(['link']);
+
+    expect(Event::where('title', 'Link Inválido')->exists())->toBeFalse();
+});
+
+test('removeFile clears the attached file when editing an event', function () {
+    Storage::fake('public');
+    actingAsRoleForEvents('Administrador');
+    $event = Event::factory()->create(['file_path' => 'events/programacao.pdf']);
+
+    Livewire::test(EventForm::class, ['event' => $event])
+        ->call('removeFile')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($event->refresh()->file_path)->toBeNull();
 });

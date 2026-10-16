@@ -65,8 +65,7 @@
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95"
             class="fixed z-50 {{ $widthClass }} rounded-xl shadow-xl py-1.5"
-            :style="`top: ${top}px; left: ${left}px; transform: translateX({{ $align === 'left' ? '0%' : '-100%' }});`"
-            style="background-color: var(--bg-surface); border: 1px solid var(--border-color);"
+            :style="`top: ${top}px; left: ${left}px; transform: translateX({{ $align === 'left' ? '0%' : '-100%' }}); background-color: var(--bg-surface); border: 1px solid var(--border-color);`"
         >
             {{ $slot }}
         </div>

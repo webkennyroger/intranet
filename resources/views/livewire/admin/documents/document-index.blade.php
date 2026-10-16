@@ -61,6 +61,11 @@
             <x-admin.stat-card label="Rascunhos" :value="$draftDocuments" sublabel="Ainda não publicados" />
         </div>
 
+        <!-- Busca -->
+        <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por título..."
+            class="w-full rounded-lg px-4 py-2.5 text-sm placeholder:text-slate-400"
+            style="background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary);" />
+
         <!-- Tabela de Documentos -->
         @if ($documents->isEmpty())
             <x-ui.empty-state title="Nenhum documento cadastrado ainda." icon="document" />

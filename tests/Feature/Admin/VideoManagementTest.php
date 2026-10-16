@@ -140,3 +140,14 @@ test('toggleSelectAllOnPage selects then deselects every video on the current pa
     $component->call('toggleSelectAllOnPage');
     expect($component->get('selected'))->toHaveCount(0);
 });
+
+test('searching filters the videos table by title', function () {
+    actingAsRoleForVideos('Administrador');
+    Video::factory()->create(['title' => 'Tutorial do Sistema']);
+    Video::factory()->create(['title' => 'Outro Assunto']);
+
+    Livewire::test(VideoIndex::class)
+        ->set('search', 'Tutorial')
+        ->assertSee('Tutorial do Sistema')
+        ->assertDontSee('Outro Assunto');
+});

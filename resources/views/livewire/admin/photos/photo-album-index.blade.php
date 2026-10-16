@@ -43,6 +43,11 @@
         <x-admin.stat-card label="Total de fotos" :value="$totalPhotos" sublabel="Em todos os álbuns" />
     </div>
 
+    <!-- Busca -->
+    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por título do álbum..."
+        class="w-full rounded-lg px-4 py-2.5 text-sm placeholder:text-slate-400"
+        style="background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary);" />
+
     <!-- Tabela de Álbuns -->
     @if ($albums->isEmpty())
         <x-ui.empty-state title="Nenhum álbum cadastrado ainda." icon="photo" />
@@ -53,6 +58,7 @@
                 <th class="px-6 py-3"><i class="fa-solid fa-images mr-1 opacity-60"></i> Álbum</th>
                 <th class="px-6 py-3"><i class="fa-solid fa-calendar-days mr-1 opacity-60"></i> Data</th>
                 <th class="px-6 py-3"><i class="fa-solid fa-image mr-1 opacity-60"></i> Fotos</th>
+                <th class="px-6 py-3"><i class="fa-solid fa-eye mr-1 opacity-60"></i> Visualizações</th>
                 <th class="px-6 py-3"><i class="fa-solid fa-circle-check mr-1 opacity-60"></i> Status</th>
                 <th class="px-6 py-3"><i class="fa-solid fa-bolt mr-1 opacity-60"></i> Ações</th>
             </x-slot:header>
@@ -73,7 +79,12 @@
                         </div>
                     </td>
                     <td class="px-6 py-3">{{ $album->event_date?->format('d/m/Y') ?? '—' }}</td>
-                    <td class="px-6 py-3">{{ $album->photos_count }}</td>
+                    <td class="px-6 py-3">
+                        <x-ui.badge size="sm"><i class="fa-regular fa-image mr-1.5"></i>{{ $album->photos_count }}</x-ui.badge>
+                    </td>
+                    <td class="px-6 py-3">
+                        <x-ui.badge size="sm"><i class="fa-regular fa-eye mr-1.5"></i>{{ $album->views_count }}</x-ui.badge>
+                    </td>
                     <td class="px-6 py-3"><x-ui.badge :variant="$album->is_published ? 'success' : 'warning'">{{ $album->is_published ? 'Publicado' : 'Rascunho' }}</x-ui.badge></td>
                     <td class="px-6 py-3 space-x-2 whitespace-nowrap">
                         <x-ui.tooltip text="Editar">

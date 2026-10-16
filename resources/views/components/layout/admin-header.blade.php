@@ -4,14 +4,16 @@
     (ainda desabilitada) e o menu do usuário com link de volta à intranet
     e logout.
 --}}
-<header class="sticky top-0 z-30 h-16 flex items-center justify-between px-4 gap-4 shadow-sm"
+<header class="sticky top-0 z-45 lg:z-30 h-16 flex items-center justify-between px-4 gap-4 shadow-sm"
     style="background-color: var(--admin-header); color: var(--admin-header-text); border-bottom: 1px solid var(--border-color);">
     <div class="flex items-center gap-3 min-w-0">
-        <button
-            @click="window.innerWidth >= 1024 ? (sidebarCollapsed = !sidebarCollapsed) : (mobileSidebarOpen = !mobileSidebarOpen)"
-            class="p-2 rounded-lg hover:bg-black/10 transition" aria-label="Alternar menu lateral">
-            <i class="fa-solid fa-bars text-lg"></i>
-        </button>
+        <x-ui.tooltip text="Alternar menu lateral" position="bottom">
+            <button
+                @click="window.innerWidth >= 1024 ? (sidebarCollapsed = !sidebarCollapsed) : (mobileSidebarOpen = !mobileSidebarOpen)"
+                class="p-2 rounded-lg hover:bg-black/10 transition" aria-label="Alternar menu lateral">
+                <i class="fa-solid fa-bars text-lg"></i>
+            </button>
+        </x-ui.tooltip>
     </div>
 
     <div class="hidden md:flex items-center flex-1 max-w-md">
@@ -46,7 +48,7 @@
             </button>
 
             <div x-show="userMenuOpen" @click.outside="userMenuOpen = false" x-cloak
-                class="absolute right-0 mt-2 w-56 rounded-xl shadow-lg overflow-hidden bg-white dark:bg-(--bg-card) border border-transparent dark:border-(--border-color) text-slate-700 dark:text-(--text-primary) z-50">
+                class="absolute right-0 mt-2 w-56 rounded-xl shadow-lg overflow-hidden bg-white dark:bg-(--bg-surface) border border-transparent dark:border-(--border-color) text-slate-700 dark:text-(--text-primary) z-50">
                 <div class="px-4 py-3 border-b border-slate-100 dark:border-(--border-color)">
                     <span class="block text-sm font-semibold">{{ auth()->user()->name }}</span>
                     <span

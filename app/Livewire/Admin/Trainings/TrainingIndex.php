@@ -3,23 +3,45 @@
 namespace App\Livewire\Admin\Trainings;
 
 use App\Models\Training;
+use App\Models\TrainingCategory;
 use App\Services\ActivityLogger;
+use Illuminate\Support\Str;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 /**
- * Tela admin "Capacitações": lista os cursos/treinamentos cadastrados,
- * permitindo editar, publicar/despublicar e excluir cada um.
+ * Tela admin "Capacitações": aba "Capacitações" lista os cursos/treinamentos
+ * cadastrados (editar, publicar/despublicar, excluir); aba "Pastas" gerencia
+ * as categorias usadas para organizá-los (criar, editar, excluir — excluir
+ * uma pasta não exclui as capacitações dela, elas só ficam sem pasta).
  */
 class TrainingIndex extends Component
 {
     use WithPagination;
 
+    public string $activeTab = 'capacitacoes';
+
+    public string $search = '';
+
     public ?int $editingTrainingId = null;
 
     /** @var array<int, int> */
     public array $selected = [];
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+    }
+
+    public ?TrainingCategory $editingCategory = null;
+
+    public string $categoryName = '';
+
+    public string $categoryIcon = 'folder';
+
+    public string $categoryColor = '#2563EB';
 
     #[On('training-saved')]
     public function refreshList(): void
@@ -36,6 +58,84 @@ class TrainingIndex extends Component
     public function closeForm(): void
     {
         $this->editingTrainingId = null;
+    }
+
+    public function setTab(string $tab): void
+    {
+        $this->activeTab = $tab;
+    }
+
+    public function editCategory(int $categoryId): void
+    {
+        $category = TrainingCategory::findOrFail($categoryId);
+
+        $this->editingCategory = $category;
+        $this->categoryName = $category->name;
+        $this->categoryIcon = $category->icon;
+        $this->categoryColor = $category->color;
+    }
+
+    public function cancelCategoryEdit(): void
+    {
+        $this->reset(['editingCategory', 'categoryName', 'categoryIcon', 'categoryColor']);
+    }
+
+    public function saveCategory(): void
+    {
+        abort_unless(auth()->user()->can($this->editingCategory ? 'trainings.update' : 'trainings.create'), 403);
+
+        $this->validate([
+            'categoryName' => 'required|string|max:255',
+            'categoryIcon' => 'required|string|max:50',
+            'categoryColor' => 'required|regex:/^#[0-9a-fA-F]{6}$/',
+        ]);
+
+        $slug = Str::slug($this->categoryName);
+        $slugTaken = TrainingCategory::where('slug', $slug)
+            ->when($this->editingCategory, fn ($query) => $query->where('id', '!=', $this->editingCategory->id))
+            ->exists();
+
+        if ($slugTaken) {
+            $this->addError('categoryName', 'Já existe uma pasta com esse nome.');
+
+            return;
+        }
+
+        $data = [
+            'name' => $this->categoryName,
+            'slug' => $slug,
+            'icon' => $this->categoryIcon,
+            'color' => $this->categoryColor,
+        ];
+
+        if ($this->editingCategory) {
+            $changes = ActivityLogger::diff($this->editingCategory, $data);
+            $this->editingCategory->update($data);
+            if ($changes !== []) {
+                ActivityLogger::updated($this->editingCategory, $changes);
+            }
+            $this->dispatch('toast', title: 'Pasta', message: 'Pasta atualizada com sucesso.', variant: 'success');
+        } else {
+            $category = TrainingCategory::create($data);
+            ActivityLogger::created($category);
+            $this->dispatch('toast', title: 'Pasta', message: 'Pasta criada com sucesso.', variant: 'success');
+        }
+
+        $this->cancelCategoryEdit();
+    }
+
+    public function deleteCategory(int $categoryId): void
+    {
+        abort_unless(auth()->user()->can('trainings.delete'), 403);
+
+        $category = TrainingCategory::findOrFail($categoryId);
+        $category->delete();
+        ActivityLogger::deleted($category);
+        $this->dispatch('toast', title: 'Pasta', message: 'Pasta excluída com sucesso.', variant: 'danger');
+
+        if ($this->editingCategory?->id === $categoryId) {
+            $this->cancelCategoryEdit();
+        }
     }
 
     public function togglePublish(int $trainingId): void
@@ -61,7 +161,8 @@ class TrainingIndex extends Component
 
     public function toggleSelectAllOnPage(): void
     {
-        $pageIds = Training::latest()->paginate(10)->pluck('id')->all();
+        $pageIds = Training::when($this->search !== '', fn ($query) => $query->where('title', 'like', "%{$this->search}%"))
+            ->latest()->paginate(10)->pluck('id')->all();
 
         if (array_diff($pageIds, $this->selected) === []) {
             $this->selected = array_values(array_diff($this->selected, $pageIds));
@@ -124,7 +225,9 @@ class TrainingIndex extends Component
 
     public function render()
     {
-        $trainings = Training::latest()->paginate(10);
+        $trainings = Training::with('category')
+            ->when($this->search !== '', fn ($query) => $query->where('title', 'like', "%{$this->search}%"))
+            ->latest()->paginate(10);
 
         return view('livewire.admin.trainings.training-index', [
             'trainings' => $trainings,
@@ -132,6 +235,7 @@ class TrainingIndex extends Component
             'editingTraining' => $this->editingTrainingId ? Training::find($this->editingTrainingId) : null,
             'totalTrainings' => Training::count(),
             'publishedTrainings' => Training::where('is_published', true)->count(),
+            'categories' => TrainingCategory::withCount('trainings')->orderBy('name')->get(),
         ])->layout('layouts.admin', ['title' => 'Capacitações']);
     }
 }

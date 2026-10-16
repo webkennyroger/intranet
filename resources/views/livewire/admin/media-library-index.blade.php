@@ -181,12 +181,16 @@ setas de navegação, loop, teclado (←/→/Esc) e swipe no touch.
                                         </span>
 
                                         @if ($item['canDelete'])
-                                            <button
-                                                @click.stop="confirmAction('Confirma a exclusão deste arquivo?', () => $wire.{{ \App\Livewire\Admin\MediaLibraryIndex::deleteAction($item) }})"
-                                                class="absolute right-1.5 top-1.5 w-7 h-7 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                                style="background-color: var(--bg-card); color: var(--text-primary);" title="Excluir">
-                                                <i class="fa-solid fa-trash text-xs"></i>
-                                            </button>
+                                            <div class="absolute right-1.5 top-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <x-ui.tooltip text="Excluir" position="left">
+                                                    <button
+                                                        @click.stop="confirmAction('Confirma a exclusão deste arquivo?', () => $wire.{{ \App\Livewire\Admin\MediaLibraryIndex::deleteAction($item) }})"
+                                                        class="w-7 h-7 rounded-md flex items-center justify-center"
+                                                        style="background-color: var(--bg-card); color: var(--text-primary);">
+                                                        <i class="fa-solid fa-trash text-xs"></i>
+                                                    </button>
+                                                </x-ui.tooltip>
+                                            </div>
                                         @endif
                                     </div>
                                     @php $imageIndex++; @endphp
@@ -204,12 +208,16 @@ setas de navegação, loop, teclado (←/→/Esc) e swipe no touch.
                                         </span>
 
                                         @if ($item['canDelete'])
-                                            <button
-                                                @click.stop="confirmAction('Confirma a exclusão deste arquivo?', () => $wire.{{ \App\Livewire\Admin\MediaLibraryIndex::deleteAction($item) }})"
-                                                class="absolute right-1.5 top-1.5 w-7 h-7 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                                style="background-color: var(--bg-card); color: var(--text-primary);" title="Excluir">
-                                                <i class="fa-solid fa-trash text-xs"></i>
-                                            </button>
+                                            <div class="absolute right-1.5 top-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <x-ui.tooltip text="Excluir" position="left">
+                                                    <button
+                                                        @click.stop="confirmAction('Confirma a exclusão deste arquivo?', () => $wire.{{ \App\Livewire\Admin\MediaLibraryIndex::deleteAction($item) }})"
+                                                        class="w-7 h-7 rounded-md flex items-center justify-center"
+                                                        style="background-color: var(--bg-card); color: var(--text-primary);">
+                                                        <i class="fa-solid fa-trash text-xs"></i>
+                                                    </button>
+                                                </x-ui.tooltip>
+                                            </div>
                                         @endif
                                     </div>
                                 @endif
@@ -302,9 +310,11 @@ setas de navegação, loop, teclado (←/→/Esc) e swipe no touch.
                                 <td class="px-6 py-3">
                                     <x-ui.dropdown align="right" width="48">
                                         <x-slot:trigger>
-                                            <button type="button" class="w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition hover:bg-slate-200 dark:hover:bg-white/10" style="color: var(--text-primary);">
-                                                <x-ui.icon name="ellipsis-vertical" class="w-5 h-5" />
-                                            </button>
+                                            <x-ui.tooltip text="Mais ações" position="left">
+                                                <button type="button" class="w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition hover:bg-slate-200 dark:hover:bg-white/10" style="color: var(--text-primary);">
+                                                    <x-ui.icon name="ellipsis-vertical" class="w-5 h-5" />
+                                                </button>
+                                            </x-ui.tooltip>
                                         </x-slot:trigger>
 
                                         <x-ui.context-item icon="eye" @click="selectedFile = {{ $viewPayload }}">Ver</x-ui.context-item>
@@ -451,9 +461,11 @@ setas de navegação, loop, teclado (←/→/Esc) e swipe no touch.
                 <div>
                     <div class="flex items-center pb-3" style="border-bottom: 1px dashed var(--border-color);">
                         <h3 class="flex-1 text-sm font-semibold" style="color: var(--text-primary);">Prévia do Arquivo</h3>
-                        <button type="button" @click="selectedFile = null" class="w-7 h-7 rounded-md flex items-center justify-center" style="background-color: var(--bg-elevated); color: var(--text-muted);">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
+                        <x-ui.tooltip text="Fechar" position="left">
+                            <button type="button" @click="selectedFile = null" class="w-7 h-7 rounded-md flex items-center justify-center" style="background-color: var(--bg-elevated); color: var(--text-muted);">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </x-ui.tooltip>
                     </div>
 
                     <div class="py-4">

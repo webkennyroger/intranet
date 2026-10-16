@@ -61,3 +61,14 @@ test('toggleSelectAllOnPage selects then deselects every topic on the current pa
     $component->call('toggleSelectAllOnPage');
     expect($component->get('selected'))->toHaveCount(0);
 });
+
+test('searching filters the forum topics table by title', function () {
+    actingAsRoleForAdminForum('Administrador');
+    ForumTopic::factory()->create(['title' => 'Dúvida sobre férias']);
+    ForumTopic::factory()->create(['title' => 'Outro Assunto']);
+
+    Livewire::test(AdminForumIndex::class)
+        ->set('search', 'férias')
+        ->assertSee('Dúvida sobre férias')
+        ->assertDontSee('Outro Assunto');
+});

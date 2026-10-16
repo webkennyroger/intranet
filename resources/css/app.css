@@ -41,7 +41,7 @@ input[type='radio']:not(:disabled) {
     --bg-surface: #ffffff;
     --bg-elevated: #f1f5f9;
     --bg-hover: rgba(241, 245, 249, 0.8);
-    --bg-card: rgba(255, 255, 255, 0.8);
+    --bg-card: #ffffff;
     --bg-input: rgba(241, 245, 249, 0.8);
     --text-primary: #0f172a;
     --text-secondary: #475569;

@@ -22,10 +22,18 @@ class DocumentIndex extends Component
 
     public string $activeTab = 'documentos';
 
+    public string $search = '';
+
     public ?int $editingDocumentId = null;
 
     /** @var array<int, int> */
     public array $selected = [];
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+    }
 
     public ?DocumentCategory $editingCategory = null;
 
@@ -153,7 +161,8 @@ class DocumentIndex extends Component
 
     public function toggleSelectAllOnPage(): void
     {
-        $pageIds = Document::latest()->paginate(10)->pluck('id')->all();
+        $pageIds = Document::when($this->search !== '', fn ($query) => $query->where('title', 'like', "%{$this->search}%"))
+            ->latest()->paginate(10)->pluck('id')->all();
 
         if (array_diff($pageIds, $this->selected) === []) {
             $this->selected = array_values(array_diff($this->selected, $pageIds));
@@ -216,7 +225,9 @@ class DocumentIndex extends Component
 
     public function render()
     {
-        $documents = Document::with('category')->latest()->paginate(10);
+        $documents = Document::with('category')
+            ->when($this->search !== '', fn ($query) => $query->where('title', 'like', "%{$this->search}%"))
+            ->latest()->paginate(10);
 
         return view('livewire.admin.documents.document-index', [
             'documents' => $documents,

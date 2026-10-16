@@ -78,8 +78,8 @@
                         @endif
 
                         <div class="absolute top-2 right-2 z-10 flex items-center gap-1.5">
-                            <x-ui.view-count :count="$article->views_count" class="rounded-full border border-slate-200 dark:border-(--border-color) bg-white/90 dark:bg-(--bg-card) px-3 py-1.5 text-xs font-bold text-slate-500 dark:text-(--text-secondary)" />
-                            <button type="button" wire:click="toggleLike({{ $article->id }})" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-(--border-color) bg-white/90 dark:bg-(--bg-card) px-3 py-1.5 text-xs font-bold transition hover:bg-white dark:hover:bg-(--bg-hover) {{ $article->isLikedBy(auth()->user()) ? 'text-(--brand-primary)' : 'text-slate-500 dark:text-(--text-secondary)' }}">
+                            <x-ui.view-count :count="$article->views_count" class="rounded-full border border-slate-200 dark:border-(--border-color) bg-white dark:bg-(--bg-surface) px-3 py-1.5 text-xs font-bold text-slate-500 dark:text-(--text-secondary)" />
+                            <button type="button" wire:click="toggleLike({{ $article->id }})" class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-(--border-color) bg-white dark:bg-(--bg-surface) px-3 py-1.5 text-xs font-bold transition hover:bg-slate-50 dark:hover:bg-(--bg-hover) {{ $article->isLikedBy(auth()->user()) ? 'text-(--brand-primary)' : 'text-slate-500 dark:text-(--text-secondary)' }}">
                                 <i class="fa-{{ $article->isLikedBy(auth()->user()) ? 'solid' : 'regular' }} fa-heart"></i>
                                 <span>{{ $article->likedByUsers()->count() }}</span>
                             </button>

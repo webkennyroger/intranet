@@ -12,7 +12,20 @@
 @endphp
 <div class="space-y-4">
     <!-- Cabeçalho da página -->
-    <x-site.page-header icon="camera" :title="$album->title" :subtitle="$album->description" :back="route('photos.index')" />
+    <x-site.page-header icon="camera" :title="$album->title" :subtitle="$album->description" :back="route('photos.index')">
+        <x-slot:actions>
+            <x-ui.view-count :count="$album->views_count" class="rounded-full border border-slate-200 dark:border-(--border-color) bg-slate-50 dark:bg-(--bg-hover) px-3 py-1.5 text-xs font-bold text-slate-500 dark:text-(--text-secondary)" />
+            <button
+                type="button"
+                wire:click="toggleLike"
+                class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-(--border-color) bg-slate-50 dark:bg-(--bg-hover) px-3 py-1.5 text-xs font-bold transition hover:bg-slate-100 dark:hover:bg-(--bg-elevated) {{ $album->isLikedBy(auth()->user()) ? 'text-(--brand-primary)' : 'text-slate-500 dark:text-(--text-secondary)' }}"
+                aria-label="Curtir álbum"
+            >
+                <i class="fa-{{ $album->isLikedBy(auth()->user()) ? 'solid' : 'regular' }} fa-heart"></i>
+                <span>{{ $album->likedByUsers()->count() }}</span>
+            </button>
+        </x-slot:actions>
+    </x-site.page-header>
 
     @if ($photos->isEmpty())
         <!-- Estado vazio -->

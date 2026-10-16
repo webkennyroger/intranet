@@ -27,6 +27,9 @@ class EventForm extends Component
     #[Validate('nullable|string|max:255')]
     public string $location = '';
 
+    #[Validate('nullable|url|max:2048')]
+    public string $link = '';
+
     #[Validate('required|date')]
     public string $startsAt = '';
 
@@ -37,6 +40,10 @@ class EventForm extends Component
 
     public ?string $existingCoverImage = null;
 
+    public $file = null;
+
+    public ?string $existingFilePath = null;
+
     public function mount(?Event $event = null): void
     {
         if ($event) {
@@ -44,9 +51,11 @@ class EventForm extends Component
             $this->title = $event->title;
             $this->description = (string) $event->description;
             $this->location = (string) $event->location;
+            $this->link = (string) $event->link;
             $this->startsAt = $event->starts_at->format('Y-m-d\TH:i');
             $this->endsAt = $event->ends_at?->format('Y-m-d\TH:i') ?? '';
             $this->existingCoverImage = $event->cover_image;
+            $this->existingFilePath = $event->file_path;
         }
     }
 
@@ -54,6 +63,12 @@ class EventForm extends Component
     {
         $this->existingCoverImage = null;
         $this->coverImage = null;
+    }
+
+    public function removeFile(): void
+    {
+        $this->existingFilePath = null;
+        $this->file = null;
     }
 
     public function save(): void
@@ -64,15 +79,18 @@ class EventForm extends Component
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'location' => 'nullable|string|max:255',
+            'link' => 'nullable|url|max:2048',
             'startsAt' => 'required|date',
             'endsAt' => 'nullable|date|after_or_equal:startsAt',
             'coverImage' => 'nullable|image|max:4096',
+            'file' => 'nullable|file|max:10240',
         ]);
 
         $data = [
             'title' => $this->title,
             'description' => $this->description !== '' ? $this->description : null,
             'location' => $this->location !== '' ? $this->location : null,
+            'link' => $this->link !== '' ? $this->link : null,
             'starts_at' => $this->startsAt,
             'ends_at' => $this->endsAt !== '' ? $this->endsAt : null,
         ];
@@ -81,6 +99,12 @@ class EventForm extends Component
             $data['cover_image'] = $this->coverImage->store('events', 'public');
         } elseif ($this->existingCoverImage === null) {
             $data['cover_image'] = null;
+        }
+
+        if ($this->file) {
+            $data['file_path'] = $this->file->store('events', 'public');
+        } elseif ($this->existingFilePath === null) {
+            $data['file_path'] = null;
         }
 
         if ($this->event) {
@@ -99,7 +123,7 @@ class EventForm extends Component
         }
 
         $this->dispatch('event-saved');
-        $this->reset(['title', 'description', 'location', 'startsAt', 'endsAt', 'coverImage', 'existingCoverImage']);
+        $this->reset(['title', 'description', 'location', 'link', 'startsAt', 'endsAt', 'coverImage', 'existingCoverImage', 'file', 'existingFilePath']);
     }
 
     public function render()

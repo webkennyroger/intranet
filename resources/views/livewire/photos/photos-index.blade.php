@@ -134,7 +134,7 @@
                                 class="absolute inset-0 flex items-center justify-center"
                                 aria-label="Reproduzir vídeo: {{ $video->title }}"
                             >
-                                <span class="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-white transition">
+                                <span class="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-lg group-hover:scale-110 transition">
                                     <i class="fa-solid fa-play text-emerald-700"></i>
                                 </span>
                             </button>

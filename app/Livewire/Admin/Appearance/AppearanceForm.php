@@ -24,7 +24,6 @@ class AppearanceForm extends Component
      * @var array<string, string>
      */
     public array $palette = [
-        'Verde (padrão)' => '#0C4A34',
         'Jade' => '#22B573',
         'Rosa' => '#EC4899',
         'Azul' => '#2563EB',

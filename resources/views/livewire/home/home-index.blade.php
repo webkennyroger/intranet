@@ -5,7 +5,6 @@ próximo evento e aniversariantes do mês), só que com dados reais vindos
 do Mural, Fotos, Eventos e Usuários — o mesmo conteúdo gerido no admin.
 --}}
 <div class="mx-auto space-y-10">
-
     <!-- Barra superior do portal: data e aviso em destaque -->
     <div class="ui-card px-4 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         <div class="flex items-center gap-2 text-slate-500 dark:text-(--text-secondary) font-medium">
@@ -27,153 +26,70 @@ do Mural, Fotos, Eventos e Usuários — o mesmo conteúdo gerido no admin.
     </div>
 
     <!-- ========================================== -->
-    <!-- Em Destaque (coluna esquerda, alta) + Manchete, Últimas Notícias -->
+    <!-- EM DESTAQUE: 1 card grande (manchete) + 4 menores, numa grade -->
+    <!-- assimétrica (2 à esquerda, 2 à direita) ao redor do grande. -->
     <!-- ========================================== -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-span-4 flex flex-col gap-4">
-            <div class="flex items-center justify-between">
-                <h3 class="font-extrabold text-2xl text-slate-800 dark:text-(--text-primary) uppercase tracking-wider flex items-center gap-2">
-                    <i class="fa-solid fa-fire text-amber-500"></i> Em Destaque
-                </h3>
-            </div>
+    <section class="space-y-4">
+        @if ($headline || $highlighted->isNotEmpty())
+            <div class="grid grid-cols-1 sm:grid-cols-4 sm:grid-rows-2 gap-4">
+                @if ($highlighted->get(0))
+                    @php($item = $highlighted->get(0))
+                    <x-site.highlight-card class="h-56 sm:col-start-1 sm:row-start-1" :url="$item['url']"
+                        :image="$item['image']" :label="$item['label']" :title="$item['title']"
+                        :date="$item['date']" :icon="$item['icon']" :color="$item['color']"
+                        :views="$item['views']" :likes="$item['likes']" :is-liked="$item['isLiked']"
+                        :like-action="($item['label'] === 'Fotos' ? 'toggleAlbumLike' : 'toggleLike').'('.$item['likeId'].')'" />
+                @endif
 
-            @if ($highlighted->isNotEmpty())
-                <div class="ui-card relative overflow-hidden flex-1 p-4 flex flex-col gap-4"
-                    style="background-color: var(--color-primary-500, #22b573);">
-                    <!-- Anéis decorativos concêntricos, "vazando" pela borda
-                             direita no topo e na base do card (mesmo motivo da
-                             demo uicolors.app: 3 raios por âncora, 2 âncoras). -->
-                    @foreach ([0, 24] as $anchorTopRem)
-                        @foreach ([22, 14, 6] as $ringSizeRem)
-                            <div class="absolute rounded-full pointer-events-none"
-                                style="width: {{ $ringSizeRem }}rem; height: {{ $ringSizeRem }}rem; top: {{ $anchorTopRem }}rem; right: 6rem; border: 1px solid var(--color-primary-600, #138856); transform: translate(50%, -50%);">
-                            </div>
-                        @endforeach
-                    @endforeach
-                    <!-- 1 de cada origem (Notícia, Mural, próximo Evento, álbum de
-                             Fotos), sempre com foto — ver $highlighted em
-                             HomeIndex::render(). Título da categoria em cima do
-                             card (fora da foto), não dentro/sobre a imagem. -->
-                    <div class="relative z-10 flex flex-col gap-4">
-                        @foreach ($highlighted as $item)
-                            <div>
-                                <p class="text-[11px] font-bold uppercase tracking-wider text-white/80 mb-1.5">
-                                    {{ $item['label'] }}
-                                </p>
-                                <a href="{{ $item['url'] }}"
-                                    class="rounded-xl bg-black/10 hover:bg-black/20 transition overflow-hidden group flex flex-col shrink-0">
-                                    <span class="block h-32 sm:h-40 relative overflow-hidden shrink-0">
-                                        @if ($item['image'])
-                                            <img src="{{ $item['image'] }}" alt="{{ $item['title'] }}"
-                                                class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
-                                        @else
-                                            <span class="w-full h-full flex items-center justify-center bg-black/15">
-                                                <i class="fa-solid fa-{{ $item['icon'] }} text-3xl text-white/80"></i>
-                                            </span>
-                                        @endif
-                                    </span>
-                                    <span class="p-3">
-                                        <span
-                                            class="block text-sm font-bold text-white leading-snug line-clamp-2">{{ $item['title'] }}</span>
-                                    </span>
-                                </a>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @else
-                <div class="ui-card p-6 text-sm text-center text-slate-500 dark:text-(--text-secondary)">
-                    Nenhuma matéria em destaque.
-                </div>
-            @endif
-        </div>
-
-        <!-- Coluna direita: manchete, últimas notícias, galeria e agenda. -->
-        <div class="lg:col-span-8 space-y-12">
-
-            <!-- ========================================== -->
-            <!-- 1. CAPA DO PORTAL (MANCHETE) -->
-            <!-- ========================================== -->
-            <div class="space-y-4">
-                <div class="flex items-center justify-between">
-                    <h3
-                        class="font-extrabold text-2xl text-slate-800 dark:text-(--text-primary) uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-regular fa-newspaper text-(--brand-primary-dark)"></i> Notícia
-                    </h3>
-                </div>
+                @if ($highlighted->get(1))
+                    @php($item = $highlighted->get(1))
+                    <x-site.highlight-card class="h-56 sm:col-start-1 sm:row-start-2" :url="$item['url']"
+                        :image="$item['image']" :label="$item['label']" :title="$item['title']"
+                        :date="$item['date']" :icon="$item['icon']" :color="$item['color']"
+                        :views="$item['views']" :likes="$item['likes']" :is-liked="$item['isLiked']"
+                        :like-action="($item['label'] === 'Fotos' ? 'toggleAlbumLike' : 'toggleLike').'('.$item['likeId'].')'" />
+                @endif
 
                 @if ($headline)
-                <!-- Manchete principal -->
-                <article class="ui-card overflow-hidden hover:shadow-md transition flex flex-col group">
-                    <a href="{{ route('mural.show', $headline) }}" class="flex flex-col flex-1 group">
-                        <div class="relative overflow-hidden flex-1 min-h-55 sm:min-h-65">
-                            <div class="absolute inset-0 group-hover:scale-105 transition duration-500"
-                                style="{{ $headline->featuredImageUrl() ? 'background-image: url(' . $headline->featuredImageUrl() . '); background-size: cover; background-position: center;' : 'background-color: var(--brand-primary, #0C4A34);' }}">
-                            </div>
+                    @php($headlineCategory = $headline->categories->first())
+                    <x-site.highlight-card size="lg" class="h-72 sm:h-auto sm:col-start-2 sm:col-span-2 sm:row-start-1 sm:row-span-2"
+                        :url="route('mural.show', $headline)" :image="$headline->featuredImageUrl()"
+                        :label="$headlineCategory->name ?? 'Notícia'" :title="$headline->title"
+                        :date="$headline->published_at" :icon="$headline->cover_icon"
+                        :color="$headlineCategory->color ?? null" :views="$headline->views_count"
+                        :likes="$headline->likedByUsers()->count()" :is-liked="$headline->isLikedBy(auth()->user())"
+                        like-action="toggleLike({{ $headline->id }})" />
+                @endif
 
-                            <div class="absolute right-6 top-6 z-10 flex gap-2">
-                                @php($headlineCategory = $headline->categories->first())
-                                                    @if ($headlineCategory)
-                                                        <span
-                                                            class="font-black text-[11px] uppercase tracking-widest px-3 py-1 rounded-full shadow"
-                                                            style="background-color: {{ $headlineCategory->color }}; color: {{ $headlineCategory->readableTextColor() }};">
-                                                            {{ $headlineCategory->name }}
-                                                        </span>
-                                                    @endif
-                                                </div>
+                @if ($highlighted->get(2))
+                    @php($item = $highlighted->get(2))
+                    <x-site.highlight-card class="h-56 sm:col-start-4 sm:row-start-1" :url="$item['url']"
+                        :image="$item['image']" :label="$item['label']" :title="$item['title']"
+                        :date="$item['date']" :icon="$item['icon']" :color="$item['color']"
+                        :views="$item['views']" :likes="$item['likes']" :is-liked="$item['isLiked']"
+                        :like-action="($item['label'] === 'Fotos' ? 'toggleAlbumLike' : 'toggleLike').'('.$item['likeId'].')'" />
+                @endif
 
-                                                @unless ($headline->featuredImageUrl())
-                                                    <div class="absolute right-8 bottom-6 opacity-20 pointer-events-none">
-                                                        <i class="fa-solid fa-{{ $headline->cover_icon }} text-9xl text-white"></i>
-                                                    </div>
-                                                @endunless
-                                            </div>
-
-                                            <div class="relative z-20 space-y-3 p-6 sm:p-8 pb-0 bg-white dark:bg-(--bg-card) shrink-0">
-                                                <h2
-                                                    class="text-2xl sm:text-3xl font-black text-slate-800 dark:text-(--text-primary) leading-tight group-hover:text-(--brand-primary) transition">
-                                                    {{ Str::upper($headline->title) }}
-                                                </h2>
-                                                <p
-                                                    class="text-slate-500 dark:text-(--text-secondary) text-sm sm:text-base leading-relaxed line-clamp-2">
-                                                    {{ $headline->excerpt }}
-                                                </p>
-                                            </div>
-                                        </a>
-
-                                        <div
-                                            class="px-6 sm:px-8 pb-6 sm:pb-8 pt-2 bg-white dark:bg-(--bg-card) shrink-0 flex items-center justify-between text-xs text-slate-400 dark:text-(--text-muted) font-medium">
-                                            <div class="flex items-center gap-4">
-                                                <span class="flex items-center gap-1"><i class="fa-regular fa-clock"></i>
-                                                    {{ $headline->published_at->diffForHumans() }}</span>
-                                                @if ($headline->author)
-                                                    <span>•</span>
-                                                    <span class="flex items-center gap-1"><i class="fa-regular fa-user"></i>
-                                                        {{ $headline->author->name }}</span>
-                                                @endif
-                                            </div>
-                                            <div class="flex items-center gap-1.5">
-                                                <button type="button" wire:click="toggleLike({{ $headline->id }})"
-                                                    class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-(--border-color) bg-slate-50 dark:bg-(--bg-hover) px-3 py-1.5 text-xs font-bold transition hover:bg-slate-100 dark:hover:bg-(--bg-elevated) {{ $headline->isLikedBy(auth()->user()) ? 'text-(--brand-primary)' : 'text-slate-500 dark:text-(--text-secondary)' }}"
-                                                    aria-label="Curtir matéria">
-                                                    <i
-                                                        class="fa-{{ $headline->isLikedBy(auth()->user()) ? 'solid' : 'regular' }} fa-heart"></i>
-                                                    <span>{{ $headline->likedByUsers()->count() }}</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </article>
-                                @else
-                <div class="ui-card p-12 text-center text-slate-500 dark:text-(--text-secondary)">
-                    Nenhuma notícia publicada por enquanto.
-                </div>
+                @if ($highlighted->get(3))
+                    @php($item = $highlighted->get(3))
+                    <x-site.highlight-card class="h-56 sm:col-start-4 sm:row-start-2" :url="$item['url']"
+                        :image="$item['image']" :label="$item['label']" :title="$item['title']"
+                        :date="$item['date']" :icon="$item['icon']" :color="$item['color']"
+                        :views="$item['views']" :likes="$item['likes']" :is-liked="$item['isLiked']"
+                        :like-action="($item['label'] === 'Fotos' ? 'toggleAlbumLike' : 'toggleLike').'('.$item['likeId'].')'" />
                 @endif
             </div>
+        @else
+            <div class="ui-card p-12 text-center text-slate-500 dark:text-(--text-secondary)">
+                Nenhuma matéria publicada por enquanto.
+            </div>
+        @endif
+    </section>
 
             <!-- ========================================== -->
             <!-- 2. ÚLTIMAS NOTÍCIAS DO PORTAL -->
             <!-- ========================================== -->
-            @if ($latestNews->isNotEmpty())
+            @if ($latestNewsSlides->isNotEmpty())
             <section class="space-y-4">
                 <div class="flex items-center justify-between pb-5">
                     <h3
@@ -188,59 +104,60 @@ do Mural, Fotos, Eventos e Usuários — o mesmo conteúdo gerido no admin.
                     </a>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    @foreach ($latestNews as $article)
-                    @php($latestCategory = $article->categories->first())
-                    <article class="ui-card overflow-hidden hover:shadow-md transition flex flex-col group"
-                        wire:key="latest-{{ $article->id }}">
-                        <a href="{{ route('mural.show', $article) }}"
-                            class="h-44 relative overflow-hidden flex items-center justify-center"
-                            style="background-color: {{ $article->cover_color }};">
-                            @if ($article->featuredImageUrl())
-                                <img src="{{ $article->featuredImageUrl() }}" alt="{{ $article->title }}"
-                                    class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
-                            @else
-                                <i class="fa-solid fa-{{ $article->cover_icon }} text-4xl text-white/80"></i>
-                            @endif
-                            @if ($latestCategory)
-                                <span
-                                    class="absolute top-3 left-3 font-bold text-[10px] px-2.5 py-1 rounded-md uppercase shadow"
-                                    style="background-color: {{ $latestCategory->color }}; color: {{ $latestCategory->readableTextColor() }};">
-                                    {{ $latestCategory->name }}
-                                </span>
-                            @endif
-                        </a>
-                        <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
-                            <div>
-                                <div
-                                    class="text-[11px] text-slate-400 dark:text-(--text-muted) font-medium mb-1.5 flex items-center gap-2">
-                                    <span><i class="fa-regular fa-calendar"></i>
-                                        {{ $article->published_at->format('d/m/Y') }}</span>
-                                    <span>•</span>
-                                    <span><i class="fa-regular fa-clock"></i> {{ $article->readingTimeMinutes() }}
-                                        min
-                                        leitura</span>
-                                </div>
+                <!-- Carrossel (x-ui.carousel): 4 matérias por vez, com setas
+                     quando houver mais de 4 — mesmo esquema da Galeria
+                     Multimídia (ver HomeIndex::chunkIntoSlides()). -->
+                <x-ui.carousel>
+                    @foreach ($latestNewsSlides as $newsChunk)
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            @foreach ($newsChunk as $article)
+                            @php($latestCategory = $article->categories->first())
+                            <article class="ui-card overflow-hidden hover:shadow-md transition-shadow flex flex-col group"
+                                wire:key="latest-{{ $article->id }}">
                                 <a href="{{ route('mural.show', $article) }}"
-                                    class="font-extrabold text-slate-800 dark:text-(--text-primary) text-base leading-snug group-hover:text-(--brand-primary) transition block">
-                                    {{ $article->title }}
+                                    class="aspect-16/10 relative overflow-hidden flex items-center justify-center shrink-0"
+                                    style="background-color: {{ $article->cover_color }};">
+                                    @if ($article->featuredImageUrl())
+                                        <img src="{{ $article->featuredImageUrl() }}" alt="{{ $article->title }}"
+                                            class="w-full h-full object-cover" />
+                                    @else
+                                        <i class="fa-solid fa-{{ $article->cover_icon }} text-4xl text-white/80"></i>
+                                    @endif
+                                    @if ($latestCategory)
+                                        <span
+                                            class="absolute top-3 left-3 font-bold text-[10px] px-2.5 py-1 rounded-md uppercase shadow"
+                                            style="background-color: {{ $latestCategory->color }}; color: {{ $latestCategory->readableTextColor() }};">
+                                            {{ $latestCategory->name }}
+                                        </span>
+                                    @endif
                                 </a>
-                                <p
-                                    class="text-xs text-slate-600 dark:text-(--text-secondary) mt-2 line-clamp-3 leading-relaxed">
-                                    {{ $article->excerpt }}
-                                </p>
-                            </div>
-                            <a href="{{ route('mural.show', $article) }}"
-                                class="pt-3 border-t border-slate-100 dark:border-(--border-color) flex items-center justify-between text-xs font-bold text-(--brand-primary-dark)">
-                                <span>Leia mais</span>
-                                <i
-                                    class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition"></i>
-                            </a>
+                                <div class="p-5 flex-1 flex flex-col gap-2">
+                                    <a href="{{ route('mural.show', $article) }}"
+                                        class="font-extrabold text-slate-800 dark:text-(--text-primary) text-base leading-snug group-hover:text-(--brand-primary) transition">
+                                        {{ $article->title }}
+                                    </a>
+                                    <p class="text-sm text-slate-500 dark:text-(--text-secondary) line-clamp-2 leading-relaxed">
+                                        {{ $article->excerpt }}
+                                    </p>
+                                    <div class="mt-auto pt-3 flex items-center justify-between gap-2 text-xs text-slate-400 dark:text-(--text-muted)">
+                                        <span class="flex items-center gap-1.5"><i class="fa-regular fa-calendar"></i>
+                                            {{ $article->published_at->format('d/m/Y') }}</span>
+                                        <div class="flex items-center gap-1.5">
+                                            <x-ui.view-count :count="$article->views_count" class="rounded-full border border-slate-200 dark:border-(--border-color) bg-slate-50 dark:bg-(--bg-hover) px-2.5 py-1 text-xs font-bold text-slate-500 dark:text-(--text-secondary)" />
+                                            <button type="button" wire:click="toggleLike({{ $article->id }})"
+                                                class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-(--border-color) bg-slate-50 dark:bg-(--bg-hover) px-2.5 py-1 text-xs font-bold transition hover:bg-slate-100 dark:hover:bg-(--bg-elevated) {{ $article->isLikedBy(auth()->user()) ? 'text-(--brand-primary)' : 'text-slate-500 dark:text-(--text-secondary)' }}"
+                                                aria-label="Curtir matéria">
+                                                <i class="fa-{{ $article->isLikedBy(auth()->user()) ? 'solid' : 'regular' }} fa-heart"></i>
+                                                {{ $article->likedByUsers()->count() }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </article>
+                            @endforeach
                         </div>
-                    </article>
                     @endforeach
-                </div>
-
+                </x-ui.carousel>
             </section>
             @endif
 
@@ -259,9 +176,21 @@ do Mural, Fotos, Eventos e Usuários — o mesmo conteúdo gerido no admin.
                 </div>
 
                 @if ($nextEvent)
-                    <div class="ui-card p-6 flex flex-col md:flex-row gap-6 items-center">
+                    <div class="relative overflow-hidden rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-center"
+                        style="background-color: var(--color-primary-500, #22b573);">
+                        <div class="absolute rounded-full pointer-events-none"
+                            style="width: 16rem; height: 16rem; top: -4rem; right: -4rem; border: 1px solid var(--color-primary-600, #138856);">
+                        </div>
+                        <div class="absolute rounded-full pointer-events-none"
+                            style="width: 10rem; height: 10rem; bottom: -3rem; left: -3rem; border: 1px solid var(--color-primary-600, #138856);">
+                        </div>
 
-                        <div class="w-full md:w-5/12 bg-slate-900 text-white rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between min-h-[200px]">
+                        <div class="relative z-10 w-full md:w-5/12 text-white rounded-xl p-6 overflow-hidden flex flex-col justify-between min-h-50"
+                            style="{{ $nextEvent->coverImageUrl() ? 'background-image: url(' . $nextEvent->coverImageUrl() . '); background-size: cover; background-position: center;' : 'background-color: #0f172a;' }}">
+                            @if ($nextEvent->coverImageUrl())
+                                <div class="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-black/10"></div>
+                            @endif
+
                             <div class="flex items-center justify-between z-10">
                                 <span class="bg-red-600 text-white font-extrabold text-[10px] uppercase px-2.5 py-1 rounded">Próximo
                                     Evento</span>
@@ -290,52 +219,45 @@ do Mural, Fotos, Eventos e Usuários — o mesmo conteúdo gerido no admin.
                                 </div>
                             </div>
 
-                            <i
-                                class="fa-solid fa-gavel text-slate-800 text-8xl absolute -right-4 -bottom-4 pointer-events-none"></i>
+                            @unless ($nextEvent->coverImageUrl())
+                                <i class="fa-solid fa-gavel text-slate-800 text-8xl absolute -right-4 -bottom-4 pointer-events-none"></i>
+                            @endunless
                         </div>
 
-                        <div class="w-full md:w-7/12 space-y-4">
+                        <div class="relative z-10 w-full md:w-7/12 space-y-4">
                             <div>
-                                <span class="text-(--brand-primary) text-xs font-bold uppercase tracking-wider">Evento
+                                <span class="text-white/80 text-xs font-bold uppercase tracking-wider">Evento
                                     Institucional</span>
-                                <h4 class="text-lg font-black text-slate-800 dark:text-(--text-primary) uppercase leading-snug mt-1">
+                                <h4 class="text-lg font-black text-white uppercase leading-snug mt-1">
                                     {{ $nextEvent->title }}
                                 </h4>
                                 @if ($nextEvent->description)
-                                    <p class="text-xs sm:text-sm text-slate-600 dark:text-(--text-secondary) mt-2 leading-relaxed">
+                                    <p class="text-xs sm:text-sm text-white/80 mt-2 leading-relaxed">
                                         {{ $nextEvent->description }}
                                     </p>
                                 @endif
                             </div>
 
                             <div class="flex flex-wrap items-center gap-3 pt-2">
-                                <x-ui.button :href="route('events.index')">
-                                    <i class="fa-regular fa-calendar-days mr-1"></i> Ver todos os eventos
-                                </x-ui.button>
-                            </div>
-
-                            <div class="flex flex-wrap items-center gap-3 pt-2">
-                                <x-ui.button color="primary" wire:click="submit" class="px-5 py-2.5 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-2">
-                                    <i class="fa-solid fa-pen-to-square"></i> Realizar Inscrição
-                                </x-ui.button>
-                                <button class="px-5 py-2.5 bg-slate-100 dark:bg-(--bg-elevated) hover:bg-slate-200 dark:hover:bg-(--bg-hover) text-slate-700 dark:text-(--text-secondary) font-bold text-xs rounded-xl transition flex items-center gap-2">
-                                    <i class="fa-solid fa-download"></i> Baixar Programação (PDF)
-                                </button>
+                                @if ($nextEvent->link)
+                                    <a href="{{ $nextEvent->link }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-xs font-bold shadow-sm transition hover:brightness-95" style="color: var(--color-primary-700, #0f6d47);">
+                                        <i class="fa-solid fa-pen-to-square"></i> Realizar Inscrição
+                                    </a>
+                                @endif
+                                @if ($nextEvent->file_path)
+                                    <a href="{{ $nextEvent->fileUrl() }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-5 py-2.5 text-xs font-bold text-white transition shadow-sm">
+                                        <i class="fa-solid fa-{{ $nextEvent->fileIcon() }}"></i> Baixar Programação
+                                    </a>
+                                @endif
                             </div>
                         </div>
-
                     </div>
                 @else
                     <div class="ui-card p-12 text-center text-slate-500 dark:text-(--text-secondary)">
                         Nenhum evento programado por enquanto.
                     </div>
                 @endif
-            </section>
-
-        </div>
-        <!-- /coluna direita -->
-    </div>
-    <!-- /Em Destaque + coluna direita -->
+    </section>
 
     <!-- ========================================== -->
     <!-- 4. GALERIA MULTIMÍDIA (largura toda, fora do grid) -->
@@ -350,47 +272,82 @@ do Mural, Fotos, Eventos e Usuários — o mesmo conteúdo gerido no admin.
             </a>
         </div>
 
-        @if ($photoAlbumSlides->isNotEmpty())
-            <!-- Componente nativo do kit de UI (x-ui.carousel): 4 álbuns por
-                 vez, com botão de slide pra frente/trás quando houver mais
-                 de 4 — cada "slide" é uma página de até 4 cards. Os slides
-                 já vêm agrupados de HomeIndex::photoAlbumSlides(), que junta
-                 um resto de 1-2 álbuns ao slide anterior em vez de deixar
-                 uma última página quase vazia ao avançar. -->
+        @if ($gallerySlides->isNotEmpty())
+            <!-- Componente nativo do kit de UI (x-ui.carousel): 4 itens por
+                 vez (álbuns de fotos e vídeos misturados, mais recente
+                 primeiro — ver HomeIndex::galleryItems()), com botão de
+                 slide pra frente/trás quando houver mais de 4. Os slides já
+                 vêm agrupados de HomeIndex::chunkIntoSlides(), que evita
+                 deixar uma última página quase vazia ao avançar. -->
             <x-ui.carousel>
-                @foreach ($photoAlbumSlides as $albumsChunk)
+                @foreach ($gallerySlides as $itemsChunk)
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        @foreach ($albumsChunk as $album)
-                            <a href="{{ route('photos.show', $album) }}" wire:key="album-{{ $album->id }}" class="ui-card overflow-hidden group hover:shadow-md transition">
-                                <div class="h-48 bg-slate-200 dark:bg-(--bg-elevated) relative overflow-hidden flex items-center justify-center">
-                                    @if ($album->cover_image_path)
-                                        <img src="{{ \Illuminate\Support\Facades\Storage::url($album->cover_image_path) }}" alt="{{ $album->title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
-                                    @else
-                                        <i class="fa-solid fa-images text-4xl text-slate-400 dark:text-(--text-muted)"></i>
-                                    @endif
-                                    <div class="absolute inset-0 bg-slate-900/30 group-hover:bg-slate-900/10 transition">
+                        @foreach ($itemsChunk as $item)
+                            @if ($item['type'] === 'video')
+                                <button
+                                    type="button"
+                                    wire:key="gallery-video-{{ $item['id'] }}"
+                                    @click="window.dispatchEvent(new CustomEvent('open-lightbox', { detail: { items: [{ url: @js($item['embedUrl']), name: @js($item['title']), type: 'video' }], index: 0 } }))"
+                                    class="ui-card overflow-hidden group hover:shadow-md transition text-left"
+                                >
+                                    <div class="h-48 bg-slate-800 relative overflow-hidden flex items-center justify-center">
+                                        @if ($item['cover'])
+                                            <img src="{{ $item['cover'] }}" alt="{{ $item['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                                        @else
+                                            <i class="fa-solid fa-video text-4xl text-slate-500"></i>
+                                        @endif
+                                        <div class="absolute inset-0 bg-slate-900/30 group-hover:bg-slate-900/10 transition flex items-center justify-center">
+                                            <span class="w-11 h-11 rounded-full bg-white flex items-center justify-center shadow-lg group-hover:scale-110 transition">
+                                                <i class="fa-solid fa-play text-emerald-700"></i>
+                                            </span>
+                                        </div>
+                                        <span class="absolute bottom-3 left-3 bg-white dark:bg-(--bg-surface) text-slate-800 dark:text-(--text-primary) font-bold text-[10px] px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                                            <i class="fa-solid fa-video text-(--brand-primary)"></i> {{ $item['countLabel'] }}
+                                        </span>
                                     </div>
-                                    <span class="absolute bottom-3 left-3 bg-white/90 dark:bg-(--bg-card) backdrop-blur text-slate-800 dark:text-(--text-primary) font-bold text-[10px] px-2.5 py-1 rounded-md flex items-center gap-1.5">
-                                        <i class="fa-solid fa-images text-(--brand-primary)"></i> {{ $album->photos_count }} {{ $album->photos_count === 1 ? 'Foto' : 'Fotos' }}
-                                    </span>
-                                </div>
-                                <div class="p-4 bg-white dark:bg-(--bg-card)">
-                                    <h4 class="font-extrabold text-xs uppercase text-slate-800 dark:text-(--text-primary) group-hover:text-(--brand-primary) transition">
-                                        {{ $album->title }}
-                                    </h4>
-                                    @if ($album->description)
-                                        <p class="text-[11px] text-slate-500 dark:text-(--text-secondary) mt-1 line-clamp-2">
-                                            {{ $album->description }}</p>
-                                    @endif
-                                </div>
-                            </a>
+                                    <div class="p-4 bg-white dark:bg-(--bg-card)">
+                                        <h4 class="font-extrabold text-xs uppercase text-slate-800 dark:text-(--text-primary) group-hover:text-(--brand-primary) transition">
+                                            {{ $item['title'] }}
+                                        </h4>
+                                        @if ($item['description'])
+                                            <p class="text-[11px] text-slate-500 dark:text-(--text-secondary) mt-1 line-clamp-2">
+                                                {{ $item['description'] }}</p>
+                                        @endif
+                                    </div>
+                                </button>
+                            @else
+                                <a href="{{ $item['url'] }}" wire:key="gallery-album-{{ $item['id'] }}" class="ui-card overflow-hidden group hover:shadow-md transition">
+                                    <div class="h-48 bg-slate-200 dark:bg-(--bg-elevated) relative overflow-hidden flex items-center justify-center">
+                                        @if ($item['cover'])
+                                            <img src="{{ $item['cover'] }}" alt="{{ $item['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                                        @else
+                                            <i class="fa-solid fa-images text-4xl text-slate-400 dark:text-(--text-muted)"></i>
+                                        @endif
+                                        <div class="absolute inset-0 bg-slate-900/30 group-hover:bg-slate-900/10 transition">
+                                        </div>
+                                        <span class="absolute bottom-3 left-3 bg-white dark:bg-(--bg-surface) text-slate-800 dark:text-(--text-primary) font-bold text-[10px] px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                                            <i class="fa-solid fa-images text-(--brand-primary)"></i> {{ $item['countLabel'] }}
+                                        </span>
+                                    </div>
+                                    <div class="p-4 bg-white dark:bg-(--bg-card)">
+                                        <h4 class="font-extrabold text-xs uppercase text-slate-800 dark:text-(--text-primary) group-hover:text-(--brand-primary) transition">
+                                            {{ $item['title'] }}
+                                        </h4>
+                                        @if ($item['description'])
+                                            <p class="text-[11px] text-slate-500 dark:text-(--text-secondary) mt-1 line-clamp-2">
+                                                {{ $item['description'] }}</p>
+                                        @endif
+                                    </div>
+                                </a>
+                            @endif
                         @endforeach
                     </div>
                 @endforeach
             </x-ui.carousel>
+            <x-ui.lightbox />
         @else
             <div class="ui-card p-12 text-center text-slate-500 dark:text-(--text-secondary)">
-                Nenhum álbum disponível por enquanto.
+                Nenhum álbum ou vídeo disponível por enquanto.
             </div>
         @endif
     </section>

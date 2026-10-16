@@ -16,8 +16,23 @@ class AdminForumIndex extends Component
 {
     use WithPagination;
 
+    public string $search = '';
+
     /** @var array<int, int> */
     public array $selected = [];
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+    }
+
+    private function filteredQuery()
+    {
+        return ForumTopic::when($this->search !== '', fn ($query) => $query->where(fn ($query) => $query
+            ->where('title', 'like', "%{$this->search}%")
+            ->orWhereHas('author', fn ($query) => $query->where('name', 'like', "%{$this->search}%"))));
+    }
 
     public function delete(int $topicId): void
     {
@@ -31,7 +46,7 @@ class AdminForumIndex extends Component
 
     public function toggleSelectAllOnPage(): void
     {
-        $pageIds = ForumTopic::latest()->paginate(10)->pluck('id')->all();
+        $pageIds = $this->filteredQuery()->latest()->paginate(10)->pluck('id')->all();
 
         if (array_diff($pageIds, $this->selected) === []) {
             $this->selected = array_values(array_diff($this->selected, $pageIds));
@@ -62,7 +77,7 @@ class AdminForumIndex extends Component
 
     public function render()
     {
-        $topics = ForumTopic::with('author')->withCount('replies')->latest()->paginate(10);
+        $topics = $this->filteredQuery()->with('author')->withCount('replies')->latest()->paginate(10);
 
         return view('livewire.admin.forum.admin-forum-index', [
             'topics' => $topics,

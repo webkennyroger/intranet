@@ -196,7 +196,7 @@ test('training create, publish toggle and delete are logged', function () {
 
     Livewire::test(TrainingForm::class)
         ->set('title', 'LGPD na Prática')
-        ->set('externalUrl', 'https://cursos.exemplo.com/lgpd')
+        ->set('links.0.url', 'https://cursos.exemplo.com/lgpd')
         ->call('save');
 
     $training = Training::where('title', 'LGPD na Prática')->first();

@@ -193,6 +193,8 @@
                             <div class="flex items-center gap-3 text-xs flex-wrap" style="color: var(--text-muted);">
                                 <span><i class="fa-regular fa-calendar mr-1"></i>{{ $article->published_at?->locale('pt_BR')->isoFormat('D [de] MMMM [de] YYYY') ?? 'Sem data' }}</span>
                                 <span>|</span>
+                                <span><i class="fa-regular fa-eye mr-1"></i>{{ $article->views_count }}</span>
+                                <span>|</span>
                                 <span><i class="fa-regular fa-heart mr-1"></i>{{ $article->likedByUsers()->count() }}</span>
                                 <span>|</span>
                                 <span><i class="fa-regular fa-user mr-1"></i>{{ $article->author?->name ?? '—' }}</span>

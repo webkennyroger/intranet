@@ -15,17 +15,21 @@
         'translate-x-0': mobileSidebarOpen,
         '-translate-x-full lg:translate-x-0': !mobileSidebarOpen,
         'lg:w-26': sidebarCollapsed,
-        'lg:w-56': !sidebarCollapsed,
+        'lg:w-64': !sidebarCollapsed,
     }"
     class="w-64 fixed inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out border-r border-black/10 flex flex-col shrink-0 overflow-y-auto"
 >
-    <button
-        @click="mobileSidebarOpen = false"
-        class="lg:hidden absolute top-3 right-3 w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center"
-        aria-label="Fechar menu"
-    >
-        <i class="fa-solid fa-xmark"></i>
-    </button>
+    <div class="lg:hidden absolute top-3 right-3">
+        <x-ui.tooltip text="Fechar menu" position="left">
+            <button
+                @click="mobileSidebarOpen = false"
+                class="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center"
+                aria-label="Fechar menu"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </x-ui.tooltip>
+    </div>
 
     <a href="{{ route('dashboard') }}"
         class="flex items-center h-16 px-4 shrink-0 gap-2.5 overflow-hidden border-b border-black/10"
@@ -51,10 +55,44 @@
 
             @if ($items->isNotEmpty())
                 @if ($isSubmenuGroup)
-                    <div x-data="{ open: {{ ($section['defaultOpen'] ?? false) ? 'true' : 'false' }} }">
+                    <div
+                        x-data="{
+                            open: {{ ($section['defaultOpen'] ?? false) ? 'true' : 'false' }},
+                            flyoutOpen: false,
+                            flyoutTop: 0,
+                            closeTimer: null,
+                            openFlyout() {
+                                clearTimeout(this.closeTimer);
+                                this.flyoutTop = this.$refs.groupTrigger.getBoundingClientRect().top;
+                                this.flyoutOpen = true;
+                            },
+                            scheduleClose() {
+                                clearTimeout(this.closeTimer);
+                                this.closeTimer = setTimeout(() => { this.flyoutOpen = false; }, 200);
+                            },
+                            toggle() {
+                                if (sidebarCollapsed) {
+                                    this.flyoutOpen ? (this.flyoutOpen = false) : this.openFlyout();
+                                } else {
+                                    this.open = !this.open;
+                                }
+                            },
+                            handleOutsideClick(event) {
+                                if (this.flyoutOpen && !this.$refs.groupTrigger.contains(event.target) && !this.$refs.groupFlyout.contains(event.target)) {
+                                    this.flyoutOpen = false;
+                                }
+                            },
+                        }"
+                        @click.window="handleOutsideClick($event)"
+                        @keydown.escape.window="flyoutOpen = false"
+                        x-init="$watch('sidebarCollapsed', () => flyoutOpen = false)"
+                    >
                         <button
                             type="button"
-                            @click="open = !open"
+                            x-ref="groupTrigger"
+                            @click="toggle()"
+                            @mouseenter="sidebarCollapsed && openFlyout()"
+                            @mouseleave="sidebarCollapsed && scheduleClose()"
                             class="relative w-full flex flex-row items-center gap-3 pl-3 pr-3 py-2.5 rounded-xl font-medium transition hover:bg-black/5 text-slate-600 dark:text-(--text-secondary)"
                             :class="sidebarCollapsed ? 'lg:flex-col lg:gap-0.5 lg:justify-center lg:px-1 lg:py-2.5' : ''"
                         >
@@ -67,6 +105,7 @@
                             ></i>
                         </button>
 
+                        <!-- Acordeão inline: sidebar expandida -->
                         <div x-show="open" x-cloak class="pl-5 mt-0.5 space-y-0.5" :class="sidebarCollapsed ? 'lg:hidden' : ''">
                             @foreach ($items as $item)
                                 @php $isActive = ! ($item['alias'] ?? false) && request()->routeIs($item['route']); @endphp
@@ -86,6 +125,42 @@
                                 </a>
                             @endforeach
                         </div>
+
+                        <!-- Flyout: sidebar colapsada (desktop) — o acordeão acima fica
+                             escondido nesse estado, então o submenu abre do lado. -->
+                        <template x-teleport="body">
+                            <div
+                                x-ref="groupFlyout"
+                                x-show="flyoutOpen"
+                                x-cloak
+                                @mouseenter="clearTimeout(closeTimer)"
+                                @mouseleave="scheduleClose()"
+                                x-transition:enter="transition ease-out duration-150"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-100"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95"
+                                :style="`top: ${flyoutTop}px; left: 112px; background-color: var(--bg-surface); border: 1px solid var(--border-color);`"
+                                class="fixed z-50 w-56 rounded-xl shadow-xl py-2"
+                                role="menu"
+                            >
+                                <div class="flex items-center gap-2 px-4 pb-2 text-[10px] font-bold uppercase tracking-wider" style="color: var(--text-muted);">
+                                    <i class="fa-solid fa-{{ $section['icon'] }}"></i> {{ $section['group'] }}
+                                </div>
+                                @foreach ($items as $item)
+                                    @php $isActive = ! ($item['alias'] ?? false) && request()->routeIs($item['route']); @endphp
+                                    <a
+                                        href="{{ route($item['route']) }}"
+                                        @click="flyoutOpen = false"
+                                        class="block px-4 py-2 text-sm transition {{ $isActive ? 'font-semibold' : 'font-medium hover:bg-(--bg-hover)' }}"
+                                        style="{{ $isActive ? 'color: var(--admin-sidebar-active-text); background-color: var(--admin-sidebar-active-bg);' : 'color: var(--text-secondary);' }}"
+                                    >
+                                        {{ $item['label'] }}
+                                    </a>
+                                @endforeach
+                            </div>
+                        </template>
                     </div>
                 @else
                     <div class="space-y-0.5">
@@ -99,6 +174,9 @@
                             @php $isActive = request()->routeIs($item['route']); @endphp
                             <a
                                 href="{{ route($item['route']) }}"
+                                x-data="{ showTip: false, tipTop: 0 }"
+                                @mouseenter="if (sidebarCollapsed) { tipTop = $el.getBoundingClientRect().top + $el.getBoundingClientRect().height / 2; showTip = true; }"
+                                @mouseleave="showTip = false"
                                 :class="sidebarCollapsed ? 'lg:flex-col lg:gap-0.5 lg:justify-center lg:px-1 lg:py-2.5' : ''"
                                 class="relative flex flex-row items-center gap-3 pl-3 py-2.5 transition {{ $isActive ? 'font-bold -mr-3 pr-6 rounded-l-xl' : 'font-medium pr-3 rounded-xl hover:bg-black/5' }}"
                                 @if ($isActive) style="background-color: var(--admin-sidebar-active-bg); color: var(--admin-sidebar-active-text);" @endif
@@ -116,6 +194,24 @@
                                 @if ($isActive)
                                     <span class="absolute right-0.5 inset-y-0 w-1" style="background-color: var(--admin-sidebar-active-text);"></span>
                                 @endif
+
+                                <!-- Tooltip: só aparece com a sidebar colapsada (desktop), já que o rótulo fica
+                                     escondido — teleportado pro body porque a <aside> tem overflow-y-auto, que
+                                     cortaria qualquer coisa posicionada normalmente alem da borda da sidebar. -->
+                                <template x-teleport="body">
+                                    <div
+                                        x-show="showTip"
+                                        x-cloak
+                                        x-transition:enter="transition ease-out duration-150"
+                                        x-transition:enter-start="opacity-0 scale-95"
+                                        x-transition:enter-end="opacity-100 scale-100"
+                                        :style="`top: ${tipTop}px; left: 112px;`"
+                                        class="fixed -translate-y-1/2 z-50 whitespace-nowrap px-2.5 py-1.5 rounded-lg text-xs font-medium shadow-lg pointer-events-none bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                                        role="tooltip"
+                                    >
+                                        {{ $item['label'] }}
+                                    </div>
+                                </template>
                             </a>
                         @endforeach
                     </div>

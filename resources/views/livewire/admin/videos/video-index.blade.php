@@ -42,6 +42,11 @@
         <x-admin.stat-card label="Publicados" :value="$publishedVideos" sublabel="Visíveis no site" valueColor="var(--admin-primary-dark)" />
     </div>
 
+    <!-- Busca -->
+    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por título..."
+        class="w-full rounded-lg px-4 py-2.5 text-sm placeholder:text-slate-400"
+        style="background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary);" />
+
     <!-- Tabela de Vídeos -->
     @if ($videos->isEmpty())
         <x-ui.empty-state title="Nenhum vídeo cadastrado ainda." icon="link" />
@@ -51,6 +56,7 @@
                 <th class="px-4 py-3 w-8"><x-ui.table-checkbox header wire:click="toggleSelectAllOnPage" :checked="$allSelectedOnPage" /></th>
                 <th class="px-6 py-3"><i class="fa-solid fa-video mr-1 opacity-60"></i> Título</th>
                 <th class="px-6 py-3"><i class="fa-solid fa-link mr-1 opacity-60"></i> URL</th>
+                <th class="px-6 py-3"><i class="fa-solid fa-eye mr-1 opacity-60"></i> Visualizações</th>
                 <th class="px-6 py-3"><i class="fa-solid fa-circle-check mr-1 opacity-60"></i> Status</th>
                 <th class="px-6 py-3"><i class="fa-solid fa-bolt mr-1 opacity-60"></i> Ações</th>
             </x-slot:header>
@@ -76,6 +82,9 @@
                                 <i class="fa-solid fa-up-right-from-square"></i>
                             </a>
                         </x-ui.tooltip>
+                    </td>
+                    <td class="px-6 py-3">
+                        <x-ui.badge size="sm"><i class="fa-regular fa-eye mr-1.5"></i>{{ $video->views_count }}</x-ui.badge>
                     </td>
                     <td class="px-6 py-3"><x-ui.badge :variant="$video->is_published ? 'success' : 'warning'">{{ $video->is_published ? 'Publicado' : 'Rascunho' }}</x-ui.badge></td>
                     <td class="px-6 py-3 space-x-2 whitespace-nowrap">

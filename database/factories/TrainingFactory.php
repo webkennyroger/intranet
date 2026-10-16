@@ -22,7 +22,7 @@ class TrainingFactory extends Factory
         return [
             'title' => fake()->sentence(4),
             'description' => fake()->paragraph(),
-            'external_url' => fake()->url(),
+            'links' => [['label' => null, 'url' => fake()->url()]],
             'workload_hours' => fake()->numberBetween(2, 40),
             'starts_at' => fake()->dateTimeBetween('now', '+2 months'),
             'is_published' => true,

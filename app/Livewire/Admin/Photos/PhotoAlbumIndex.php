@@ -7,6 +7,7 @@ use App\Models\PhotoAlbum;
 use App\Services\ActivityLogger;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 /**
  * Tela admin "Fotos": lista os álbuns de fotos cadastrados, permitindo
@@ -14,10 +15,20 @@ use Livewire\Component;
  */
 class PhotoAlbumIndex extends Component
 {
+    use WithPagination;
+
     public ?int $editingAlbumId = null;
+
+    public string $search = '';
 
     /** @var array<int, int> */
     public array $selected = [];
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+    }
 
     #[On('photo-album-saved')]
     public function refreshList(): void
@@ -63,7 +74,8 @@ class PhotoAlbumIndex extends Component
      */
     private function currentPageIds(): array
     {
-        return PhotoAlbum::latest('event_date')->paginate(10)->pluck('id')->all();
+        return PhotoAlbum::when($this->search !== '', fn ($query) => $query->where('title', 'like', "%{$this->search}%"))
+            ->latest('event_date')->paginate(10)->pluck('id')->all();
     }
 
     public function toggleSelectAllOnPage(): void
@@ -131,7 +143,9 @@ class PhotoAlbumIndex extends Component
 
     public function render()
     {
-        $albums = PhotoAlbum::withCount('photos')->latest('event_date')->paginate(10);
+        $albums = PhotoAlbum::withCount('photos')
+            ->when($this->search !== '', fn ($query) => $query->where('title', 'like', "%{$this->search}%"))
+            ->latest('event_date')->paginate(10);
 
         return view('livewire.admin.photos.photo-album-index', [
             'albums' => $albums,

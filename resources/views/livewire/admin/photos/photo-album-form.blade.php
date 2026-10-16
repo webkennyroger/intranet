@@ -34,12 +34,16 @@
                 @foreach ($album->photos as $photo)
                     <div class="relative group" wire:key="photo-{{ $photo->id }}">
                         <img src="{{ \Illuminate\Support\Facades\Storage::url($photo->image_path) }}" alt="{{ $photo->caption }}" class="w-full h-20 object-cover rounded-lg">
-                        <div class="absolute top-1 left-1 rounded-md bg-white/90 p-0.5 shadow-sm">
+                        <div class="absolute top-1 left-1 rounded-md bg-white p-0.5 shadow-sm">
                             <x-ui.checkbox wire:model.live="selectedPhotoIds" value="{{ $photo->id }}" />
                         </div>
-                        <button type="button" @click="confirmAction('Remover esta foto?', () => $wire.removePhoto({{ $photo->id }}))" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center">
-                            &times;
-                        </button>
+                        <div class="absolute top-1 right-1">
+                            <x-ui.tooltip text="Remover foto">
+                                <button type="button" @click="confirmAction('Remover esta foto?', () => $wire.removePhoto({{ $photo->id }}))" class="w-5 h-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center">
+                                    &times;
+                                </button>
+                            </x-ui.tooltip>
+                        </div>
                     </div>
                 @endforeach
             </div>
@@ -56,9 +60,13 @@
                 @foreach ($newPhotos as $index => $photo)
                     <div class="relative group" wire:key="new-photo-{{ $index }}">
                         <img src="{{ $photo->temporaryUrl() }}" alt="Pré-visualização" class="w-full h-20 object-cover rounded-lg">
-                        <button type="button" wire:click="removeNewPhoto({{ $index }})" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center">
-                            &times;
-                        </button>
+                        <div class="absolute top-1 right-1">
+                            <x-ui.tooltip text="Remover">
+                                <button type="button" wire:click="removeNewPhoto({{ $index }})" class="w-5 h-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center">
+                                    &times;
+                                </button>
+                            </x-ui.tooltip>
+                        </div>
                     </div>
                 @endforeach
             </div>

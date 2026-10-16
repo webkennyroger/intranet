@@ -53,7 +53,7 @@
             --bg-elevated: {{ $darkElevated }};
             --bg-hover: {{ $darkHover }};
             --bg-input: {{ $darkHover }}80;
-            --bg-card: {{ $darkSurface }}f2;
+            --bg-card: {{ $darkSurface }};
             --border-color: {{ $darkElevated }};
             --border-subtle: {{ $darkElevated }}80;
         }

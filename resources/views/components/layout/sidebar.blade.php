@@ -11,7 +11,7 @@
         'translate-x-0': mobileSidebarOpen,
         '-translate-x-full lg:translate-x-0': !mobileSidebarOpen,
         'lg:w-26': sidebarCollapsed,
-        'lg:w-56': !sidebarCollapsed,
+        'lg:w-64': !sidebarCollapsed,
     }"
     class="sidebar-card w-64 fixed inset-y-0 left-0 z-50 lg:top-16 transition-all duration-300 ease-in-out bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-y-auto"
 >

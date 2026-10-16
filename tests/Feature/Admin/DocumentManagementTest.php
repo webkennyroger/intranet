@@ -304,3 +304,14 @@ test('toggleSelectAllOnPage selects then deselects every document on the current
     $component->call('toggleSelectAllOnPage');
     expect($component->get('selected'))->toHaveCount(0);
 });
+
+test('searching filters the documents table by title', function () {
+    actingAsRoleForDocuments('Administrador');
+    Document::factory()->create(['title' => 'Edital de Licitação']);
+    Document::factory()->create(['title' => 'Outro Assunto']);
+
+    Livewire::test(DocumentIndex::class)
+        ->set('search', 'Licitação')
+        ->assertSee('Edital de Licitação')
+        ->assertDontSee('Outro Assunto');
+});

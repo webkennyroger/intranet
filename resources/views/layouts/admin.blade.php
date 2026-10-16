@@ -79,7 +79,7 @@
             --bg-elevated: {{ $darkElevated }};
             --bg-hover: {{ $darkHover }};
             --bg-input: {{ $darkHover }}80;
-            --bg-card: {{ $darkSurface }}f2;
+            --bg-card: {{ $darkSurface }};
             --border-color: {{ $darkElevated }};
             --border-subtle: {{ $darkElevated }}80;
         }
@@ -103,7 +103,7 @@
     <!-- Sidebar -->
     <x-layout.admin-sidebar />
 
-    <div class="min-h-screen flex flex-col lg:ml-64 transition-all duration-300" :class="sidebarCollapsed ? 'lg:ml-20!' : ''">
+    <div class="min-h-screen flex flex-col lg:ml-64 transition-all duration-300" :class="sidebarCollapsed ? 'lg:ml-26!' : ''">
         <!-- Header -->
         <x-layout.admin-header :title="$title ?? null" />
 

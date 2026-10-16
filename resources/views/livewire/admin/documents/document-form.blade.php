@@ -51,9 +51,11 @@
             @if ($existingFileLabel)
                 <div class="flex items-center justify-between rounded-xl px-4 py-2.5 text-sm" style="background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-primary);">
                     <span class="truncate"><i class="fa-solid fa-file-circle-check mr-1.5" style="color: #059669;"></i>{{ $existingFileLabel }}</span>
-                    <button type="button" wire:click="clearExistingFile" class="shrink-0 ml-2" style="color: var(--text-muted);">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
+                    <x-ui.tooltip text="Limpar seleção" class="shrink-0 ml-2">
+                        <button type="button" wire:click="clearExistingFile" style="color: var(--text-muted);">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </x-ui.tooltip>
                 </div>
             @else
                 <input type="text" wire:model.live.debounce.300ms="existingFileSearch" placeholder="Buscar arquivo..." class="w-full rounded-xl px-4 py-2.5 text-sm mb-2" style="background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-primary);">
@@ -84,9 +86,11 @@
                     @foreach ($files as $index => $pendingFile)
                         <li class="flex items-center justify-between gap-2 rounded-lg px-3 py-1.5" style="background-color: var(--bg-elevated);">
                             <span class="truncate"><i class="fa-solid fa-file mr-1.5 opacity-60"></i>{{ $pendingFile->getClientOriginalName() }}</span>
-                            <button type="button" wire:click="removeFile({{ $index }})" class="shrink-0" style="color: var(--text-muted);">
-                                <i class="fa-solid fa-xmark"></i>
-                            </button>
+                            <x-ui.tooltip text="Remover arquivo" class="shrink-0">
+                                <button type="button" wire:click="removeFile({{ $index }})" style="color: var(--text-muted);">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </x-ui.tooltip>
                         </li>
                     @endforeach
                 </ul>

@@ -34,6 +34,11 @@
         <x-admin.stat-card label="Total de respostas" :value="$totalReplies" sublabel="Em todos os tópicos" valueColor="var(--admin-primary-dark)" />
     </div>
 
+    <!-- Busca -->
+    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por tópico ou autor..."
+        class="w-full rounded-lg px-4 py-2.5 text-sm placeholder:text-slate-400"
+        style="background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary);" />
+
     <!-- Tabela de Tópicos -->
     @if ($topics->isEmpty())
         <x-ui.empty-state title="Nenhum tópico criado ainda." icon="link" />
@@ -55,7 +60,9 @@
                         <a href="{{ route('forum.show', $topic) }}" target="_blank" class="text-emerald-700 hover:underline">{{ $topic->title }}</a>
                     </td>
                     <td class="px-6 py-3">{{ $topic->author->name }}</td>
-                    <td class="px-6 py-3">{{ $topic->replies_count }}</td>
+                    <td class="px-6 py-3">
+                        <x-ui.badge size="sm"><i class="fa-regular fa-comment mr-1.5"></i>{{ $topic->replies_count }}</x-ui.badge>
+                    </td>
                     <td class="px-6 py-3">{{ $topic->created_at->format('d/m/Y H:i') }}</td>
                     <td class="px-6 py-3">
                         @can('forum.delete')

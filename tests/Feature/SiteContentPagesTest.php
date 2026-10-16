@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Photos\PhotoAlbumShow;
 use App\Models\CouncilMember;
 use App\Models\Document;
 use App\Models\Event;
@@ -7,6 +8,7 @@ use App\Models\PhotoAlbum;
 use App\Models\Training;
 use App\Models\User;
 use App\Models\Video;
+use Livewire\Livewire;
 
 test('the documents page only shows published documents', function () {
     $user = User::factory()->create();
@@ -55,6 +57,16 @@ test('visiting an album show page increments its views count', function () {
     $this->actingAs($user)->get(route('photos.show', $album));
 
     expect($album->refresh()->views_count)->toBe(1);
+});
+
+test('liking an album from its show page updates the like count', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $album = PhotoAlbum::factory()->create(['is_published' => true]);
+
+    Livewire::test(PhotoAlbumShow::class, ['album' => $album])->call('toggleLike');
+
+    expect($album->refresh()->isLikedBy($user))->toBeTrue();
 });
 
 test('the media page only shows published videos', function () {

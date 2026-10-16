@@ -22,6 +22,17 @@ class PhotoAlbumShow extends Component
         $this->album = $album;
     }
 
+    public function toggleLike(): void
+    {
+        $user = auth()->user();
+
+        if ($this->album->isLikedBy($user)) {
+            $this->album->likedByUsers()->detach($user->id);
+        } else {
+            $this->album->likedByUsers()->attach($user->id);
+        }
+    }
+
     public function render()
     {
         return view('livewire.photos.photo-album-show', [

@@ -18,8 +18,23 @@ class EventIndex extends Component
 
     public ?int $editingEventId = null;
 
+    public string $search = '';
+
     /** @var array<int, int> */
     public array $selected = [];
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+    }
+
+    private function filteredQuery()
+    {
+        return Event::when($this->search !== '', fn ($query) => $query->where(fn ($query) => $query
+            ->where('title', 'like', "%{$this->search}%")
+            ->orWhere('location', 'like', "%{$this->search}%")));
+    }
 
     #[On('event-saved')]
     public function refreshList(): void
@@ -61,7 +76,7 @@ class EventIndex extends Component
 
     public function toggleSelectAllOnPage(): void
     {
-        $pageIds = Event::orderBy('starts_at')->paginate(10)->pluck('id')->all();
+        $pageIds = $this->filteredQuery()->orderBy('starts_at')->paginate(10)->pluck('id')->all();
 
         if (array_diff($pageIds, $this->selected) === []) {
             $this->selected = array_values(array_diff($this->selected, $pageIds));
@@ -124,7 +139,7 @@ class EventIndex extends Component
 
     public function render()
     {
-        $events = Event::orderBy('starts_at')->paginate(10);
+        $events = $this->filteredQuery()->orderBy('starts_at')->paginate(10);
 
         return view('livewire.admin.events.event-index', [
             'events' => $events,
