@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Mural\MuralIndex;
+use App\Livewire\Site\Mural\MuralIndex;
 use App\Models\Article;
 use App\Models\Category;
 use App\Models\User;
@@ -88,9 +88,9 @@ test('the mural feed paginates at 9 articles per page', function () {
 
     $component = Livewire::test(MuralIndex::class);
 
-    expect($component->viewData('articles'))
+    expect($component->instance()->articles)
         ->toHaveCount(9)
-        ->and($component->viewData('articles')->hasMorePages())->toBeTrue();
+        ->and($component->instance()->articles->hasMorePages())->toBeTrue();
 });
 
 test('an article title is escaped in the rendered feed', function () {
@@ -101,6 +101,15 @@ test('an article title is escaped in the rendered feed', function () {
     $response = $this->actingAs($user)->get('/mural');
 
     $response->assertDontSee('<script>alert(1)</script>', false);
+});
+
+test('the mural feed does not show the "Explore por tags" widget', function () {
+    $user = User::factory()->create();
+    Article::factory()->create(['is_published' => true, 'published_at' => now()]);
+
+    $response = $this->actingAs($user)->get('/mural');
+
+    $response->assertDontSee('Explore por tags');
 });
 
 test('the category label uses the Mural category own color', function () {

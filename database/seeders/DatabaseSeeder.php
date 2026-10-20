@@ -15,8 +15,9 @@ class DatabaseSeeder extends Seeder
      * Dispara os seeders essenciais para a intranet funcionar: papéis/permissões
      * (AclSeeder), as categorias padrão do Mural (CategorySeeder), as pastas
      * fixas de Documentos (DocumentCategorySeeder), os links padrão da página
-     * de Serviços (ServiceLinkSeeder) e o conteúdo real que alimenta a página
-     * Início (HomeContentSeeder).
+     * de Serviços (ServiceLinkSeeder), os processos reais do Conselho Superior
+     * (CouncilProcessSeeder) e o conteúdo real que alimenta a página Início
+     * (HomeContentSeeder).
      */
     public function run(): void
     {
@@ -24,6 +25,7 @@ class DatabaseSeeder extends Seeder
         $this->call(CategorySeeder::class);
         $this->call(DocumentCategorySeeder::class);
         $this->call(ServiceLinkSeeder::class);
+        $this->call(CouncilProcessSeeder::class);
         $this->call(HomeContentSeeder::class);
     }
 }

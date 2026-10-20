@@ -61,7 +61,7 @@
                     @unless (in_array($role->name, \App\Livewire\Admin\Roles\RoleIndex::BUILT_IN_ROLES, true))
                         <div class="flex items-center gap-2" @click.stop>
                             <x-ui.tooltip text="Editar">
-                                <button type="button" wire:click="editRole({{ $role->id }})" class="text-xs text-slate-500 hover:text-emerald-700">
+                                <button type="button" wire:click="editRole({{ $role->id }})" class="text-xs text-(--text-muted) hover:text-emerald-700">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
                             </x-ui.tooltip>
@@ -69,7 +69,7 @@
                                 <button
                                     type="button"
                                     @click="confirmAction('Confirma a exclusão do papel \'{{ $role->name }}\'?', () => $wire.deleteRole({{ $role->id }}))"
-                                    class="text-xs text-slate-500 hover:text-red-600"
+                                    class="text-xs text-(--text-muted) hover:text-red-600"
                                 >
                                     <i class="fa-solid fa-trash"></i>
                                 </button>

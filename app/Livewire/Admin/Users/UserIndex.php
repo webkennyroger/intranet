@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Users;
 use App\Enums\UserStatus;
 use App\Models\User;
 use App\Services\ActivityLogger;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -129,24 +130,9 @@ class UserIndex extends Component
         $this->dispatch('toast', title: 'Usuário', message: $willBeActive ? "Usuário {$user->name} desbloqueado." : "Usuário {$user->name} bloqueado.", variant: $willBeActive ? 'success' : 'warning');
     }
 
-    /**
-     * IDs da página atual, respeitando a busca ativa — usado tanto na
-     * listagem principal quanto para "selecionar todos nesta página".
-     */
-    private function currentPageIds(): array
-    {
-        return User::when($this->search !== '', fn ($query) => $query->where(fn ($query) => $query
-            ->where('name', 'like', "%{$this->search}%")
-            ->orWhere('email', 'like', "%{$this->search}%")))
-            ->orderBy('name')
-            ->paginate(10)
-            ->pluck('id')
-            ->all();
-    }
-
     public function toggleSelectAllOnPage(): void
     {
-        $pageIds = $this->currentPageIds();
+        $pageIds = $this->users->pluck('id')->all();
 
         if (array_diff($pageIds, $this->selected) === []) {
             $this->selected = array_values(array_diff($this->selected, $pageIds));
@@ -239,7 +225,13 @@ class UserIndex extends Component
         $this->dispatch('toast', title: 'Usuários', message: $message, variant: 'danger');
     }
 
-    public function render()
+    /**
+     * Isolada num island (ver user-index.blade.php): precisa estar
+     * acessível via $this-> porque islands não têm acesso a variáveis de
+     * view vindas de fora deles, só a propriedades/métodos do componente.
+     */
+    #[Computed]
+    public function users()
     {
         $users = User::with('roles')
             ->when($this->search !== '', fn ($query) => $query->where(fn ($query) => $query
@@ -252,11 +244,25 @@ class UserIndex extends Component
             $this->roleChoice[$user->id] ??= $user->getRoleNames()->first();
         }
 
+        return $users;
+    }
+
+    #[Computed]
+    public function allSelectedOnPage(): bool
+    {
+        return $this->users->isNotEmpty() && array_diff($this->users->pluck('id')->all(), $this->selected) === [];
+    }
+
+    #[Computed]
+    public function roles()
+    {
+        return Role::orderBy('name')->get();
+    }
+
+    public function render()
+    {
         return view('livewire.admin.users.user-index', [
-            'users' => $users,
-            'allSelectedOnPage' => $users->isNotEmpty() && array_diff($users->pluck('id')->all(), $this->selected) === [],
             'editingUser' => $this->editingUserId ? User::find($this->editingUserId) : null,
-            'roles' => Role::orderBy('name')->get(),
         ])->layout('layouts.admin', ['title' => 'Usuários']);
     }
 }

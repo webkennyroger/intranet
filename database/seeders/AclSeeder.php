@@ -41,8 +41,8 @@ class AclSeeder extends Seeder
             ],
 
             'Defensor' => [
-                'description' => 'Gerencia os membros exibidos na página do Conselho Superior.',
-                'permissions' => self::crudFor(['council']),
+                'description' => 'Gerencia os membros e os processos exibidos na página do Conselho Superior.',
+                'permissions' => self::crudFor(['council', 'council-processes']),
             ],
         ];
 

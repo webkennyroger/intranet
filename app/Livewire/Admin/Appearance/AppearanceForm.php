@@ -20,10 +20,13 @@ class AppearanceForm extends Component
 
     public string $sidebarColor = '#FFFFFF';
 
+    public string $textColor = '#0F172A';
+
     /**
      * @var array<string, string>
      */
     public array $palette = [
+        'Branco' => '#FFFFFF',
         'Jade' => '#22B573',
         'Rosa' => '#EC4899',
         'Azul' => '#2563EB',
@@ -31,6 +34,7 @@ class AppearanceForm extends Component
         'Laranja' => '#F97316',
         'Vermelho' => '#DC2626',
         'Roxo' => '#7C3AED',
+        'Preto' => '#000000',
     ];
 
     /**
@@ -41,6 +45,7 @@ class AppearanceForm extends Component
         'navHeaderColor' => 'nav_header_color',
         'headerColor' => 'header_color',
         'sidebarColor' => 'sidebar_color',
+        'textColor' => 'text_color',
     ];
 
     public function mount(): void
@@ -51,6 +56,7 @@ class AppearanceForm extends Component
         $this->navHeaderColor = $setting->nav_header_color;
         $this->headerColor = $setting->header_color;
         $this->sidebarColor = $setting->sidebar_color;
+        $this->textColor = $setting->text_color;
     }
 
     public function pick(string $field, string $color): void
@@ -68,6 +74,7 @@ class AppearanceForm extends Component
             'navHeaderColor' => 'required|regex:/^#[0-9a-fA-F]{6}$/',
             'headerColor' => 'required|regex:/^#[0-9a-fA-F]{6}$/',
             'sidebarColor' => 'required|regex:/^#[0-9a-fA-F]{6}$/',
+            'textColor' => 'required|regex:/^#[0-9a-fA-F]{6}$/',
         ]);
 
         $this->applyColors();
@@ -82,6 +89,7 @@ class AppearanceForm extends Component
             'nav_header_color' => $this->navHeaderColor,
             'header_color' => $this->headerColor,
             'sidebar_color' => $this->sidebarColor,
+            'text_color' => $this->textColor,
         ]);
 
         session()->flash('toast', ['title' => 'Aparência', 'message' => 'Cores salvas com sucesso.', 'variant' => 'success']);

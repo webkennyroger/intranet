@@ -10,10 +10,38 @@
         title="Vídeos"
         subtitle="Gerencie os vídeos exibidos no site."
         :breadcrumbs="[['label' => 'Painel', 'href' => route('dashboard')], ['label' => 'Vídeos']]"
-    >
-        <x-slot:actions>
-            @if (count($selected) > 0)
-                <span class="text-xs font-semibold" style="color: var(--text-muted);">{{ count($selected) }} selecionado(s)</span>
+    />
+
+    <!-- Estatísticas (Cards) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <x-admin.trend-stat-card label="Total de vídeos" :value="$totalVideos" :changePercent="$totalVideosTrend['changePercent']" :values="$totalVideosTrend['values']" icon="video" color="#2563EB" />
+        <x-admin.trend-stat-card label="Publicados" :value="$publishedVideos" :changePercent="$publishedVideosTrend['changePercent']" :values="$publishedVideosTrend['values']" icon="check" color="#059669" />
+    </div>
+
+    <!-- Busca -->
+    <div class="ui-card p-5">
+        <div class="flex flex-col md:flex-row md:items-center gap-3">
+            <div class="relative flex-1">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: var(--text-muted);"></i>
+                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por título..."
+                    class="w-full rounded-full pl-11 pr-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-(--focus-ring)/40 transition"
+                    style="background-color: var(--bg-elevated); border: 1px solid var(--border-color); color: var(--text-primary);" />
+            </div>
+            <button type="button" wire:click="$refresh" class="inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:brightness-110 active:brightness-95 transition shrink-0" style="background-color: var(--admin-primary, var(--brand-primary, #0C4A34));">
+                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                <span>Buscar</span>
+            </button>
+        </div>
+    </div>
+
+    {{-- Tabela de Vídeos — isolada num island: selecionar linhas, paginar
+         e publicar/excluir só atualizam esta região, sem re-renderizar o
+         cabeçalho/estatísticas/busca da página. --}}
+    @island(name: 'videos-list', always: true)
+    <div class="space-y-4">
+        <div class="flex items-center justify-end gap-2">
+            @if (count($this->selected) > 0)
+                <span class="text-xs font-semibold" style="color: var(--text-muted);">{{ count($this->selected) }} selecionado(s)</span>
                 @can('videos.update')
                     <x-ui.button type="button" wire:click="bulkPublish" variant="secondary" size="sm">
                         <i class="fa-solid fa-check mr-1"></i> Publicar
@@ -23,7 +51,7 @@
                     </x-ui.button>
                 @endcan
                 @can('videos.delete')
-                    <x-ui.button type="button" @click="confirmAction('Confirma a exclusão de {{ count($selected) }} vídeo(s) selecionado(s)?', () => $wire.bulkDelete())" variant="danger" size="sm">
+                    <x-ui.button type="button" @click="confirmAction('Confirma a exclusão de {{ count($this->selected) }} vídeo(s) selecionado(s)?', () => $wire.bulkDelete())" variant="danger" size="sm">
                         <i class="fa-solid fa-trash mr-1"></i> Excluir
                     </x-ui.button>
                 @endcan
@@ -33,35 +61,22 @@
                     Novo vídeo
                 </x-ui.button>
             @endif
-        </x-slot:actions>
-    </x-admin.page-header>
+        </div>
 
-    <!-- Estatísticas (Cards) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <x-admin.stat-card label="Total de vídeos" :value="$totalVideos" sublabel="Cadastrados" />
-        <x-admin.stat-card label="Publicados" :value="$publishedVideos" sublabel="Visíveis no site" valueColor="var(--admin-primary-dark)" />
-    </div>
+        @if ($this->videos->isEmpty())
+            <x-ui.empty-state title="Nenhum vídeo cadastrado ainda." icon="link" />
+        @else
+            <x-ui.data-table selectable>
+                <x-slot:header>
+                    <th class="px-4 py-3 w-8"><x-ui.table-checkbox header wire:click="toggleSelectAllOnPage" :checked="$this->allSelectedOnPage" /></th>
+                    <th class="px-6 py-3"><i class="fa-solid fa-video mr-1 opacity-60"></i> Título</th>
+                    <th class="px-6 py-3"><i class="fa-solid fa-link mr-1 opacity-60"></i> URL</th>
+                    <th class="px-6 py-3"><i class="fa-solid fa-eye mr-1 opacity-60"></i> Visualizações</th>
+                    <th class="px-6 py-3"><i class="fa-solid fa-circle-check mr-1 opacity-60"></i> Status</th>
+                    <th class="px-6 py-3"><i class="fa-solid fa-bolt mr-1 opacity-60"></i> Ações</th>
+                </x-slot:header>
 
-    <!-- Busca -->
-    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por título..."
-        class="w-full rounded-lg px-4 py-2.5 text-sm placeholder:text-slate-400"
-        style="background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary);" />
-
-    <!-- Tabela de Vídeos -->
-    @if ($videos->isEmpty())
-        <x-ui.empty-state title="Nenhum vídeo cadastrado ainda." icon="link" />
-    @else
-        <x-ui.data-table selectable>
-            <x-slot:header>
-                <th class="px-4 py-3 w-8"><x-ui.table-checkbox header wire:click="toggleSelectAllOnPage" :checked="$allSelectedOnPage" /></th>
-                <th class="px-6 py-3"><i class="fa-solid fa-video mr-1 opacity-60"></i> Título</th>
-                <th class="px-6 py-3"><i class="fa-solid fa-link mr-1 opacity-60"></i> URL</th>
-                <th class="px-6 py-3"><i class="fa-solid fa-eye mr-1 opacity-60"></i> Visualizações</th>
-                <th class="px-6 py-3"><i class="fa-solid fa-circle-check mr-1 opacity-60"></i> Status</th>
-                <th class="px-6 py-3"><i class="fa-solid fa-bolt mr-1 opacity-60"></i> Ações</th>
-            </x-slot:header>
-
-            @foreach ($videos as $video)
+                @foreach ($this->videos as $video)
                 <tr wire:key="video-{{ $video->id }}">
                     <td class="px-4 py-3"><x-ui.table-checkbox wire:model.live="selected" value="{{ $video->id }}" /></td>
                     <td class="px-6 py-3">
@@ -111,11 +126,13 @@
                 </tr>
             @endforeach
 
-            <x-slot:footer>
-                {{ $videos->links() }}
-            </x-slot:footer>
-        </x-ui.data-table>
-    @endif
+                <x-slot:footer>
+                    {{ $this->videos->links() }}
+                </x-slot:footer>
+            </x-ui.data-table>
+        @endif
+    </div>
+    @endisland
 
     <!-- Modal: Formulário de Vídeo -->
     <x-ui.modal name="video-form" maxWidth="lg">

@@ -26,6 +26,46 @@ test('an Administrador can view the photo albums management page', function () {
     $this->get(route('admin.photos.index'))->assertStatus(200);
 });
 
+test('editing an album loads its existing photos into the form', function () {
+    // "Editar" é clicado de dentro do island da tabela — o modal/form
+    // precisa estar dentro do mesmo island (ver photo-album-index.blade.php)
+    // pra receber o álbum certo; fora dele, ficava sempre vazio/com os
+    // dados do carregamento inicial da página.
+    actingAsRoleForPhotos('Administrador');
+    $album = PhotoAlbum::factory()->create(['title' => 'Álbum Original']);
+    Photo::factory()->for($album, 'album')->create(['caption' => 'Legenda Exclusiva Um']);
+
+    Livewire::test(PhotoAlbumIndex::class)
+        ->call('edit', $album->id)
+        ->assertSee('Legenda Exclusiva Um');
+});
+
+test('switching from editing one album to another shows the new album\'s photos, not the previous one\'s', function () {
+    actingAsRoleForPhotos('Administrador');
+    $first = PhotoAlbum::factory()->create(['title' => 'Primeiro Álbum']);
+    Photo::factory()->for($first, 'album')->create(['caption' => 'Legenda do Primeiro']);
+    $second = PhotoAlbum::factory()->create(['title' => 'Segundo Álbum']);
+    Photo::factory()->for($second, 'album')->create(['caption' => 'Legenda do Segundo']);
+
+    Livewire::test(PhotoAlbumIndex::class)
+        ->call('edit', $first->id)
+        ->assertSee('Legenda do Primeiro')
+        ->assertDontSee('Legenda do Segundo')
+        ->call('edit', $second->id)
+        ->assertSee('Legenda do Segundo')
+        ->assertDontSee('Legenda do Primeiro');
+});
+
+test('viewing an album opens the gallery modal with all of its photos', function () {
+    actingAsRoleForPhotos('Administrador');
+    $album = PhotoAlbum::factory()->create(['title' => 'Álbum com Fotos']);
+    Photo::factory()->for($album, 'album')->create(['caption' => 'Foto da Galeria']);
+
+    Livewire::test(PhotoAlbumIndex::class)
+        ->call('view', $album->id)
+        ->assertSee('Foto da Galeria');
+});
+
 test('creating an album with photos stores each photo and sets the first as the cover', function () {
     Storage::fake('public');
     actingAsRoleForPhotos('Administrador');

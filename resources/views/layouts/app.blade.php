@@ -90,6 +90,11 @@
         <main class="site-dark-bg flex-1 p-4 md:p-6 bg-slate-50">
             {{ $slot }}
         </main>
+
+        <!-- Footer -->
+        <footer class="text-center text-xs py-4 border-t" style="color: var(--text-muted); border-color: var(--border-color);">
+            Copyright &copy; {{ now()->year }} Intranet DPEMT. Todos os direitos reservados.
+        </footer>
     </div>
 
     <x-ui.confirm-modal />

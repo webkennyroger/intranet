@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Services;
 
+use App\Livewire\Concerns\ComputesWeeklyTrend;
 use App\Models\ServiceLink;
 use App\Services\ActivityLogger;
 use Livewire\Attributes\On;
@@ -13,6 +14,8 @@ use Livewire\Component;
  */
 class ServiceLinkIndex extends Component
 {
+    use ComputesWeeklyTrend;
+
     public ?int $editingLinkId = null;
 
     /** @var array<int, int> */
@@ -142,8 +145,11 @@ class ServiceLinkIndex extends Component
             'allSelectedOnPage' => $links->isNotEmpty() && array_diff($links->pluck('id')->all(), $this->selected) === [],
             'editingLink' => $this->editingLinkId ? ServiceLink::find($this->editingLinkId) : null,
             'totalLinks' => ServiceLink::count(),
+            'totalLinksTrend' => $this->weeklyTrend(ServiceLink::query(), 'created_at'),
             'activeLinks' => ServiceLink::where('is_active', true)->count(),
+            'activeLinksTrend' => $this->weeklyTrend(ServiceLink::query()->where('is_active', true), 'created_at'),
             'inactiveLinks' => ServiceLink::where('is_active', false)->count(),
+            'inactiveLinksTrend' => $this->weeklyTrend(ServiceLink::query()->where('is_active', false), 'created_at'),
         ])->layout('layouts.admin', ['title' => 'Gerenciar Serviços']);
     }
 }

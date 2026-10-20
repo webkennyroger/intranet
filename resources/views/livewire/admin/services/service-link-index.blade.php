@@ -39,9 +39,9 @@
 
     <!-- Estatísticas (Cards) -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <x-admin.stat-card label="Total de serviços" :value="$totalLinks" sublabel="Links cadastrados" />
-        <x-admin.stat-card label="Ativos" :value="$activeLinks" sublabel="Visíveis no site" valueColor="var(--admin-primary-dark)" />
-        <x-admin.stat-card label="Inativos" :value="$inactiveLinks" sublabel="Ocultos do site" />
+        <x-admin.trend-stat-card label="Total de serviços" :value="$totalLinks" :changePercent="$totalLinksTrend['changePercent']" :values="$totalLinksTrend['values']" icon="link" color="#2563EB" />
+        <x-admin.trend-stat-card label="Ativos" :value="$activeLinks" :changePercent="$activeLinksTrend['changePercent']" :values="$activeLinksTrend['values']" icon="check" color="#059669" />
+        <x-admin.trend-stat-card label="Inativos" :value="$inactiveLinks" :changePercent="$inactiveLinksTrend['changePercent']" :values="$inactiveLinksTrend['values']" icon="ban" color="#DC2626" />
     </div>
 
     <!-- Tabela de Serviços (Reordenável) -->

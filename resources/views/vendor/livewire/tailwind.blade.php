@@ -9,50 +9,39 @@
     ...))" porque esta view é compartilhada pelo admin (--admin-primary) e
     pelo site público (--brand-primary): o fallback só entra quando a
     variável de fora não existe nessa página.
+
+    $scrollTo fica false (a view padrão do Livewire usa 'body' por
+    padrão): isso é o que fazia a página subir pro topo a cada clique de
+    paginação — o `x-on:click="...closest('body').scrollIntoView()"` da
+    view original manda rolar o <body> pra dentro da área visível, ou
+    seja, pro topo da página, mesmo sem nenhuma navegação acontecer.
+
+    Todo botão (número, anterior, próximo) renderiza SEMPRE como <button>,
+    em qualquer estado — nunca troca pra <span> nem usa o atributo
+    "disabled" de verdade (nem wire:loading.attr="disabled"). Trocar de
+    tag ou desabilitar o elemento que acabou de receber o clique faz o
+    Livewire destruir/recriar o nó (ou o navegador forçar blur), tirando o
+    foco — o que também pode levar o navegador a rolar a página.
 --}}
 @php
-    if (! isset($scrollTo)) {
-        $scrollTo = 'body';
-    }
-
-    $scrollIntoViewJsSnippet = ($scrollTo !== false)
-        ? <<<JS
-           (\$el.closest('{$scrollTo}') || document.querySelector('{$scrollTo}')).scrollIntoView()
-        JS
-        : '';
+    $scrollTo = false;
 
     $activeBg = 'background-color: var(--admin-primary, var(--brand-primary, #0C4A34)); color: #fff;';
-    $itemStyle = 'background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-secondary);';
-    $disabledStyle = 'background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-muted);';
+    $enabledStyle = 'background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-secondary);';
+    $disabledStyle = 'background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-muted); cursor: default;';
 @endphp
 
 <div>
     @if ($paginator->hasPages())
         <nav role="navigation" aria-label="Pagination Navigation" class="flex items-center justify-between">
             <div class="flex justify-between flex-1 sm:hidden">
-                <span>
-                    @if ($paginator->onFirstPage())
-                        <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-not-allowed" style="{{ $disabledStyle }}">
-                            {!! __('pagination.previous') !!}
-                        </span>
-                    @else
-                        <button type="button" wire:click="previousPage('{{ $paginator->getPageName() }}')" x-on:click="{{ $scrollIntoViewJsSnippet }}" wire:loading.attr="disabled" dusk="previousPage{{ $paginator->getPageName() == 'page' ? '' : '.' . $paginator->getPageName() }}.before" class="relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md leading-5 transition hover:bg-(--bg-hover)" style="{{ $itemStyle }}">
-                            {!! __('pagination.previous') !!}
-                        </button>
-                    @endif
-                </span>
+                <button type="button" wire:click.preserve-scroll="previousPage('{{ $paginator->getPageName() }}')" class="relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md leading-5 transition {{ $paginator->onFirstPage() ? '' : 'hover:bg-(--bg-hover)' }}" style="{{ $paginator->onFirstPage() ? $disabledStyle : $enabledStyle }}">
+                    {!! __('pagination.previous') !!}
+                </button>
 
-                <span>
-                    @if ($paginator->hasMorePages())
-                        <button type="button" wire:click="nextPage('{{ $paginator->getPageName() }}')" x-on:click="{{ $scrollIntoViewJsSnippet }}" wire:loading.attr="disabled" dusk="nextPage{{ $paginator->getPageName() == 'page' ? '' : '.' . $paginator->getPageName() }}.before" class="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium rounded-md leading-5 transition hover:bg-(--bg-hover)" style="{{ $itemStyle }}">
-                            {!! __('pagination.next') !!}
-                        </button>
-                    @else
-                        <span class="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium rounded-md cursor-not-allowed" style="{{ $disabledStyle }}">
-                            {!! __('pagination.next') !!}
-                        </span>
-                    @endif
-                </span>
+                <button type="button" wire:click.preserve-scroll="nextPage('{{ $paginator->getPageName() }}')" class="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium rounded-md leading-5 transition {{ $paginator->hasMorePages() ? 'hover:bg-(--bg-hover)' : '' }}" style="{{ $paginator->hasMorePages() ? $enabledStyle : $disabledStyle }}">
+                    {!! __('pagination.next') !!}
+                </button>
             </div>
 
             <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
@@ -70,70 +59,47 @@
 
                 <div>
                     <span class="relative z-0 inline-flex rtl:flex-row-reverse rounded-md shadow-sm">
-                        <span>
-                            {{-- Previous Page Link --}}
-                            @if ($paginator->onFirstPage())
-                                <span aria-disabled="true" aria-label="{{ __('pagination.previous') }}">
-                                    <span class="relative inline-flex items-center px-2 py-2 rounded-l-md leading-5 cursor-not-allowed" style="{{ $disabledStyle }}" aria-hidden="true">
-                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                        </svg>
-                                    </span>
-                                </span>
-                            @else
-                                <button type="button" wire:click="previousPage('{{ $paginator->getPageName() }}')" x-on:click="{{ $scrollIntoViewJsSnippet }}" dusk="previousPage{{ $paginator->getPageName() == 'page' ? '' : '.' . $paginator->getPageName() }}.after" class="relative inline-flex items-center px-2 py-2 rounded-l-md leading-5 transition hover:bg-(--bg-hover)" style="{{ $itemStyle }}" aria-label="{{ __('pagination.previous') }}">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                    </svg>
-                                </button>
-                            @endif
-                        </span>
+                        {{-- Previous Page Link --}}
+                        <button type="button" wire:click.preserve-scroll="previousPage('{{ $paginator->getPageName() }}')" class="relative inline-flex items-center px-2 py-2 rounded-l-md leading-5 transition {{ $paginator->onFirstPage() ? '' : 'hover:bg-(--bg-hover)' }}" style="{{ $paginator->onFirstPage() ? $disabledStyle : $enabledStyle }}" aria-label="{{ __('pagination.previous') }}">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
 
                         {{-- Pagination Elements --}}
                         @foreach ($elements as $element)
                             {{-- "Three Dots" Separator --}}
                             @if (is_string($element))
                                 <span aria-disabled="true">
-                                    <span class="relative inline-flex items-center px-4 py-2 -ml-px text-sm font-medium leading-5 cursor-default" style="{{ $itemStyle }}">{{ $element }}</span>
+                                    <span class="relative inline-flex items-center px-4 py-2 -ml-px text-sm font-medium leading-5 cursor-default" style="{{ $enabledStyle }}">{{ $element }}</span>
                                 </span>
                             @endif
 
                             {{-- Array Of Links --}}
                             @if (is_array($element))
                                 @foreach ($element as $page => $url)
-                                    <span wire:key="paginator-{{ $paginator->getPageName() }}-page{{ $page }}">
-                                        @if ($page == $paginator->currentPage())
-                                            <span aria-current="page">
-                                                <span class="relative inline-flex items-center px-4 py-2 -ml-px text-sm font-bold leading-5 cursor-default" style="{{ $activeBg }} border: 1px solid transparent;">{{ $page }}</span>
-                                            </span>
-                                        @else
-                                            <button type="button" wire:click="gotoPage({{ $page }}, '{{ $paginator->getPageName() }}')" x-on:click="{{ $scrollIntoViewJsSnippet }}" class="relative inline-flex items-center px-4 py-2 -ml-px text-sm font-medium leading-5 transition hover:bg-(--bg-hover)" style="{{ $itemStyle }}" aria-label="{{ __('Go to page :page', ['page' => $page]) }}">
-                                                {{ $page }}
-                                            </button>
-                                        @endif
-                                    </span>
+                                    @php $isCurrent = $page == $paginator->currentPage(); @endphp
+                                    <button
+                                        type="button"
+                                        wire:click.preserve-scroll="gotoPage({{ $page }}, '{{ $paginator->getPageName() }}')"
+                                        wire:key="paginator-{{ $paginator->getPageName() }}-page{{ $page }}"
+                                        class="relative inline-flex items-center px-4 py-2 -ml-px text-sm leading-5 transition {{ $isCurrent ? 'font-bold cursor-default' : 'font-medium hover:bg-(--bg-hover)' }}"
+                                        style="{{ $isCurrent ? $activeBg.' border: 1px solid transparent;' : $enabledStyle }}"
+                                        @if ($isCurrent) aria-current="page" @endif
+                                        aria-label="{{ __('Go to page :page', ['page' => $page]) }}"
+                                    >
+                                        {{ $page }}
+                                    </button>
                                 @endforeach
                             @endif
                         @endforeach
 
-                        <span>
-                            {{-- Next Page Link --}}
-                            @if ($paginator->hasMorePages())
-                                <button type="button" wire:click="nextPage('{{ $paginator->getPageName() }}')" x-on:click="{{ $scrollIntoViewJsSnippet }}" dusk="nextPage{{ $paginator->getPageName() == 'page' ? '' : '.' . $paginator->getPageName() }}.after" class="relative inline-flex items-center px-2 py-2 -ml-px rounded-r-md leading-5 transition hover:bg-(--bg-hover)" style="{{ $itemStyle }}" aria-label="{{ __('pagination.next') }}">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                    </svg>
-                                </button>
-                            @else
-                                <span aria-disabled="true" aria-label="{{ __('pagination.next') }}">
-                                    <span class="relative inline-flex items-center px-2 py-2 -ml-px rounded-r-md leading-5 cursor-not-allowed" style="{{ $disabledStyle }}" aria-hidden="true">
-                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                        </svg>
-                                    </span>
-                                </span>
-                            @endif
-                        </span>
+                        {{-- Next Page Link --}}
+                        <button type="button" wire:click.preserve-scroll="nextPage('{{ $paginator->getPageName() }}')" class="relative inline-flex items-center px-2 py-2 -ml-px rounded-r-md leading-5 transition {{ $paginator->hasMorePages() ? 'hover:bg-(--bg-hover)' : '' }}" style="{{ $paginator->hasMorePages() ? $enabledStyle : $disabledStyle }}" aria-label="{{ __('pagination.next') }}">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
                     </span>
                 </div>
             </div>

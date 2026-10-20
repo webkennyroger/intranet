@@ -136,6 +136,76 @@ html.dark .site-dark-bg {
     outline-offset: 2px;
 }
 
+/* Animação de "desenho" dos gráficos SVG (linha do dashboard e sparkline
+   dos stat-cards do admin): sem isso o traço e a área preenchida apareciam
+   estáticos no primeiro render. stroke-dasharray maior que qualquer path
+   real do app (viewBox no máximo 600×160) garante que o traço comece
+   totalmente escondido, sem precisar calcular o comprimento exato de cada
+   linha. */
+@keyframes chart-line-draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+@keyframes chart-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+@keyframes chart-dot-pop {
+    from {
+        opacity: 0;
+        transform: scale(0);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.chart-line {
+    stroke-dasharray: 2000;
+    stroke-dashoffset: 2000;
+    animation: chart-line-draw 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.chart-area {
+    opacity: 0;
+    animation: chart-fade-in 0.9s ease-out 0.5s forwards;
+}
+.chart-dot {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    animation: chart-dot-pop 0.3s ease-out forwards;
+    animation-delay: calc(var(--chart-dot-index, 0) * 70ms + 1s);
+}
+
+@keyframes chart-bar-grow {
+    from {
+        transform: scaleY(0);
+    }
+    to {
+        transform: scaleY(1);
+    }
+}
+.chart-bar {
+    transform-origin: bottom;
+    animation: chart-bar-grow 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+    animation-delay: calc(var(--chart-bar-index, 0) * 40ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .chart-line,
+    .chart-area,
+    .chart-dot,
+    .chart-bar {
+        animation: none;
+        opacity: 1;
+        stroke-dashoffset: 0;
+        transform: none;
+    }
+}
+
 /* Cores de realce de sintaxe do modal "Ver código" (ver highlightHtml() em
    app.js) — acompanha o tema claro/escuro do próprio site (classe "dark"
    na <html>, controlada pelo theme-toggle do header), sem alternância
@@ -208,6 +278,25 @@ html.dark .site-dark-bg {
    via selectNode/deselectNode — aqui garantimos apenas o max-width. */
 .ProseMirror img {
     max-width: 100%;
+}
+
+/* Blocos "estruturais" (citação, títulos, listas, tabela, linha
+   horizontal, legenda de imagem) nunca encostam do lado de uma imagem
+   alinhada à esquerda/direita (float de verdade, ver align/ResizableImage
+   em app.js) — só texto corrido (parágrafo) flui ao redor dela. Sem isso
+   esses blocos tentam caber no espaço estreito ao lado da imagem,
+   ficando espremidos/cortados em vez de simplesmente começar embaixo
+   dela. ".prose" (além de ".ProseMirror") porque esse HTML também é
+   exibido fora do editor — ex. a matéria publicada no Mural. */
+.ProseMirror blockquote, .prose blockquote,
+.ProseMirror h1, .prose h1, .ProseMirror h2, .prose h2,
+.ProseMirror h3, .prose h3, .ProseMirror h4, .prose h4,
+.ProseMirror h5, .prose h5, .ProseMirror h6, .prose h6,
+.ProseMirror hr, .prose hr,
+.ProseMirror ul, .prose ul, .ProseMirror ol, .prose ol,
+.ProseMirror table, .prose table,
+.ProseMirror figure, .prose figure {
+    clear: both;
 }
 
 /* Marcas do submenu "Styles" do menu de formato (ver window.tiptapEditor()

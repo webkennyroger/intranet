@@ -74,7 +74,7 @@
         </a>
     </div>
 @else
-    <a {{ $attributes->merge(['class' => 'group relative overflow-hidden rounded-xl block']) }}>
+    <a href="{{ $url }}" {{ $attributes->merge(['class' => 'group relative overflow-hidden rounded-xl block']) }}>
         @if ($image)
             <img src="{{ $image }}" alt="{{ $title }}"
                 class="absolute inset-0 w-full h-full object-cover transition duration-500 group-hover:scale-105" />
@@ -85,6 +85,11 @@
         @endif
 
         <div class="absolute inset-0 bg-linear-to-t from-black/85 via-black/20 to-transparent"></div>
+
+        <span class="absolute top-3 left-3 z-10 inline-block rounded px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white"
+            style="background-color: {{ $accent }};">
+            {{ $label }}
+        </span>
 
         @if ($views !== null)
             <div class="absolute top-3 right-3 z-10 flex items-center gap-1.5">
@@ -99,10 +104,6 @@
         @endif
 
         <div class="absolute inset-x-0 bottom-0 p-4 {{ $size === 'lg' ? 'sm:p-6' : '' }} space-y-1.5">
-            <span class="inline-block rounded px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white"
-                style="background-color: {{ $accent }};">
-                {{ $label }}
-            </span>
             <p class="font-black text-white leading-snug line-clamp-2 {{ $size === 'lg' ? 'text-xl sm:text-2xl' : 'text-sm' }}">
                 {{ $title }}
             </p>

@@ -7,7 +7,6 @@ use App\Models\Category;
 use App\Services\ActivityLogger;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -58,9 +57,6 @@ class ArticleForm extends Component
 
     public string $scheduledTime = '';
 
-    /** 'now' publica com a data/hora atual; 'schedule' usa a data/hora escolhida acima. */
-    public string $publishMode = 'now';
-
     /** @var array<int, array{type: string, label: string, value: string, file: mixed, existingPath: ?string}> */
     public array $customFields = [];
 
@@ -96,7 +92,6 @@ class ArticleForm extends Component
             // artigo foi criado (não "agora"), pra não quebrar a ordem de
             // criação quando o admin publicar sem escolher uma data nova.
             $scheduledAt = $article->published_at ?? $article->created_at;
-            $this->publishMode = $article->isScheduled() ? 'schedule' : 'now';
         }
 
         $this->scheduledDate = $scheduledAt->format('Y-m-d');
@@ -110,34 +105,6 @@ class ArticleForm extends Component
     private function scheduledAt(): Carbon
     {
         return Carbon::parse("{$this->scheduledDate} {$this->scheduledTime}");
-    }
-
-    /**
-     * Garante que uma data/hora de agendamento futura foi escolhida quando
-     * o admin optou por "Agendar" — sem isso o campo existiria só de nome,
-     * já que uma data passada equivale a publicar agora mesmo.
-     */
-    private function validateScheduleIsFuture(): void
-    {
-        if ($this->publishMode === 'schedule' && ! $this->scheduledAt()->isFuture()) {
-            throw ValidationException::withMessages([
-                'scheduledDate' => 'Escolha uma data e hora futuras para agendar, ou selecione "Postar agora".',
-            ]);
-        }
-    }
-
-    /**
-     * Ao trocar pra "Postar agora", adianta os campos de data/hora pro
-     * momento atual — sem isso o admin podia deixar uma data antiga/futura
-     * esquecida nos campos (escondidos na UI nesse modo) e publicar com ela
-     * em vez de "agora" de verdade.
-     */
-    public function updatedPublishMode(): void
-    {
-        if ($this->publishMode === 'now') {
-            $this->scheduledDate = now()->format('Y-m-d');
-            $this->scheduledTime = now()->format('H:i');
-        }
     }
 
     public function addCategory(): void
@@ -211,7 +178,6 @@ class ArticleForm extends Component
             'scheduledDate' => 'required|date',
             'scheduledTime' => 'required|date_format:H:i',
         ]);
-        $this->validateScheduleIsFuture();
 
         $publishedAt = $this->scheduledAt();
 
@@ -259,7 +225,6 @@ class ArticleForm extends Component
         ];
 
         if ($this->article?->is_published) {
-            $this->validateScheduleIsFuture();
             $data['published_at'] = $this->scheduledAt();
         }
 
@@ -277,10 +242,9 @@ class ArticleForm extends Component
             }
             $article = $this->article;
         } else {
-            // Artigo novo entra publicado (ou agendado) de acordo com o que
-            // já estava escolhido em "Quando publicar" — não faz sentido
-            // forçar rascunho e exigir um passo extra de publicar depois.
-            $this->validateScheduleIsFuture();
+            // Artigo novo entra publicado (ou agendado, se a data/hora
+            // escolhida for futura) — não faz sentido forçar rascunho e
+            // exigir um passo extra de publicar depois.
             $article = Article::create($data + [
                 'is_published' => true,
                 'published_at' => $this->scheduledAt(),

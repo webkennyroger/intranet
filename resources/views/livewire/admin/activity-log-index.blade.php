@@ -11,11 +11,23 @@
         title="Histórico de Atividades"
         subtitle="Registro completo de todas as ações realizadas no sistema."
         :breadcrumbs="[['label' => 'Painel', 'href' => route('dashboard')], ['label' => 'Histórico de Atividades']]"
-    />
+    >
+        @if (count($selected) > 0)
+            <x-slot:actions>
+                <span class="text-xs font-semibold" style="color: var(--text-muted);">{{ count($selected) }} selecionado(s)</span>
+                @can('activity-log.delete')
+                    <x-ui.button type="button" @click="confirmAction('Confirma a exclusão de {{ count($selected) }} registro(s) selecionado(s)?', () => $wire.bulkDelete())" variant="danger" size="sm">
+                        <i class="fa-solid fa-trash mr-1"></i> Excluir
+                    </x-ui.button>
+                @endcan
+                <x-ui.button type="button" wire:click="deselectAll" variant="ghost" size="sm">Cancelar</x-ui.button>
+            </x-slot:actions>
+        @endif
+    </x-admin.page-header>
 
     <!-- Estatísticas (Cards) -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <x-admin.stat-card label="Total de atividades" :value="$stats['total']" icon="list-check" />
+        <x-admin.trend-stat-card label="Total de atividades" :value="$stats['total']" :changePercent="$totalTrend['changePercent']" :values="$totalTrend['values']" icon="list-check" color="#0891B2" />
         <x-admin.stat-card label="Hoje" :value="$stats['today']" icon="clock" iconColor="#2563eb" />
         <x-admin.stat-card label="Esta semana" :value="$stats['thisWeek']" icon="calendar-week" iconColor="#9333ea" />
     </div>
@@ -50,6 +62,10 @@
                     @endforeach
                 </x-ui.select>
             </div>
+
+            <x-ui.button type="button" wire:click="$refresh">
+                <i class="fa-solid fa-magnifying-glass mr-1"></i> Buscar
+            </x-ui.button>
         </div>
 
         <x-admin.filter-tabs
@@ -62,7 +78,7 @@
     <!-- Tabela de Atividades -->
     <x-ui.data-table selectable>
         <x-slot:header>
-            <th class="px-4 py-3 w-8"><x-ui.table-checkbox header /></th>
+            <th class="px-4 py-3 w-8"><x-ui.table-checkbox header wire:click="toggleSelectAllOnPage" :checked="$allSelectedOnPage" /></th>
             <th class="px-6 py-3"><i class="fa-solid fa-bolt mr-1 opacity-60"></i> Ação</th>
             <th class="px-4 py-3"><i class="fa-solid fa-align-left mr-1 opacity-60"></i> Descrição</th>
             <th class="px-4 py-3"><i class="fa-solid fa-tag mr-1 opacity-60"></i> Tipo</th>
@@ -73,7 +89,7 @@
 
         @forelse ($logs as $log)
             <tr wire:key="activity-log-{{ $log->id }}">
-                <td class="px-4 py-3"><x-ui.table-checkbox /></td>
+                <td class="px-4 py-3"><x-ui.table-checkbox wire:model.live="selected" value="{{ $log->id }}" /></td>
                 <td class="px-6 py-3">
                     <x-ui.badge :variant="$log->action_variant">
                         <i class="fa-solid fa-{{ $log->action_icon }} mr-1"></i> {{ $log->action_label }}

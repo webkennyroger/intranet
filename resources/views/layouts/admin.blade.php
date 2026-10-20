@@ -17,9 +17,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @php
         $appearance = \App\Models\SiteSetting::current();
-        $navHeaderText = \App\Models\SiteSetting::readableTextFor($appearance->nav_header_color);
-        $headerText = \App\Models\SiteSetting::readableTextFor($appearance->header_color);
-        $sidebarText = \App\Models\SiteSetting::readableTextFor($appearance->sidebar_color);
+        // O texto do canto da marca/barra superior/menu lateral usa
+        // DIRETO a cor escolhida em "Cor do texto" no modo claro — sem
+        // nenhum cálculo de contraste por cima. Antes isso só valia
+        // quando o fundo daquela área já desse "texto escuro" por
+        // contraste (ficava sem efeito em qualquer fundo mais escuro/
+        // saturado, tipo rosa, que sempre caía no branco fixo) — a cor
+        // escolhida precisa valer sempre, mesmo que o admin tenha que
+        // escolher um fundo mais claro pra ela ficar legível.
+        $navHeaderText = $appearance->text_color;
+        $headerText = $appearance->text_color;
+        $sidebarText = $appearance->text_color;
         $darkSurface = \App\Models\SiteSetting::darkBgFor($appearance->primary_color);
         $darkBody = \App\Models\SiteSetting::darkBodyBgFor($appearance->primary_color);
         $darkElevated = \App\Models\SiteSetting::darkElevatedBgFor($appearance->primary_color);
@@ -29,13 +37,20 @@
         // (bom quando a sidebar é branca), senão some quando a sidebar tem
         // a mesma cor escura da Primary. Troca para o par "fundo escuro +
         // texto claro" (mesma lógica do dark mode) quando a sidebar é escura.
-        $sidebarIsLight = $sidebarText === '#312a2a';
+        $sidebarIsLight = \App\Models\SiteSetting::isLightBackground($appearance->sidebar_color);
         $sidebarActiveBg = $sidebarIsLight ? $appearance->primaryLightColor() : \App\Models\SiteSetting::darkActiveHighlightBgFor($appearance->primary_color);
         $sidebarActiveText = $sidebarIsLight ? $appearance->primaryHoverColor() : \App\Models\SiteSetting::darkTextFor($appearance->primary_color);
     @endphp
     <!-- Variáveis CSS de Aparência -->
     <style>
-        :root {
+        /* "html:root" (não só ":root") de propósito só pra "--text-primary":
+           diferente das outras variáveis --admin-*, essa já tem valor
+           padrão no ":root" do app.css (ver comentário mais abaixo sobre
+           "html.dark") — mesma especificidade + carregado depois pelo Vite
+           sempre ganhava do cascade, então a cor de texto escolhida aqui
+           nunca aparecia. "html:root" (pseudo-classe + tipo) tem
+           especificidade maior que o ":root" sozinho do app.css. */
+        html:root {
             --admin-primary: {{ $appearance->primary_color }};
             --admin-primary-dark: {{ $appearance->primaryHoverColor() }};
             --admin-primary-light: {{ $appearance->primaryLightColor() }};
@@ -47,6 +62,7 @@
             --admin-sidebar-text: {{ $sidebarText }};
             --admin-sidebar-active-bg: {{ $sidebarActiveBg }};
             --admin-sidebar-active-text: {{ $sidebarActiveText }};
+            --text-primary: {{ $appearance->text_color }};
             --focus-ring: var(--admin-primary);
         }
         /* No escuro, cada área (nav-header/header/sidebar) usa uma versão
@@ -58,11 +74,15 @@
            ganhava do cascade e o modo escuro nunca acompanhava a cor
            escolhida aqui. */
         /* "html.dark" (não só ".dark") de propósito: --bg-base/-surface/
-           -card/-border-color (e as novas -elevated/-hover/-input/-subtle)
-           também têm valor padrão no ":root" do app.css — ":root" e
-           ".dark" têm a MESMA especificidade, então sem o "html" extra
-           aqui essa regra perderia pro ":root" do app.css (carregado
-           depois) sempre que ambos baterem no mesmo elemento <html>. */
+           -card/-border-color (e as novas -elevated/-hover/-input/-subtle,
+           além de --text-primary agora) também têm valor padrão no ":root"
+           do app.css — ":root" e ".dark" têm a MESMA especificidade, então
+           sem o "html" extra aqui essa regra perderia pro ":root" do
+           app.css (carregado depois) sempre que ambos baterem no mesmo
+           elemento <html>. --text-primary fixo em #f4f4f5 aqui (não a cor
+           escolhida em Aparência) de propósito: a cor de texto customizada
+           vale só pro modo claro — no escuro sempre usa texto claro,
+           independente do que foi escolhido. */
         html.dark {
             --admin-primary-dark: {{ $appearance->darkActiveTextColor() }};
             --admin-primary-light: {{ $appearance->darkActiveBgColor() }};
@@ -74,6 +94,7 @@
             --admin-sidebar-text: #f4f4f5;
             --admin-sidebar-active-bg: {{ \App\Models\SiteSetting::darkActiveHighlightBgFor($appearance->primary_color) }};
             --admin-sidebar-active-text: {{ $appearance->darkActiveTextColor() }};
+            --text-primary: #f4f4f5;
             --bg-base: {{ $darkBody }};
             --bg-surface: {{ $darkSurface }};
             --bg-elevated: {{ $darkElevated }};
@@ -88,7 +109,8 @@
     @livewireStyles
 </head>
 <body
-    class="site-dark-bg font-sans antialiased bg-slate-100 dark:text-(--text-primary) text-slate-800"
+    class="site-dark-bg font-sans antialiased bg-slate-100"
+    style="color: var(--text-primary);"
     x-data="{ sidebarCollapsed: localStorage.getItem('adminSidebarCollapsed') === 'true', mobileSidebarOpen: false }"
     x-init="$watch('sidebarCollapsed', (value) => localStorage.setItem('adminSidebarCollapsed', value))"
 >

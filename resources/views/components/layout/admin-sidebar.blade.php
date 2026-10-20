@@ -93,13 +93,13 @@
                             @click="toggle()"
                             @mouseenter="sidebarCollapsed && openFlyout()"
                             @mouseleave="sidebarCollapsed && scheduleClose()"
-                            class="relative w-full flex flex-row items-center gap-3 pl-3 pr-3 py-2.5 rounded-xl font-medium transition hover:bg-black/5 text-slate-600 dark:text-(--text-secondary)"
+                            class="relative w-full flex flex-row items-center gap-3 pl-3 pr-3 py-2.5 rounded-xl font-medium transition hover:bg-black/5"
                             :class="sidebarCollapsed ? 'lg:flex-col lg:gap-0.5 lg:justify-center lg:px-1 lg:py-2.5' : ''"
                         >
-                            <i class="fa-solid fa-{{ $section['icon'] }} w-4 text-center text-slate-400 dark:text-(--text-muted)"></i>
+                            <i class="fa-solid fa-{{ $section['icon'] }} w-4 text-center opacity-70"></i>
                             <span class="flex-1 text-left" :class="sidebarCollapsed ? 'lg:text-[9px] lg:text-center lg:leading-tight' : ''">{{ $section['group'] }}</span>
                             <i
-                                class="fa-solid text-[10px] text-slate-400 dark:text-(--text-muted)"
+                                class="fa-solid text-[10px] opacity-70"
                                 :class="open ? 'fa-minus' : 'fa-plus'"
                                 x-show="!sidebarCollapsed"
                             ></i>
@@ -111,7 +111,7 @@
                                 @php $isActive = ! ($item['alias'] ?? false) && request()->routeIs($item['route']); @endphp
                                 <a
                                     href="{{ route($item['route']) }}"
-                                    class="relative flex items-center gap-2.5 pl-4 pr-3 py-2 rounded-lg transition text-xs {{ $isActive ? 'font-semibold' : 'font-medium text-slate-500 dark:text-(--text-muted) hover:bg-black/5' }}"
+                                    class="relative flex items-center gap-2.5 pl-4 pr-3 py-2 rounded-lg transition text-xs {{ $isActive ? 'font-semibold' : 'font-medium opacity-80 hover:bg-black/5' }}"
                                     @if ($isActive)
                                         style="color: var(--admin-sidebar-active-text); background-color: var(--admin-sidebar-active-bg);"
                                     @else
@@ -186,11 +186,11 @@
                                     @if ($isActive) style="background-color: color-mix(in srgb, var(--admin-sidebar-active-text) 18%, transparent);" @endif
                                 >
                                     <i
-                                        class="fa-solid fa-{{ $item['icon'] }} text-sm {{ $isActive ? '' : 'text-slate-400 dark:text-(--text-muted)' }}"
+                                        class="fa-solid fa-{{ $item['icon'] }} text-sm {{ $isActive ? '' : 'opacity-70' }}"
                                         @if ($isActive) style="color: var(--admin-sidebar-active-text);" @endif
                                     ></i>
                                 </span>
-                                <span class="flex-1 {{ $isActive ? '' : 'text-slate-600 dark:text-(--text-secondary)' }}" :class="sidebarCollapsed ? 'lg:text-[9px] lg:text-center lg:leading-tight' : ''">{{ $item['label'] }}</span>
+                                <span class="flex-1 {{ $isActive ? '' : 'opacity-80' }}" :class="sidebarCollapsed ? 'lg:text-[9px] lg:text-center lg:leading-tight' : ''">{{ $item['label'] }}</span>
                                 @if ($isActive)
                                     <span class="absolute right-0.5 inset-y-0 w-1" style="background-color: var(--admin-sidebar-active-text);"></span>
                                 @endif

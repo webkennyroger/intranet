@@ -62,23 +62,20 @@
                 <x-ui.card>
                    
                     <div class="space-y-3 text-sm">
-                        <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Quando publicar</label>
-                        <x-ui.toggle-group wire:model.live="publishMode" :options="['now' => 'Postar agora', 'schedule' => 'Agendar']" />
-                
+                        <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Agendamento</label>
 
-                        @if ($publishMode === 'schedule')
-                            <div class="grid grid-cols-2 gap-3">
-                                <x-ui.input type="date" wire:model="scheduledDate" label="Data" />
-                                <x-ui.time-picker wire:model="scheduledTime" label="Hora" />
-                            </div>
-                        @endif
+                        <div class="grid grid-cols-2 gap-3">
+                            <x-ui.input type="date" wire:model="scheduledDate" label="Data" />
+                            <x-ui.time-picker wire:model="scheduledTime" label="Hora" />
+                        </div>
                         @error('scheduledDate') <p class="text-xs text-red-500">{{ $message }}</p> @enderror
                         @error('scheduledTime') <p class="text-xs text-red-500">{{ $message }}</p> @enderror
                     </div>
 
                     @unless ($article)
+                        @php($isFutureSchedule = \Illuminate\Support\Carbon::parse("{$scheduledDate} {$scheduledTime}")->isFuture())
                         <x-slot:footer>
-                            <p class="text-xs" style="color: var(--text-muted);">{{ $publishMode === 'schedule' ? 'Vai ser publicado automaticamente na data/hora escolhida.' : 'Vai ser publicado assim que salvar.' }}</p>
+                            <p class="text-xs" style="color: var(--text-muted);">{{ $isFutureSchedule ? 'Vai ser agendado para a data/hora escolhida.' : 'Vai ser publicado assim que salvar.' }}</p>
                         </x-slot:footer>
                     @endunless
                 </x-ui.card>

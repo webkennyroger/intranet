@@ -40,10 +40,10 @@
 
     <!-- Estatísticas (Cards) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <x-admin.stat-card label="Total de artigos" :value="$totalArticles" sublabel="No mural" />
-        <x-admin.stat-card label="Publicados" :value="$publishedArticles" sublabel="Visíveis para todos" valueColor="var(--admin-primary-dark)" />
-        <x-admin.stat-card label="Rascunhos" :value="$draftArticles" sublabel="Ainda não publicados" />
-        <x-admin.stat-card label="Curtidas" :value="$totalLikes" sublabel="No total" />
+        <x-admin.trend-stat-card label="Total de artigos" :value="$totalArticles" :changePercent="$totalArticlesTrend['changePercent']" :values="$totalArticlesTrend['values']" icon="newspaper" color="#2563EB" />
+        <x-admin.trend-stat-card label="Publicados" :value="$publishedArticles" :changePercent="$publishedArticlesTrend['changePercent']" :values="$publishedArticlesTrend['values']" icon="check" color="#059669" />
+        <x-admin.trend-stat-card label="Rascunhos" :value="$draftArticles" :changePercent="$draftArticlesTrend['changePercent']" :values="$draftArticlesTrend['values']" icon="pen" color="#F59E0B" />
+        <x-admin.trend-stat-card label="Curtidas" :value="$totalLikes" :changePercent="$totalLikesTrend['changePercent']" :values="$totalLikesTrend['values']" icon="heart" color="#EC4899" />
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
@@ -52,7 +52,12 @@
             <!-- Busca -->
             <x-ui.card>
                 <div class="font-semibold text-sm mb-2" style="color: var(--text-primary);">Buscar</div>
-                <x-ui.input wire:model.live.debounce.400ms="search" icon="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" placeholder="Buscar artigo..." />
+                <div class="space-y-2">
+                    <x-ui.input wire:model.live.debounce.400ms="search" icon="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" placeholder="Buscar artigo..." />
+                    <x-ui.button type="button" wire:click="$refresh" class="w-full justify-center">
+                        <i class="fa-solid fa-magnifying-glass mr-1"></i> Buscar
+                    </x-ui.button>
+                </div>
             </x-ui.card>
 
             <!-- Categorias -->

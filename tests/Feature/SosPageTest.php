@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Sos\SosIndex;
+use App\Livewire\Site\Sos\SosIndex;
 use App\Models\Article;
 use App\Models\Category;
 use App\Models\User;
@@ -79,6 +79,16 @@ test('clearing filters resets search and period on the sos page', function () {
         ->assertSet('period', '');
 });
 
+test('the sos page does not show the "Explore por tags" widget', function () {
+    $user = User::factory()->create();
+    $sos = sosTestCategory();
+    Article::factory()->hasAttached($sos)->create(['is_published' => true, 'published_at' => now()]);
+
+    $response = $this->actingAs($user)->get('/sos');
+
+    $response->assertDontSee('Explore por tags');
+});
+
 test('the sos feed paginates at 9 articles per page', function () {
     $user = User::factory()->create();
     $this->actingAs($user);
@@ -88,7 +98,7 @@ test('the sos feed paginates at 9 articles per page', function () {
 
     $component = Livewire::test(SosIndex::class);
 
-    expect($component->viewData('articles'))
+    expect($component->instance()->articles)
         ->toHaveCount(9)
-        ->and($component->viewData('articles')->hasMorePages())->toBeTrue();
+        ->and($component->instance()->articles->hasMorePages())->toBeTrue();
 });

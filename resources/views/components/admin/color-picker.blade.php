@@ -2,8 +2,17 @@
     Linha de swatches de cor, usada na página Aparência para customizar as
     cores do tema do admin/site. Cada clique chama o método Livewire "pick"
     passando o campo e a cor escolhida — o botão hachurado restaura o valor
-    padrão. A cor selecionada ganha uma marca de check em vez de só mudar de
+    padrão da LINHA (que varia: branco pra fundos, verde pra destaque,
+    cinza-escuro pra texto — ver "default" em cada <x-admin.color-picker>).
+    A cor selecionada ganha uma marca de check em vez de só mudar de
     tamanho, pra ficar claro qual está ativa mesmo numa olhada rápida.
+
+    "$swatches" tira do array compartilhado ($palette, igual pras 5 linhas)
+    qualquer cor igual ao "default" dessa linha específica — sem isso,
+    numa linha cujo padrão já é branco (ex. Menu lateral), o botão
+    hachurado E o swatch branco da paleta ficavam os dois marcados com
+    check ao mesmo tempo (mesma cor, dois botões "selecionados" na tela),
+    parecendo um bug de duas cores escolhidas.
 --}}
 @props([
     'field',
@@ -11,6 +20,10 @@
     'palette',
     'default' => '#0C4A34',
 ])
+
+@php
+    $swatches = array_filter($palette, fn ($color) => strtoupper($color) !== strtoupper($default));
+@endphp
 
 <div>
     <div class="flex flex-wrap gap-2.5">
@@ -26,7 +39,7 @@
             @endif
         </button>
 
-        @foreach ($palette as $swatchLabel => $color)
+        @foreach ($swatches as $swatchLabel => $color)
             <button
                 type="button"
                 wire:click="pick('{{ $field }}', '{{ $color }}')"

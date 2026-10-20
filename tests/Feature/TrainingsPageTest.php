@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Trainings\TrainingsIndex;
+use App\Livewire\Site\Trainings\TrainingsIndex;
 use App\Models\Training;
 use App\Models\TrainingCategory;
 use App\Models\User;
@@ -114,9 +114,9 @@ test('the trainings list paginates at 10 per page', function () {
 
     $component = Livewire::test(TrainingsIndex::class);
 
-    expect($component->viewData('trainings'))
+    expect($component->instance()->trainings)
         ->toHaveCount(10)
-        ->and($component->viewData('trainings')->hasMorePages())->toBeTrue();
+        ->and($component->instance()->trainings->hasMorePages())->toBeTrue();
 });
 
 test('each folder shows the real count of published trainings inside it', function () {

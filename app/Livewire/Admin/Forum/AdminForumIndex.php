@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Admin\Forum;
 
+use App\Livewire\Concerns\ComputesWeeklyTrend;
 use App\Models\ForumReply;
 use App\Models\ForumTopic;
 use App\Services\ActivityLogger;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -14,7 +16,7 @@ use Livewire\WithPagination;
  */
 class AdminForumIndex extends Component
 {
-    use WithPagination;
+    use ComputesWeeklyTrend, WithPagination;
 
     public string $search = '';
 
@@ -46,7 +48,7 @@ class AdminForumIndex extends Component
 
     public function toggleSelectAllOnPage(): void
     {
-        $pageIds = $this->filteredQuery()->latest()->paginate(10)->pluck('id')->all();
+        $pageIds = $this->topics->pluck('id')->all();
 
         if (array_diff($pageIds, $this->selected) === []) {
             $this->selected = array_values(array_diff($this->selected, $pageIds));
@@ -75,15 +77,30 @@ class AdminForumIndex extends Component
         $this->dispatch('toast', title: 'Fórum', message: $topics->count().' tópico(s) excluído(s) com sucesso.', variant: 'danger');
     }
 
+    /**
+     * Isolada num island (ver admin-forum-index.blade.php): precisa estar
+     * acessível via $this-> porque islands não têm acesso a variáveis de
+     * view vindas de fora deles, só a propriedades/métodos do componente.
+     */
+    #[Computed]
+    public function topics()
+    {
+        return $this->filteredQuery()->with('author')->withCount('replies')->latest()->paginate(10);
+    }
+
+    #[Computed]
+    public function allSelectedOnPage(): bool
+    {
+        return $this->topics->isNotEmpty() && array_diff($this->topics->pluck('id')->all(), $this->selected) === [];
+    }
+
     public function render()
     {
-        $topics = $this->filteredQuery()->with('author')->withCount('replies')->latest()->paginate(10);
-
         return view('livewire.admin.forum.admin-forum-index', [
-            'topics' => $topics,
-            'allSelectedOnPage' => $topics->isNotEmpty() && array_diff($topics->pluck('id')->all(), $this->selected) === [],
             'totalTopics' => ForumTopic::count(),
+            'totalTopicsTrend' => $this->weeklyTrend(ForumTopic::query(), 'created_at'),
             'totalReplies' => ForumReply::count(),
+            'totalRepliesTrend' => $this->weeklyTrend(ForumReply::query(), 'created_at'),
         ])->layout('layouts.admin', ['title' => 'Fórum']);
     }
 }

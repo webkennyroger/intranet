@@ -515,6 +515,45 @@ function resolveImageDropPos(view, draggedImgEl, clientX, clientY) {
     };
 }
 
+// Acha se o cursor está perto da borda esquerda/direita de um bloco de
+// TEXTO (parágrafo, título, citação etc. — imagem já é tratada acima, por
+// distância real até os <img>) pra soltar a imagem arrastada do lado dele,
+// flutuando (ver align/float em ResizableImage) em vez de empilhada
+// embaixo. Sem isso, resolveDropPos só reconhece "em cima"/"embaixo" de
+// qualquer bloco — nunca "do lado" de um parágrafo que não seja imagem.
+function resolveParagraphSideDropPos(view, clientX, clientY) {
+    const coords = view.posAtCoords({ left: clientX, top: clientY });
+    if (!coords) {
+        return null;
+    }
+    const $pos = view.state.doc.resolve(coords.pos);
+    const blockPos = $pos.depth > 0 ? $pos.before(1) : coords.pos;
+    const blockNode = view.state.doc.nodeAt(blockPos);
+    if (!blockNode || blockNode.type.name === 'image') {
+        return null; // imagem alvo já é tratada por resolveImageDropPos
+    }
+    const blockDOM = view.nodeDOM(blockPos);
+    if (!(blockDOM instanceof HTMLElement)) {
+        return null;
+    }
+
+    // Só conta como "do lado" perto de uma das bordas (não o meio do
+    // bloco) — senão qualquer ponto dentro de um parágrafo largo soltaria
+    // do lado, mesmo bem no centro do texto.
+    const rect = blockDOM.getBoundingClientRect();
+    if (clientY < rect.top || clientY > rect.bottom) {
+        return null;
+    }
+    const sideZone = Math.min(rect.width * 0.3, 160);
+    if (clientX - rect.left < sideZone) {
+        return { pos: blockPos, rect, side: 'left', targetPos: blockPos, targetNode: blockNode };
+    }
+    if (rect.right - clientX < sideZone) {
+        return { pos: blockPos, rect, side: 'right', targetPos: blockPos, targetNode: blockNode };
+    }
+    return null;
+}
+
 // Move um nó (imagem ou tabela) de [from, from+node.nodeSize) pra "dropPos"
 // — mesma lógica nos dois lugares, por isso extraída aqui. "attrs", se
 // passado, substitui os atributos do nó movido (usado pra imagem: ajustar
@@ -536,9 +575,10 @@ function moveNodeTo(view, from, node, dropPos, attrs) {
 // Extensão de imagem com NodeView personalizado:
 // – atributo "width" controlável pelos handles de redimensionar
 // – atributo "align" (left/center/right/null) controlável pela barrinha
-//   flutuante que aparece ao selecionar a imagem — troquei o antigo
-//   "float" por isto: float causava uma área de clique imprevisível ao
-//   redor da imagem (ver histórico), margin em bloco não tem esse problema
+//   flutuante que aparece ao selecionar a imagem — "esquerda"/"direita"
+//   usa float de verdade, pra o texto do(s) parágrafo(s) seguintes fluir
+//   ao redor da imagem em vez de ficar embaixo (como legendas ao lado de
+//   foto em jornal/revista); "centro" continua em bloco (própria linha)
 // – atributo "caption" (legenda) — vira um <figcaption> abaixo da imagem
 //   no HTML publicado
 // – handles nos 4 cantos aparecem ao clicar; arraste o handle para
@@ -555,12 +595,23 @@ const ResizableImage = Image.extend({
                 parseHTML: (element) => element.style.width || null,
                 renderHTML: () => ({}), // combinado no renderHTML() abaixo
             },
+            // Independente de "width": só é definida quando o usuário usa
+            // uma alça de BORDA (meio de cima/baixo, ver addNodeView) pra
+            // esticar só na vertical — sempre em px (diferente de "width",
+            // % não funciona pra altura sem a imagem ter um ancestral de
+            // altura definida). Uma alça de CANTO zera isto de volta (volta
+            // a seguir a largura proporcionalmente, pela proporção natural
+            // da imagem).
+            height: {
+                default: null,
+                parseHTML: (element) => element.style.height || null,
+                renderHTML: () => ({}), // combinado no renderHTML() abaixo
+            },
             align: {
                 default: null,
-                parseHTML: (element) => element.style.marginLeft === 'auto' && element.style.marginRight === 'auto'
-                    ? 'center'
-                    : element.style.marginRight === 'auto' ? 'left'
-                    : element.style.marginLeft === 'auto' ? 'right'
+                parseHTML: (element) => element.style.float === 'left' ? 'left'
+                    : element.style.float === 'right' ? 'right'
+                    : element.style.marginLeft === 'auto' && element.style.marginRight === 'auto' ? 'center'
                     : null,
                 renderHTML: () => ({}), // combinado abaixo
             },
@@ -573,20 +624,26 @@ const ResizableImage = Image.extend({
     },
 
     renderHTML({ node, HTMLAttributes }) {
-        // "inline-block" pra esquerda/direita (flui como texto, deixa a
-        // próxima imagem/parágrafo ficar do lado) — mesma lógica do
-        // addNodeView() acima, aplicada aqui pro HTML publicado (fora do
-        // editor) ficar igual ao que se vê editando.
+        // "float" pra esquerda/direita: o texto dos parágrafos seguintes
+        // flui ao redor da imagem em vez de ficar embaixo — mesma lógica
+        // do addNodeView() acima, aplicada aqui pro HTML publicado (fora
+        // do editor) ficar igual ao que se vê editando.
         const sideBySide = node.attrs.align === 'left' || node.attrs.align === 'right';
-        const styleParts = [`display: ${sideBySide ? 'inline-block' : 'block'}`, 'vertical-align: top'];
+        const styleParts = sideBySide ? [`float: ${node.attrs.align}`] : ['display: block'];
         if (node.attrs.width) styleParts.push(`width: ${node.attrs.width}`);
-        if (node.attrs.align === 'center') styleParts.push('margin-left: auto', 'margin-right: auto');
-        else if (node.attrs.align === 'left') styleParts.push('margin-right: 0.75rem');
-        else if (node.attrs.align === 'right') styleParts.push('margin-left: 0.75rem');
+        if (node.attrs.height) styleParts.push(`height: ${node.attrs.height}`);
+        // "clear" só nos casos NÃO flutuantes: sem isso, centralizada/sem
+        // alinhamento ainda é um bloco comum, que não limpa float sozinho
+        // — poderia ficar sobreposta a uma imagem flutuante anterior em
+        // vez de começar limpa embaixo dela.
+        if (node.attrs.align === 'center') styleParts.push('margin-left: auto', 'margin-right: auto', 'margin-bottom: 0', 'clear: both');
+        else if (node.attrs.align === 'left') styleParts.push('margin-top: 0', 'margin-right: 1rem', 'margin-bottom: 0.5rem');
+        else if (node.attrs.align === 'right') styleParts.push('margin-top: 0', 'margin-left: 1rem', 'margin-bottom: 0.5rem');
+        else styleParts.push('margin-bottom: 0', 'clear: both');
 
         if (node.attrs.caption) {
             const figureAttrs = mergeAttributes(this.options.HTMLAttributes, {
-                style: `${styleParts.join('; ')}; margin-top: 0; margin-bottom: 0;`,
+                style: `${styleParts.join('; ')}; margin-top: 0;`,
                 'data-caption': node.attrs.caption,
             });
             return ['figure', figureAttrs,
@@ -604,15 +661,13 @@ const ResizableImage = Image.extend({
 
     addNodeView() {
         return ({ node, getPos, editor }) => {
-            // outer: controla a posição/alinhamento no documento.
-            // "block" (própria linha) por padrão, mas vira "inline-block"
-            // quando alinhada à esquerda/direita — é isso que permite duas
-            // imagens ficarem lado a lado (uma alinhada à esquerda ou
-            // direita "flui" como texto, deixando a próxima imagem/
-            // parágrafo encostar do lado, em vez de empurrar pra própria
-            // linha). Não usamos mais "draggable" nativo do HTML aqui — ver
-            // o mousedown manual no "inner", mais abaixo, e o comentário
-            // ali do porquê.
+            // outer: controla a posição/alinhamento no documento. "block"
+            // (própria linha) por padrão, mas vira float (esquerda/direita)
+            // quando alinhada — é isso que faz o texto do(s) parágrafo(s)
+            // seguintes fluir ao redor da imagem (e também permite duas
+            // imagens ficarem lado a lado). Não usamos mais "draggable"
+            // nativo do HTML aqui — ver o mousedown manual no "inner", mais
+            // abaixo, e o comentário ali do porquê.
             const outer = document.createElement('div');
             outer.style.cssText = 'display: block; line-height: 0; user-select: none; vertical-align: top;';
 
@@ -659,22 +714,33 @@ const ResizableImage = Image.extend({
                 } else {
                     img.style.width = attrs.width || '';
                 }
+                // "height" é sempre px (ver addAttributes) — some (volta a
+                // seguir a proporção natural da imagem) quando null.
+                img.style.height = attrs.height || '';
 
-                // Alinhamento à esquerda/direita vira "inline-block" (flui
-                // como texto) — é o que permite outra imagem/parágrafo
-                // encostar do lado, pra ficarem lado a lado. "Centro"/sem
-                // alinhamento continua "block" (própria linha, centralizada
-                // por margin:auto) — nada de float, pra não trazer de volta
-                // o problema de área de clique imprevisível ao redor da
-                // imagem.
+                // Alinhamento à esquerda/direita usa float de verdade — o
+                // texto do(s) parágrafo(s) seguintes flui ao redor da
+                // imagem em vez de ficar embaixo (e outra imagem alinhada
+                // do mesmo lado também encosta, pela própria mecânica do
+                // float). "Centro"/sem alinhamento continua "block" (própria
+                // linha, centralizada por margin:auto).
                 if (attrs.align === 'left' || attrs.align === 'right') {
-                    outer.style.display = 'inline-block';
-                    outer.style.marginLeft = attrs.align === 'right' ? '0.75rem' : '';
-                    outer.style.marginRight = attrs.align === 'left' ? '0.75rem' : '';
+                    outer.style.display = 'block';
+                    outer.style.float = attrs.align;
+                    outer.style.clear = '';
+                    outer.style.marginLeft = attrs.align === 'right' ? '1rem' : '';
+                    outer.style.marginRight = attrs.align === 'left' ? '1rem' : '';
+                    outer.style.marginBottom = '0.5rem';
                 } else {
                     outer.style.display = 'block';
+                    outer.style.float = 'none';
+                    // Mesmo sem flutuar, ainda é um bloco comum — sem
+                    // "clear" poderia ficar sobreposta a uma imagem
+                    // flutuante anterior em vez de começar limpa embaixo.
+                    outer.style.clear = 'both';
                     outer.style.marginLeft = attrs.align === 'center' ? 'auto' : '';
                     outer.style.marginRight = attrs.align === 'center' ? 'auto' : '';
+                    outer.style.marginBottom = '';
                 }
 
                 captionEl.textContent = attrs.caption || '';
@@ -717,6 +783,12 @@ const ResizableImage = Image.extend({
                     // Handles à esquerda (NW/SW) invertem o sinal do dx.
                     const sign = posH === 'right' ? 1 : -1;
 
+                    // Alça de canto = redimensionar PROPORCIONAL: zera a
+                    // altura manual (se houver, ver alças de borda abaixo)
+                    // assim que o arraste começa, pra voltar a seguir a
+                    // proporção natural da imagem a partir da nova largura.
+                    img.style.height = '';
+
                     const onMove = (mv) => {
                         const newW = Math.max(40, startWidth + sign * (mv.clientX - startX));
                         img.style.width = `${newW}px`;
@@ -734,7 +806,7 @@ const ResizableImage = Image.extend({
                         if (pos !== null) {
                             editor.chain()
                                 .setNodeSelection(pos)
-                                .updateAttributes('image', { width: `${pct}%` })
+                                .updateAttributes('image', { width: `${pct}%`, height: null })
                                 .run();
                         }
                     };
@@ -747,12 +819,89 @@ const ResizableImage = Image.extend({
                 return handle;
             };
 
-            // 4 handles: NW / NE / SW / SE
+            // Alça no meio de uma borda (topo/baixo = só altura, em px;
+            // esquerda/direita = só largura, em %, igual às de canto) —
+            // permite esticar num eixo só, deixando a imagem desproporcional
+            // de propósito (ex.: logo largo e baixo, foto bem vertical).
+            const makeEdgeHandle = (side) => {
+                const vertical = side === 'top' || side === 'bottom';
+                const styleBySide = {
+                    top: 'top: -6px; left: 50%; transform: translateX(-50%); cursor: n-resize;',
+                    bottom: 'bottom: -6px; left: 50%; transform: translateX(-50%); cursor: s-resize;',
+                    left: 'left: -6px; top: 50%; transform: translateY(-50%); cursor: w-resize;',
+                    right: 'right: -6px; top: 50%; transform: translateY(-50%); cursor: e-resize;',
+                };
+                const handle = document.createElement('div');
+                handle.style.cssText = `
+                    position: absolute;
+                    ${styleBySide[side]}
+                    width: 12px;
+                    height: 12px;
+                    background: #fff;
+                    border: 2px solid var(--admin-primary, #0C4A34);
+                    border-radius: 2px;
+                    display: none;
+                    z-index: 20;
+                    box-shadow: 0 1px 3px rgba(0,0,0,.25);
+                `;
+
+                handle.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const startX = e.clientX;
+                    const startY = e.clientY;
+                    const startRect = img.getBoundingClientRect();
+                    // Alças de cima/esquerda invertem o sinal do delta.
+                    const sign = (side === 'bottom' || side === 'right') ? 1 : -1;
+
+                    const onMove = (mv) => {
+                        if (vertical) {
+                            const newH = Math.max(20, startRect.height + sign * (mv.clientY - startY));
+                            img.style.height = `${newH}px`;
+                        } else {
+                            const newW = Math.max(40, startRect.width + sign * (mv.clientX - startX));
+                            img.style.width = `${newW}px`;
+                        }
+                    };
+
+                    const onUp = () => {
+                        document.removeEventListener('mousemove', onMove);
+                        document.removeEventListener('mouseup', onUp);
+
+                        const pos = typeof getPos === 'function' ? getPos() : null;
+                        if (pos === null) return;
+
+                        if (vertical) {
+                            const finalPx = Math.round(img.getBoundingClientRect().height);
+                            editor.chain().setNodeSelection(pos).updateAttributes('image', { height: `${finalPx}px` }).run();
+                        } else {
+                            const finalPx = img.getBoundingClientRect().width;
+                            const editorW = editor.view.dom.clientWidth || finalPx;
+                            const pct     = Math.round((finalPx / editorW) * 100);
+                            editor.chain().setNodeSelection(pos).updateAttributes('image', { width: `${pct}%` }).run();
+                        }
+                    };
+
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                });
+
+                inner.appendChild(handle);
+                return handle;
+            };
+
+            // 8 handles: 4 cantos (NW/NE/SW/SE, proporcional) + 4 bordas
+            // (topo/baixo/esquerda/direita, só um eixo por vez).
             const handles = [
                 makeHandle('left',  'top'),
                 makeHandle('right', 'top'),
                 makeHandle('left',  'bottom'),
                 makeHandle('right', 'bottom'),
+                makeEdgeHandle('top'),
+                makeEdgeHandle('bottom'),
+                makeEdgeHandle('left'),
+                makeEdgeHandle('right'),
             ];
 
             // Barrinha flutuante (estilo TinyMCE): aparece embaixo da
@@ -868,6 +1017,7 @@ const ResizableImage = Image.extend({
                         return;
                     }
                     const drop = resolveImageDropPos(editor.view, img, moveEvent.clientX, moveEvent.clientY)
+                        || resolveParagraphSideDropPos(editor.view, moveEvent.clientX, moveEvent.clientY)
                         || resolveDropPos(editor.view, moveEvent.clientX, moveEvent.clientY);
                     if (!drop || !drop.rect) {
                         dropIndicator.style.display = 'none';
@@ -910,24 +1060,33 @@ const ResizableImage = Image.extend({
                         return;
                     }
                     const drop = resolveImageDropPos(editor.view, img, upEvent.clientX, upEvent.clientY)
+                        || resolveParagraphSideDropPos(editor.view, upEvent.clientX, upEvent.clientY)
                         || resolveDropPos(editor.view, upEvent.clientX, upEvent.clientY);
                     if (!drop) {
                         return;
                     }
 
                     if (drop.side === 'left' || drop.side === 'right') {
-                        // Soltou do lado de outra imagem: garante que a imagem
-                        // alvo também não seja "block" (senão não cabe do lado),
-                        // e a imagem arrastada entra alinhada do mesmo jeito.
-                        if (drop.targetNode && drop.targetNode.attrs.align !== 'left' && drop.targetNode.attrs.align !== 'right') {
-                            editor.view.dispatch(editor.view.state.tr.setNodeMarkup(drop.targetPos, undefined, { ...drop.targetNode.attrs, align: 'left' }));
+                        // Soltando do lado de OUTRA IMAGEM, as duas sempre
+                        // flutuam "left": é a ordem no documento (ver
+                        // moveNodeTo) que decide quem fica mais à esquerda
+                        // ou direita, já que floats do mesmo lado se
+                        // empilham na ordem em que aparecem no HTML.
+                        // Soltando do lado de um PARÁGRAFO (não imagem), o
+                        // lado escolhido é o alinhamento de verdade — é a
+                        // própria imagem que flutua esquerda/direita em
+                        // relação ao texto.
+                        const isImageTarget = drop.targetNode?.type?.name === 'image';
+                        const align = isImageTarget ? 'left' : drop.side;
+                        if (isImageTarget && drop.targetNode.attrs.align !== 'left' && drop.targetNode.attrs.align !== 'right') {
+                            editor.view.dispatch(editor.view.state.tr.setNodeMarkup(drop.targetPos, undefined, { ...drop.targetNode.attrs, align }));
                         }
-                        const moved = moveNodeTo(editor.view, pos, imgNode, drop.pos, { align: 'left' });
-                        if (!moved && imgNode.attrs.align !== 'left' && imgNode.attrs.align !== 'right') {
+                        const moved = moveNodeTo(editor.view, pos, imgNode, drop.pos, { align });
+                        if (!moved && imgNode.attrs.align !== align) {
                             // Já estava adjacente (nenhuma posição pra mudar) —
                             // só falta alinhar ela também, pra caber do lado.
                             const freshPos = typeof getPos === 'function' ? getPos() : pos;
-                            editor.view.dispatch(editor.view.state.tr.setNodeMarkup(freshPos, undefined, { ...imgNode.attrs, align: 'left' }));
+                            editor.view.dispatch(editor.view.state.tr.setNodeMarkup(freshPos, undefined, { ...imgNode.attrs, align }));
                         }
                     } else {
                         // Soltou em cima/embaixo: volta pro modo empilhado (bloco),

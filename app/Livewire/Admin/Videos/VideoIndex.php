@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Admin\Videos;
 
+use App\Livewire\Concerns\ComputesWeeklyTrend;
 use App\Models\Video;
 use App\Services\ActivityLogger;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -14,7 +16,7 @@ use Livewire\WithPagination;
  */
 class VideoIndex extends Component
 {
-    use WithPagination;
+    use ComputesWeeklyTrend, WithPagination;
 
     public ?int $editingVideoId = null;
 
@@ -69,8 +71,7 @@ class VideoIndex extends Component
 
     public function toggleSelectAllOnPage(): void
     {
-        $pageIds = Video::when($this->search !== '', fn ($query) => $query->where('title', 'like', "%{$this->search}%"))
-            ->latest()->paginate(10)->pluck('id')->all();
+        $pageIds = $this->videos->pluck('id')->all();
 
         if (array_diff($pageIds, $this->selected) === []) {
             $this->selected = array_values(array_diff($this->selected, $pageIds));
@@ -131,17 +132,32 @@ class VideoIndex extends Component
         $this->dispatch('toast', title: 'Vídeos', message: $videos->count().' vídeo(s) excluído(s) com sucesso.', variant: 'danger');
     }
 
+    /**
+     * Isolada num island (ver video-index.blade.php): precisa estar
+     * acessível via $this-> porque islands não têm acesso a variáveis de
+     * view vindas de fora deles, só a propriedades/métodos do componente.
+     */
+    #[Computed]
+    public function videos()
+    {
+        return Video::when($this->search !== '', fn ($query) => $query->where('title', 'like', "%{$this->search}%"))
+            ->latest()->paginate(10);
+    }
+
+    #[Computed]
+    public function allSelectedOnPage(): bool
+    {
+        return $this->videos->isNotEmpty() && array_diff($this->videos->pluck('id')->all(), $this->selected) === [];
+    }
+
     public function render()
     {
-        $videos = Video::when($this->search !== '', fn ($query) => $query->where('title', 'like', "%{$this->search}%"))
-            ->latest()->paginate(10);
-
         return view('livewire.admin.videos.video-index', [
-            'videos' => $videos,
-            'allSelectedOnPage' => $videos->isNotEmpty() && array_diff($videos->pluck('id')->all(), $this->selected) === [],
             'editingVideo' => $this->editingVideoId ? Video::find($this->editingVideoId) : null,
             'totalVideos' => Video::count(),
+            'totalVideosTrend' => $this->weeklyTrend(Video::query(), 'created_at'),
             'publishedVideos' => Video::where('is_published', true)->count(),
+            'publishedVideosTrend' => $this->weeklyTrend(Video::query()->where('is_published', true), 'created_at'),
         ])->layout('layouts.admin', ['title' => 'Vídeos']);
     }
 }

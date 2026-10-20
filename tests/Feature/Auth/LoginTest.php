@@ -1,7 +1,7 @@
 <?php
 
 use App\Enums\UserStatus;
-use App\Livewire\Auth\Login;
+use App\Livewire\Site\Auth\Login;
 use App\Models\User;
 use Livewire\Livewire;
 

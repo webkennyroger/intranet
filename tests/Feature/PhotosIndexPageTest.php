@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Photos\PhotosIndex;
+use App\Livewire\Site\Photos\PhotosIndex;
 use App\Models\PhotoAlbum;
 use App\Models\User;
 use App\Models\Video;

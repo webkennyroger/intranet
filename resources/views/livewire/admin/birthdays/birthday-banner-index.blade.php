@@ -20,8 +20,8 @@
 
     <!-- Estatísticas (Cards) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <x-admin.stat-card label="Total de banners" :value="$totalBanners" sublabel="de 12 meses" />
-        <x-admin.stat-card label="Publicados" :value="$publishedBanners" sublabel="Visíveis no site" valueColor="var(--admin-primary-dark)" />
+        <x-admin.trend-stat-card label="Total de banners" :value="$totalBanners" :changePercent="$totalBannersTrend['changePercent']" :values="$totalBannersTrend['values']" icon="cake-candles" color="#2563EB" />
+        <x-admin.trend-stat-card label="Publicados" :value="$publishedBanners" :changePercent="$publishedBannersTrend['changePercent']" :values="$publishedBannersTrend['values']" icon="check" color="#059669" />
     </div>
 
     <!-- Tabela de Banners -->

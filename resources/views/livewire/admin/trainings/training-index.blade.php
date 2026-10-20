@@ -12,31 +12,7 @@
         title="Capacitações"
         subtitle="Gerencie os cursos e treinamentos disponibilizados para os servidores."
         :breadcrumbs="[['label' => 'Painel', 'href' => route('dashboard')], ['label' => 'Capacitações']]"
-    >
-        <x-slot:actions>
-            @if ($activeTab === 'capacitacoes' && count($selected) > 0)
-                <span class="text-xs font-semibold" style="color: var(--text-muted);">{{ count($selected) }} selecionado(s)</span>
-                @can('trainings.update')
-                    <x-ui.button type="button" wire:click="bulkPublish" variant="secondary" size="sm">
-                        <i class="fa-solid fa-check mr-1"></i> Publicar
-                    </x-ui.button>
-                    <x-ui.button type="button" wire:click="bulkUnpublish" variant="secondary" size="sm">
-                        <i class="fa-solid fa-ban mr-1"></i> Despublicar
-                    </x-ui.button>
-                @endcan
-                @can('trainings.delete')
-                    <x-ui.button type="button" @click="confirmAction('Confirma a exclusão de {{ count($selected) }} capacitação(ões) selecionada(s)?', () => $wire.bulkDelete())" variant="danger" size="sm">
-                        <i class="fa-solid fa-trash mr-1"></i> Excluir
-                    </x-ui.button>
-                @endcan
-                <x-ui.button type="button" wire:click="deselectAll" variant="ghost" size="sm">Cancelar</x-ui.button>
-            @elseif ($activeTab === 'capacitacoes')
-                <x-ui.button wire:click="closeForm" x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'training-form' }))">
-                    Nova capacitação
-                </x-ui.button>
-            @endif
-        </x-slot:actions>
-    </x-admin.page-header>
+    />
 
     <!-- Abas -->
     <div class="flex items-center gap-1 p-1 rounded-xl w-fit" style="background-color: var(--bg-elevated);">
@@ -57,30 +33,73 @@
     @if ($activeTab === 'capacitacoes')
         <!-- Estatísticas (Cards) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <x-admin.stat-card label="Total de capacitações" :value="$totalTrainings" sublabel="Cadastradas" />
-            <x-admin.stat-card label="Publicadas" :value="$publishedTrainings" sublabel="Visíveis no site" valueColor="var(--admin-primary-dark)" />
+            <x-admin.trend-stat-card label="Total de capacitações" :value="$totalTrainings" :changePercent="$totalTrainingsTrend['changePercent']" :values="$totalTrainingsTrend['values']" icon="graduation-cap" color="#2563EB" />
+            <x-admin.trend-stat-card label="Publicadas" :value="$publishedTrainings" :changePercent="$publishedTrainingsTrend['changePercent']" :values="$publishedTrainingsTrend['values']" icon="check" color="#059669" />
         </div>
 
         <!-- Busca -->
-        <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por título..."
-            class="w-full rounded-lg px-4 py-2.5 text-sm placeholder:text-slate-400"
-            style="background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary);" />
+        <div class="ui-card p-5">
+            <div class="flex flex-col md:flex-row md:items-center gap-3">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: var(--text-muted);"></i>
+                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por título..."
+                        class="w-full rounded-full pl-11 pr-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-(--focus-ring)/40 transition"
+                        style="background-color: var(--bg-elevated); border: 1px solid var(--border-color); color: var(--text-primary);" />
+                </div>
+                <button type="button" wire:click="$refresh" class="inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:brightness-110 active:brightness-95 transition shrink-0" style="background-color: var(--admin-primary, var(--brand-primary, #0C4A34));">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                    <span>Buscar</span>
+                </button>
+            </div>
+        </div>
 
-        <!-- Tabela de Capacitações -->
-        @if ($trainings->isEmpty())
-            <x-ui.empty-state title="Nenhuma capacitação cadastrada ainda." icon="link" />
-        @else
-            <x-ui.data-table selectable>
-                <x-slot:header>
-                    <th class="px-4 py-3 w-8"><x-ui.table-checkbox header wire:click="toggleSelectAllOnPage" :checked="$allSelectedOnPage" /></th>
-                    <th class="px-6 py-3"><i class="fa-solid fa-graduation-cap mr-1 opacity-60"></i> Título</th>
-                    <th class="px-6 py-3"><i class="fa-solid fa-folder mr-1 opacity-60"></i> Pasta</th>
-                    <th class="px-6 py-3"><i class="fa-solid fa-clock mr-1 opacity-60"></i> Carga horária</th>
-                    <th class="px-6 py-3"><i class="fa-solid fa-circle-check mr-1 opacity-60"></i> Status</th>
-                    <th class="px-6 py-3"><i class="fa-solid fa-bolt mr-1 opacity-60"></i> Ações</th>
-                </x-slot:header>
+    @endif
 
-                @foreach ($trainings as $training)
+    {{-- Tabela de Capacitações — isolada num island (fora do @if da aba,
+         islands não podem ficar dentro de @if/@foreach; checa a aba por
+         dentro, com $this->activeTab). Selecionar linhas, paginar e
+         publicar/excluir só atualizam esta região. --}}
+    @island(name: 'trainings-list', always: true)
+        @if ($this->activeTab === 'capacitacoes')
+            <div class="space-y-4">
+                <div class="flex items-center justify-end gap-2">
+                    @if (count($this->selected) > 0)
+                        <span class="text-xs font-semibold" style="color: var(--text-muted);">{{ count($this->selected) }} selecionado(s)</span>
+                        @can('trainings.update')
+                            <x-ui.button type="button" wire:click="bulkPublish" variant="secondary" size="sm">
+                                <i class="fa-solid fa-check mr-1"></i> Publicar
+                            </x-ui.button>
+                            <x-ui.button type="button" wire:click="bulkUnpublish" variant="secondary" size="sm">
+                                <i class="fa-solid fa-ban mr-1"></i> Despublicar
+                            </x-ui.button>
+                        @endcan
+                        @can('trainings.delete')
+                            <x-ui.button type="button" @click="confirmAction('Confirma a exclusão de {{ count($this->selected) }} capacitação(ões) selecionada(s)?', () => $wire.bulkDelete())" variant="danger" size="sm">
+                                <i class="fa-solid fa-trash mr-1"></i> Excluir
+                            </x-ui.button>
+                        @endcan
+                        <x-ui.button type="button" wire:click="deselectAll" variant="ghost" size="sm">Cancelar</x-ui.button>
+                    @else
+                        <x-ui.button wire:click="closeForm" x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'training-form' }))">
+                            Nova capacitação
+                        </x-ui.button>
+                    @endif
+                </div>
+
+                @if ($this->trainings->isEmpty())
+                    <x-ui.empty-state title="Nenhuma capacitação cadastrada ainda." icon="link" />
+                @else
+                    <x-ui.data-table selectable>
+                        <x-slot:header>
+                            <th class="px-4 py-3 w-8"><x-ui.table-checkbox header wire:click="toggleSelectAllOnPage" :checked="$this->allSelectedOnPage" /></th>
+                            <th class="px-6 py-3"><i class="fa-solid fa-graduation-cap mr-1 opacity-60"></i> Título</th>
+                            <th class="px-6 py-3"><i class="fa-solid fa-folder mr-1 opacity-60"></i> Pasta</th>
+                            <th class="px-6 py-3"><i class="fa-solid fa-clock mr-1 opacity-60"></i> Carga horária</th>
+                            <th class="px-6 py-3"><i class="fa-solid fa-circle-check mr-1 opacity-60"></i> Status</th>
+                            <th class="px-6 py-3"><i class="fa-solid fa-bolt mr-1 opacity-60"></i> Ações</th>
+                        </x-slot:header>
+
+                        @foreach ($this->trainings as $training)
                     <tr wire:key="training-{{ $training->id }}">
                         <td class="px-4 py-3"><x-ui.table-checkbox wire:model.live="selected" value="{{ $training->id }}" /></td>
                         <td class="px-6 py-3">
@@ -124,18 +143,22 @@
                     </tr>
                 @endforeach
 
-                <x-slot:footer>
-                    {{ $trainings->links() }}
-                </x-slot:footer>
-            </x-ui.data-table>
+                        <x-slot:footer>
+                            {{ $this->trainings->links() }}
+                        </x-slot:footer>
+                    </x-ui.data-table>
+                @endif
+            </div>
         @endif
+    @endisland
 
-        <!-- Modal: Formulário de Capacitação -->
-        <x-ui.modal name="training-form" maxWidth="lg">
-            <x-slot:header>Capacitação</x-slot:header>
-            <livewire:admin.trainings.training-form :training="$editingTraining" :key="'training-form-'.($editingTrainingId ?? 'new')" />
-        </x-ui.modal>
-    @else
+    <!-- Modal: Formulário de Capacitação -->
+    <x-ui.modal name="training-form" maxWidth="lg">
+        <x-slot:header>Capacitação</x-slot:header>
+        <livewire:admin.trainings.training-form :training="$editingTraining" :key="'training-form-'.($editingTrainingId ?? 'new')" />
+    </x-ui.modal>
+
+    @if ($activeTab !== 'capacitacoes')
         <!-- Aba Pastas -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div class="lg:col-span-2">

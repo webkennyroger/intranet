@@ -3,6 +3,7 @@
 use App\Livewire\Admin\Council\CouncilMemberForm;
 use App\Livewire\Admin\Council\CouncilMemberIndex;
 use App\Models\CouncilMember;
+use App\Models\CouncilProcess;
 use App\Models\User;
 use Database\Seeders\AclSeeder;
 use Livewire\Livewire;
@@ -69,7 +70,7 @@ test('a Defensor can delete a council member', function () {
     actingAsRoleForCouncil('Defensor');
     $member = CouncilMember::factory()->create();
 
-    Livewire::test(CouncilMemberIndex::class)->call('delete', $member->id);
+    Livewire::test(CouncilMemberIndex::class)->call('deleteMember', $member->id);
 
     expect(CouncilMember::find($member->id))->toBeNull();
 });
@@ -81,7 +82,7 @@ test('bulkActivate activates only the selected inactive members and leaves other
     $notSelected = CouncilMember::factory()->create(['is_active' => false]);
 
     Livewire::test(CouncilMemberIndex::class)
-        ->set('selected', [$inactive1->id, $inactive2->id])
+        ->set('selectedMembers', [$inactive1->id, $inactive2->id])
         ->call('bulkActivate');
 
     expect($inactive1->refresh()->is_active)->toBeTrue()
@@ -95,7 +96,7 @@ test('bulkDeactivate deactivates only the selected active members', function () 
     $notSelected = CouncilMember::factory()->create(['is_active' => true]);
 
     Livewire::test(CouncilMemberIndex::class)
-        ->set('selected', [$active->id])
+        ->set('selectedMembers', [$active->id])
         ->call('bulkDeactivate');
 
     expect($active->refresh()->is_active)->toBeFalse()
@@ -106,34 +107,44 @@ test('an Administrador (no council permission) cannot bulk activate, deactivate 
     actingAsRoleForCouncil('Administrador');
     $member = CouncilMember::factory()->create(['is_active' => false]);
 
-    Livewire::test(CouncilMemberIndex::class)->set('selected', [$member->id])->call('bulkActivate');
+    Livewire::test(CouncilMemberIndex::class)->set('selectedMembers', [$member->id])->call('bulkActivate');
     expect($member->refresh()->is_active)->toBeFalse();
 
-    Livewire::test(CouncilMemberIndex::class)->set('selected', [$member->id])->call('bulkDelete');
+    Livewire::test(CouncilMemberIndex::class)->set('selectedMembers', [$member->id])->call('bulkDeleteMembers');
     expect(CouncilMember::find($member->id))->not->toBeNull();
 });
 
-test('bulkDelete removes every selected council member and clears the selection', function () {
+test('bulkDeleteMembers removes every selected council member and clears the selection', function () {
     actingAsRoleForCouncil('Defensor');
     $member1 = CouncilMember::factory()->create();
     $member2 = CouncilMember::factory()->create();
 
     $component = Livewire::test(CouncilMemberIndex::class)
-        ->set('selected', [$member1->id, $member2->id])
-        ->call('bulkDelete');
+        ->set('selectedMembers', [$member1->id, $member2->id])
+        ->call('bulkDeleteMembers');
 
     expect(CouncilMember::find($member1->id))->toBeNull()
         ->and(CouncilMember::find($member2->id))->toBeNull();
-    $component->assertSet('selected', []);
+    $component->assertSet('selectedMembers', []);
 });
 
-test('toggleSelectAllOnPage selects then deselects every council member', function () {
+test('toggleSelectAllMembersOnPage selects then deselects every council member', function () {
     actingAsRoleForCouncil('Defensor');
     CouncilMember::factory()->count(3)->create();
 
-    $component = Livewire::test(CouncilMemberIndex::class)->call('toggleSelectAllOnPage');
-    expect($component->get('selected'))->toHaveCount(3);
+    $component = Livewire::test(CouncilMemberIndex::class)->call('toggleSelectAllMembersOnPage');
+    expect($component->get('selectedMembers'))->toHaveCount(3);
 
-    $component->call('toggleSelectAllOnPage');
-    expect($component->get('selected'))->toHaveCount(0);
+    $component->call('toggleSelectAllMembersOnPage');
+    expect($component->get('selectedMembers'))->toHaveCount(0);
+});
+
+test('the council admin page only shows the processes section, members management stays hidden', function () {
+    actingAsRoleForCouncil('Defensor');
+    CouncilMember::factory()->create(['name' => 'Membro Teste']);
+    CouncilProcess::factory()->create(['subject' => 'Processo Teste']);
+
+    Livewire::test(CouncilMemberIndex::class)
+        ->assertDontSee('Membro Teste')
+        ->assertSee('Processo Teste');
 });

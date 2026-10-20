@@ -18,22 +18,23 @@ use App\Livewire\Admin\Services\ServiceLinkIndex;
 use App\Livewire\Admin\Trainings\TrainingIndex;
 use App\Livewire\Admin\Users\UserIndex;
 use App\Livewire\Admin\Videos\VideoIndex;
-use App\Livewire\Auth\Login;
-use App\Livewire\Birthdays\BirthdaysIndex;
-use App\Livewire\Council\CouncilIndex;
-use App\Livewire\Documents\DocumentsIndex;
-use App\Livewire\Events\EventsIndex;
-use App\Livewire\Forum\ForumIndex;
-use App\Livewire\Forum\ForumShow;
-use App\Livewire\Home\HomeIndex;
-use App\Livewire\Mural\ArticleShow;
-use App\Livewire\Mural\MuralIndex;
-use App\Livewire\Noticias\NoticiasIndex;
-use App\Livewire\Photos\PhotoAlbumShow;
-use App\Livewire\Photos\PhotosIndex;
-use App\Livewire\Services\ServicesIndex;
-use App\Livewire\Sos\SosIndex;
-use App\Livewire\Trainings\TrainingsIndex;
+use App\Livewire\Site\Auth\Login;
+use App\Livewire\Site\Birthdays\BirthdaysIndex;
+use App\Livewire\Site\Council\CouncilIndex;
+use App\Livewire\Site\Documents\DocumentsIndex;
+use App\Livewire\Site\Events\EventsIndex;
+use App\Livewire\Site\Forum\ForumIndex;
+use App\Livewire\Site\Forum\ForumShow;
+use App\Livewire\Site\Home\HomeIndex;
+use App\Livewire\Site\Mural\ArticlesByTag;
+use App\Livewire\Site\Mural\ArticleShow;
+use App\Livewire\Site\Mural\MuralIndex;
+use App\Livewire\Site\Noticias\NoticiasIndex;
+use App\Livewire\Site\Photos\PhotoAlbumShow;
+use App\Livewire\Site\Photos\PhotosIndex;
+use App\Livewire\Site\Services\ServicesIndex;
+use App\Livewire\Site\Sos\SosIndex;
+use App\Livewire\Site\Trainings\TrainingsIndex;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -67,6 +68,10 @@ Route::get('/servicos', ServicesIndex::class)
 Route::get('/mural', MuralIndex::class)
     ->middleware('auth')
     ->name('mural.index');
+
+Route::get('/mural/tag/{tag}', ArticlesByTag::class)
+    ->middleware('auth')
+    ->name('mural.tag');
 
 Route::get('/mural/{article}', ArticleShow::class)
     ->middleware('auth')
@@ -128,7 +133,7 @@ Route::middleware('auth')->group(function () {
                 continue;
             }
 
-            Route::get($item['uri'], fn () => view('coming-soon', ['title' => $item['label']]))
+            Route::get($item['uri'], fn () => view('site.coming-soon', ['title' => $item['label']]))
                 ->name($item['route']);
         }
     }

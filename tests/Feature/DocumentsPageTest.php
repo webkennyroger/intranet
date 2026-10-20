@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Documents\DocumentsIndex;
+use App\Livewire\Site\Documents\DocumentsIndex;
 use App\Models\Document;
 use App\Models\DocumentCategory;
 use App\Models\User;
@@ -93,9 +93,9 @@ test('the documents list paginates at 10 per page', function () {
 
     $component = Livewire::test(DocumentsIndex::class);
 
-    expect($component->viewData('documents'))
+    expect($component->instance()->documents)
         ->toHaveCount(10)
-        ->and($component->viewData('documents')->hasMorePages())->toBeTrue();
+        ->and($component->instance()->documents->hasMorePages())->toBeTrue();
 });
 
 test('each folder shows the real count of published documents inside it', function () {

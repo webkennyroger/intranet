@@ -97,33 +97,57 @@ setas de navegação, loop, teclado (←/→/Esc) e swipe no touch.
         <div class="space-y-4 min-w-0">
             <!-- Pastas (uma por origem, com contagem e tamanho reais) -->
             <div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     @foreach ($sourceStats as $stat)
+                        @php
+                            $sourceColor = \App\Livewire\Admin\MediaLibraryIndex::sourceColor($stat['source']);
+                            $isActiveSource = $source === $stat['source'];
+                        @endphp
                         <button wire:click="$set('source', '{{ $stat['source'] }}')"
-                            class="text-left rounded-xl p-3 shadow-sm hover:shadow-md transition-all {{ $source === $stat['source'] ? 'ring-2' : '' }}"
-                            style="background-color: var(--bg-card); border: 1px solid var(--border-color); {{ $source === $stat['source'] ? 'ring-color: var(--admin-primary);' : '' }}">
-                            <div class="w-9 h-9 rounded-lg flex items-center justify-center mb-2"
-                                style="background-color: {{ \App\Livewire\Admin\MediaLibraryIndex::sourceColor($stat['source']) }}1A;">
-                                <i class="fa-solid fa-{{ \App\Livewire\Admin\MediaLibraryIndex::sourceIcon($stat['source']) }}"
-                                    style="color: {{ \App\Livewire\Admin\MediaLibraryIndex::sourceColor($stat['source']) }};"></i>
+                            class="group relative flex items-center gap-4 text-left rounded-2xl p-4 overflow-hidden transition-all {{ $isActiveSource ? 'ring-2' : 'hover:shadow-md hover:-translate-y-0.5' }}"
+                            style="background-color: var(--bg-card); border: 1px solid var(--border-color); {{ $isActiveSource ? 'ring-color: '.$sourceColor.';' : '' }}">
+                            <!-- Faixa decorativa com a cor da origem -->
+                            <span class="absolute inset-y-0 left-0 w-1.5" style="background-color: {{ $sourceColor }};"></span>
+
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105"
+                                style="background-color: {{ $sourceColor }}1A;">
+                                <i class="fa-solid fa-{{ \App\Livewire\Admin\MediaLibraryIndex::sourceIcon($stat['source']) }} text-lg"
+                                    style="color: {{ $sourceColor }};"></i>
                             </div>
-                            <div class="text-sm font-semibold truncate" style="color: var(--text-primary);">
-                                {{ $stat['source'] }}</div>
-                            <div class="text-xs mt-0.5" style="color: var(--text-muted);">{{ $stat['count'] }}
-                                {{ $stat['count'] === 1 ? 'arquivo' : 'arquivos' }} ·
-                                {{ \App\Livewire\Admin\MediaLibraryIndex::formatSize($stat['size']) }}</div>
+
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-bold truncate" style="color: var(--text-primary);">{{ $stat['source'] }}</div>
+                                <div class="text-xs mt-0.5" style="color: var(--text-muted);">
+                                    {{ $stat['count'] }} {{ $stat['count'] === 1 ? 'arquivo' : 'arquivos' }}
+                                    &middot; {{ \App\Livewire\Admin\MediaLibraryIndex::formatSize($stat['size']) }}
+                                </div>
+                            </div>
+
+                            @if ($isActiveSource)
+                                <span class="shrink-0 text-xs font-bold inline-flex items-center gap-1 rounded-full px-2.5 py-1"
+                                    style="background-color: {{ $sourceColor }}1A; color: {{ $sourceColor }};">
+                                    <i class="fa-solid fa-circle-check"></i> Filtrando
+                                </span>
+                            @endif
                         </button>
                     @endforeach
                 </div>
             </div>
 
             <!-- Busca -->
-            <div class="relative">
-                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar mídia..."
-                    class="w-full rounded-xl pl-10 pr-4 py-2.5 text-sm"
-                    style="background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-primary);" />
-                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-sm"
-                    style="color: var(--text-muted);"></i>
+            <div class="ui-card p-5">
+                <div class="flex flex-col md:flex-row md:items-center gap-3">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: var(--text-muted);"></i>
+                        <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar mídia..."
+                            class="w-full rounded-full pl-11 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-(--focus-ring)/40 transition"
+                            style="background-color: var(--bg-elevated); border: 1px solid var(--border-color); color: var(--text-primary);" />
+                    </div>
+                    <button type="button" wire:click="$refresh" class="inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:brightness-110 active:brightness-95 transition shrink-0" style="background-color: var(--admin-primary, var(--brand-primary, #0C4A34));">
+                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        <span>Buscar</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Arquivos -->
@@ -139,17 +163,17 @@ setas de navegação, loop, teclado (←/→/Esc) e swipe no touch.
                             </button>
                             <button type="button" wire:click="deselectAll" class="text-xs font-semibold hover:underline" style="color: var(--text-muted);">Cancelar</button>
                         @endif
-                        <div class="flex items-center gap-1 p-1 rounded-xl shrink-0"
+                        <div class="flex items-center gap-1 p-1 rounded-full shrink-0"
                             style="background-color: var(--bg-elevated);">
                             <button wire:click="$set('view', 'grid')"
-                                class="px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap cursor-pointer transition {{ $view === 'grid' ? 'shadow-sm' : 'hover:bg-slate-200 dark:hover:bg-white/10' }}"
-                                style="{{ $view === 'grid' ? 'background-color: var(--bg-card); color: var(--text-primary);' : 'color: var(--text-secondary);' }}">
-                                <i class="fa-solid fa-grip mr-1"></i> Grade
+                                class="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap cursor-pointer transition {{ $view === 'grid' ? 'shadow-sm' : 'hover:bg-slate-200 dark:hover:bg-white/10' }}"
+                                style="{{ $view === 'grid' ? 'background-color: var(--admin-primary, var(--brand-primary, #0C4A34)); color: #fff;' : 'color: var(--text-secondary);' }}">
+                                <i class="fa-solid fa-grip text-xs"></i> Grade
                             </button>
                             <button wire:click="$set('view', 'list')"
-                                class="px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap cursor-pointer transition {{ $view === 'list' ? 'shadow-sm' : 'hover:bg-slate-200 dark:hover:bg-white/10' }}"
-                                style="{{ $view === 'list' ? 'background-color: var(--bg-card); color: var(--text-primary);' : 'color: var(--text-secondary);' }}">
-                                <i class="fa-solid fa-list mr-1"></i> Lista
+                                class="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap cursor-pointer transition {{ $view === 'list' ? 'shadow-sm' : 'hover:bg-slate-200 dark:hover:bg-white/10' }}"
+                                style="{{ $view === 'list' ? 'background-color: var(--admin-primary, var(--brand-primary, #0C4A34)); color: #fff;' : 'color: var(--text-secondary);' }}">
+                                <i class="fa-solid fa-list text-xs"></i> Lista
                             </button>
                         </div>
                     </div>

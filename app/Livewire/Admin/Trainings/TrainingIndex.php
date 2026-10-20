@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Admin\Trainings;
 
+use App\Livewire\Concerns\ComputesWeeklyTrend;
 use App\Models\Training;
 use App\Models\TrainingCategory;
 use App\Services\ActivityLogger;
 use Illuminate\Support\Str;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -18,7 +20,7 @@ use Livewire\WithPagination;
  */
 class TrainingIndex extends Component
 {
-    use WithPagination;
+    use ComputesWeeklyTrend, WithPagination;
 
     public string $activeTab = 'capacitacoes';
 
@@ -161,8 +163,7 @@ class TrainingIndex extends Component
 
     public function toggleSelectAllOnPage(): void
     {
-        $pageIds = Training::when($this->search !== '', fn ($query) => $query->where('title', 'like', "%{$this->search}%"))
-            ->latest()->paginate(10)->pluck('id')->all();
+        $pageIds = $this->trainings->pluck('id')->all();
 
         if (array_diff($pageIds, $this->selected) === []) {
             $this->selected = array_values(array_diff($this->selected, $pageIds));
@@ -223,18 +224,33 @@ class TrainingIndex extends Component
         $this->dispatch('toast', title: 'Capacitações', message: $trainings->count().' capacitação(ões) excluída(s) com sucesso.', variant: 'danger');
     }
 
-    public function render()
+    /**
+     * Isolada num island (ver training-index.blade.php): precisa estar
+     * acessível via $this-> porque islands não têm acesso a variáveis de
+     * view vindas de fora deles, só a propriedades/métodos do componente.
+     */
+    #[Computed]
+    public function trainings()
     {
-        $trainings = Training::with('category')
+        return Training::with('category')
             ->when($this->search !== '', fn ($query) => $query->where('title', 'like', "%{$this->search}%"))
             ->latest()->paginate(10);
+    }
 
+    #[Computed]
+    public function allSelectedOnPage(): bool
+    {
+        return $this->trainings->isNotEmpty() && array_diff($this->trainings->pluck('id')->all(), $this->selected) === [];
+    }
+
+    public function render()
+    {
         return view('livewire.admin.trainings.training-index', [
-            'trainings' => $trainings,
-            'allSelectedOnPage' => $trainings->isNotEmpty() && array_diff($trainings->pluck('id')->all(), $this->selected) === [],
             'editingTraining' => $this->editingTrainingId ? Training::find($this->editingTrainingId) : null,
             'totalTrainings' => Training::count(),
+            'totalTrainingsTrend' => $this->weeklyTrend(Training::query(), 'created_at'),
             'publishedTrainings' => Training::where('is_published', true)->count(),
+            'publishedTrainingsTrend' => $this->weeklyTrend(Training::query()->where('is_published', true), 'created_at'),
             'categories' => TrainingCategory::withCount('trainings')->orderBy('name')->get(),
         ])->layout('layouts.admin', ['title' => 'Capacitações']);
     }

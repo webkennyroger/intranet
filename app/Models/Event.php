@@ -18,7 +18,7 @@ class Event extends Model
     /** @use HasFactory<EventFactory> */
     use HasFactory;
 
-    protected $fillable = ['title', 'description', 'location', 'cover_image', 'link', 'file_path', 'starts_at', 'ends_at', 'is_published'];
+    protected $fillable = ['order', 'title', 'description', 'location', 'cover_image', 'link', 'file_path', 'starts_at', 'ends_at', 'is_published'];
 
     public function coverImageUrl(): ?string
     {

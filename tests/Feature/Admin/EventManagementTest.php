@@ -201,3 +201,32 @@ test('removeFile clears the attached file when editing an event', function () {
 
     expect($event->refresh()->file_path)->toBeNull();
 });
+
+test('reorder updates the order field of every selected event', function () {
+    actingAsRoleForEvents('Administrador');
+    $first = Event::factory()->create(['order' => 0]);
+    $second = Event::factory()->create(['order' => 1]);
+    $third = Event::factory()->create(['order' => 2]);
+
+    Livewire::test(EventIndex::class)->call('reorder', [$third->id, $first->id, $second->id]);
+
+    expect($third->refresh()->order)->toBe(0)
+        ->and($first->refresh()->order)->toBe(1)
+        ->and($second->refresh()->order)->toBe(2);
+});
+
+test('reorder with a mismatched set of ids is rejected', function () {
+    actingAsRoleForEvents('Administrador');
+    $event = Event::factory()->create(['order' => 0]);
+    Event::factory()->create(['order' => 1]);
+
+    Livewire::test(EventIndex::class)->call('reorder', [$event->id])->assertStatus(403);
+});
+
+test('a Defensor cannot reorder events', function () {
+    actingAsRoleForEvents('Defensor');
+    $first = Event::factory()->create(['order' => 0]);
+    $second = Event::factory()->create(['order' => 1]);
+
+    Livewire::test(EventIndex::class)->call('reorder', [$second->id, $first->id])->assertStatus(403);
+});

@@ -80,7 +80,6 @@ test('creating an article with "agendar" publishes it with a future date', funct
         ->set('body', '<p>Conteúdo</p>')
         ->set('coverColor', '#064e3b')
         ->set('coverIcon', 'newspaper')
-        ->set('publishMode', 'schedule')
         ->set('scheduledDate', $futureDate->format('Y-m-d'))
         ->set('scheduledTime', $futureDate->format('H:i'))
         ->call('save')
@@ -92,8 +91,10 @@ test('creating an article with "agendar" publishes it with a future date', funct
         ->and($article->isScheduled())->toBeTrue();
 });
 
-test('creating an article scheduled in the past is rejected', function () {
+test('creating an article with a past date backdates it', function () {
     actingAsRole('Administrador');
+
+    $pastDate = now()->subDay();
 
     Livewire::test(ArticleForm::class)
         ->set('title', 'Artigo Data Passada')
@@ -101,13 +102,15 @@ test('creating an article scheduled in the past is rejected', function () {
         ->set('body', '<p>Conteúdo</p>')
         ->set('coverColor', '#064e3b')
         ->set('coverIcon', 'newspaper')
-        ->set('publishMode', 'schedule')
-        ->set('scheduledDate', now()->subDay()->format('Y-m-d'))
+        ->set('scheduledDate', $pastDate->format('Y-m-d'))
         ->set('scheduledTime', '10:00')
         ->call('save')
-        ->assertHasErrors(['scheduledDate']);
+        ->assertHasNoErrors();
 
-    expect(Article::where('title', 'Artigo Data Passada')->exists())->toBeFalse();
+    $article = Article::where('title', 'Artigo Data Passada')->first();
+    expect($article)->not->toBeNull()
+        ->and($article->is_published)->toBeTrue()
+        ->and($article->published_at->format('Y-m-d H:i'))->toBe($pastDate->format('Y-m-d').' 10:00');
 });
 
 test('creating an article without a body is rejected', function () {
@@ -341,80 +344,40 @@ test('publishing with a future scheduled date schedules the article instead of p
         ->and(Article::published()->whereKey($article->id)->exists())->toBeFalse();
 });
 
-test('choosing "Agendar" with a date that is not in the future is rejected', function () {
+test('toggling publish with a past date backdates the article instead of rejecting it', function () {
     actingAsRole('Administrador');
     $article = Article::factory()->create(['is_published' => false, 'published_at' => null]);
     $past = now()->subDay();
 
     Livewire::test(ArticleForm::class, ['article' => $article])
-        ->set('publishMode', 'schedule')
         ->set('scheduledDate', $past->format('Y-m-d'))
         ->set('scheduledTime', $past->format('H:i'))
-        ->call('togglePublish')
-        ->assertHasErrors(['scheduledDate']);
-
-    expect($article->refresh()->is_published)->toBeFalse();
-});
-
-test('choosing "Agendar" with a future date publishes it as scheduled', function () {
-    actingAsRole('Administrador');
-    $article = Article::factory()->create(['is_published' => false, 'published_at' => null]);
-    $future = now()->addDays(2);
-
-    Livewire::test(ArticleForm::class, ['article' => $article])
-        ->set('publishMode', 'schedule')
-        ->set('scheduledDate', $future->format('Y-m-d'))
-        ->set('scheduledTime', $future->format('H:i'))
-        ->call('togglePublish')
-        ->assertHasNoErrors();
-
-    expect($article->refresh()->isScheduled())->toBeTrue();
-});
-
-test('switching to "Postar agora" resets the scheduled date/time fields to the current moment', function () {
-    actingAsRole('Administrador');
-    $article = Article::factory()->create(['is_published' => false, 'published_at' => null]);
-    $future = now()->addDays(5);
-
-    Livewire::test(ArticleForm::class, ['article' => $article])
-        ->set('publishMode', 'schedule')
-        ->set('scheduledDate', $future->format('Y-m-d'))
-        ->set('scheduledTime', $future->format('H:i'))
-        ->set('publishMode', 'now')
-        ->assertSet('scheduledDate', now()->format('Y-m-d'))
-        ->assertSet('scheduledTime', now()->format('H:i'));
-});
-
-test('choosing "Postar agora" publishes immediately even if a stale future date was left over', function () {
-    actingAsRole('Administrador');
-    $article = Article::factory()->create(['is_published' => false, 'published_at' => null]);
-
-    Livewire::test(ArticleForm::class, ['article' => $article])
-        ->set('publishMode', 'schedule')
-        ->set('scheduledDate', now()->addDays(5)->format('Y-m-d'))
-        ->set('publishMode', 'now')
         ->call('togglePublish')
         ->assertHasNoErrors();
 
     $article->refresh();
     expect($article->is_published)->toBeTrue()
-        ->and($article->isScheduled())->toBeFalse();
+        ->and($article->published_at->isSameMinute($past))->toBeTrue();
 });
 
-test('editing an already scheduled article defaults the "Quando publicar" field to "Agendar"', function () {
+test('editing an already scheduled article pre-fills the date/time fields with its scheduled date', function () {
     actingAsRole('Administrador');
-    $article = Article::factory()->create(['is_published' => true, 'published_at' => now()->addDays(3)]);
+    $scheduledAt = now()->addDays(3)->startOfMinute();
+    $article = Article::factory()->create(['is_published' => true, 'published_at' => $scheduledAt]);
 
     Livewire::test(ArticleForm::class, ['article' => $article])
-        ->assertSet('publishMode', 'schedule');
+        ->assertSet('scheduledDate', $scheduledAt->format('Y-m-d'))
+        ->assertSet('scheduledTime', $scheduledAt->format('H:i'));
 });
 
-test('editing a published (non-scheduled) article defaults the "Quando publicar" field to "Postar agora"', function () {
+test('editing a published (non-scheduled) article pre-fills the date/time fields with its published date', function () {
     actingAsRole('Administrador');
-    $article = Article::factory()->create(['is_published' => true, 'published_at' => now()->subDay()]);
+    $publishedAt = now()->subDay()->startOfMinute();
+    $article = Article::factory()->create(['is_published' => true, 'published_at' => $publishedAt]);
 
     Livewire::test(ArticleForm::class, ['article' => $article])
-        ->assertSet('publishMode', 'now');
+        ->assertSet('scheduledDate', $publishedAt->format('Y-m-d'))
+        ->assertSet('scheduledTime', $publishedAt->format('H:i'));
 });
 
 test('rescheduling an already published article updates its published_at on save', function () {

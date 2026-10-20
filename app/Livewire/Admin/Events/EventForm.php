@@ -117,6 +117,7 @@ class EventForm extends Component
         } else {
             // Evento novo entra publicado — despublicar é uma ação separada
             // na tabela (togglePublish), não um campo deste formulário.
+            $data['order'] = (Event::max('order') ?? 0) + 1;
             $event = Event::create($data + ['is_published' => true]);
             ActivityLogger::created($event);
             $this->dispatch('toast', title: 'Evento', message: 'Evento criado com sucesso.', variant: 'success');

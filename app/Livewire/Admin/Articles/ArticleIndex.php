@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Articles;
 
+use App\Livewire\Concerns\ComputesWeeklyTrend;
 use App\Models\Article;
 use App\Models\Category;
 use App\Services\ActivityLogger;
@@ -19,7 +20,7 @@ use Livewire\WithPagination;
  */
 class ArticleIndex extends Component
 {
-    use WithPagination;
+    use ComputesWeeklyTrend, WithPagination;
 
     public string $search = '';
 
@@ -186,9 +187,13 @@ class ArticleIndex extends Component
             'articles' => $articles,
             'allSelectedOnPage' => $articles->isNotEmpty() && array_diff($articles->pluck('id')->all(), $this->selected) === [],
             'totalArticles' => Article::count(),
+            'totalArticlesTrend' => $this->weeklyTrend(Article::query(), 'created_at'),
             'publishedArticles' => Article::published()->count(),
+            'publishedArticlesTrend' => $this->weeklyTrend(Article::query()->published(), 'published_at'),
             'draftArticles' => Article::where('is_published', false)->count(),
+            'draftArticlesTrend' => $this->weeklyTrend(Article::query()->where('is_published', false), 'created_at'),
             'totalLikes' => DB::table('article_likes')->count(),
+            'totalLikesTrend' => $this->weeklyTrend(DB::table('article_likes'), 'created_at'),
             'categories' => Category::withCount('articles')->orderBy('name')->get(),
             'archiveYears' => $archiveYears,
             'popularPosts' => Article::published()->withCount('likedByUsers')->orderByDesc('liked_by_users_count')->take(3)->get(),

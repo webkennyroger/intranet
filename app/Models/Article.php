@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -30,6 +32,15 @@ class Article extends Model
             'custom_fields' => 'array',
             'published_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Comentários de nível superior (as respostas ficam em cada
+     * comentário->replies, não aqui — só um nível de resposta).
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class)->whereNull('parent_id')->orderBy('created_at');
     }
 
     public function categories(): BelongsToMany
@@ -74,6 +85,26 @@ class Article extends Model
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('is_published', true)->where('published_at', '<=', now());
+    }
+
+    /**
+     * Tags mais usadas entre as matérias publicadas, usado pelo widget
+     * "Explore por tags" repetido em todas as páginas de artigos. A tag é
+     * só o nome da categoria — conta pela relação ao vivo, não pelo campo
+     * `tags` (uma cópia preenchida só ao salvar, que fica desatualizada
+     * para matérias antigas nunca resalvas).
+     *
+     * @return Collection<int, string>
+     */
+    public static function popularTags(int $limit = 15): Collection
+    {
+        return Category::query()
+            ->whereHas('articles', fn ($query) => $query->published())
+            ->withCount(['articles' => fn ($query) => $query->published()])
+            ->orderByDesc('articles_count')
+            ->take($limit)
+            ->get()
+            ->pluck('name');
     }
 
     /**

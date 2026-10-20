@@ -48,16 +48,17 @@
             </button>
 
             <div x-show="userMenuOpen" @click.outside="userMenuOpen = false" x-cloak
-                class="absolute right-0 mt-2 w-56 rounded-xl shadow-lg overflow-hidden bg-white dark:bg-(--bg-surface) border border-transparent dark:border-(--border-color) text-slate-700 dark:text-(--text-primary) z-50">
+                class="absolute right-0 mt-2 w-56 rounded-xl shadow-lg overflow-hidden bg-white dark:bg-(--bg-surface) border border-transparent dark:border-(--border-color) z-50"
+                style="color: var(--text-primary);">
                 <div class="px-4 py-3 border-b border-slate-100 dark:border-(--border-color)">
                     <span class="block text-sm font-semibold">{{ auth()->user()->name }}</span>
-                    <span
-                        class="block text-xs text-slate-400 dark:text-(--text-secondary) truncate">{{ auth()->user()->email }}</span>
+                    <span class="block text-xs truncate" style="color: var(--text-secondary);">{{ auth()->user()->email }}</span>
                 </div>
 
                 <div class="py-1">
                     <a href="{{ route('dashboard') }}"
-                        class="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-600 dark:text-(--text-secondary) hover:bg-emerald-50 dark:hover:bg-(--bg-hover) hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
+                        class="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-emerald-50 dark:hover:bg-(--bg-hover) hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors"
+                        style="color: var(--text-secondary);">
                         <i class="fa-solid fa-arrow-left w-4 text-center"></i> Voltar à intranet
                     </a>
                 </div>

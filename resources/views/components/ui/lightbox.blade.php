@@ -60,7 +60,9 @@
         </div>
     </template>
     <template x-if="current?.type !== 'video'">
-        <img :src="current?.url" :alt="current?.name" @click.stop class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" />
+        <div class="w-[90vw] h-[85vh]" @click.stop>
+            <img :src="current?.url" :alt="current?.name" class="w-full h-full object-contain rounded-lg shadow-2xl" />
+        </div>
     </template>
 
     <button x-show="items.length > 1" @click.stop="next()" class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition" title="Próxima">

@@ -1,7 +1,7 @@
 <?php
 
-use App\Livewire\Forum\ForumIndex;
-use App\Livewire\Forum\ForumShow;
+use App\Livewire\Site\Forum\ForumIndex;
+use App\Livewire\Site\Forum\ForumShow;
 use App\Models\ForumReply;
 use App\Models\ForumTopic;
 use App\Models\User;
@@ -72,7 +72,20 @@ test('a user cannot delete another user\'s topic', function () {
     expect(ForumTopic::find($topic->id))->not->toBeNull();
 });
 
-test('an Administrador can delete any topic as a moderator', function () {
+test('a Super Administrador can delete any topic as a moderator', function () {
+    $this->seed(AclSeeder::class);
+    $admin = User::factory()->create();
+    $admin->assignRole('Super Administrador');
+    $otherUser = User::factory()->create();
+    $topic = ForumTopic::factory()->for($otherUser, 'author')->create();
+
+    Livewire::actingAs($admin)->test(ForumShow::class, ['topic' => $topic])
+        ->call('deleteTopic');
+
+    expect(ForumTopic::find($topic->id))->toBeNull();
+});
+
+test('an Administrador (not Super Administrador) cannot delete another user\'s topic', function () {
     $this->seed(AclSeeder::class);
     $admin = User::factory()->create();
     $admin->assignRole('Administrador');
@@ -82,5 +95,5 @@ test('an Administrador can delete any topic as a moderator', function () {
     Livewire::actingAs($admin)->test(ForumShow::class, ['topic' => $topic])
         ->call('deleteTopic');
 
-    expect(ForumTopic::find($topic->id))->toBeNull();
+    expect(ForumTopic::find($topic->id))->not->toBeNull();
 });

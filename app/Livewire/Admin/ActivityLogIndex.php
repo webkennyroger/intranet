@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Livewire\Concerns\ComputesWeeklyTrend;
 use App\Models\ActivityLog;
 use App\Models\Article;
 use App\Models\CouncilMember;
@@ -24,7 +25,7 @@ use Livewire\WithPagination;
  */
 class ActivityLogIndex extends Component
 {
-    use WithPagination;
+    use ComputesWeeklyTrend, WithPagination;
 
     /**
      * Modelos rastreados pelo log, mapeados para o rótulo exibido no
@@ -68,30 +69,38 @@ class ActivityLogIndex extends Component
 
     public ?int $selectedLogId = null;
 
+    /** @var array<int, int> */
+    public array $selected = [];
+
     public function updatedSearch(): void
     {
         $this->resetPage();
+        $this->selected = [];
     }
 
     public function updatedTypeFilter(): void
     {
         $this->resetPage();
+        $this->selected = [];
     }
 
     public function updatedPeriodFilter(): void
     {
         $this->resetPage();
+        $this->selected = [];
     }
 
     public function updatedUserFilter(): void
     {
         $this->resetPage();
+        $this->selected = [];
     }
 
     public function setActionFilter(string $action): void
     {
         $this->actionFilter = $action;
         $this->resetPage();
+        $this->selected = [];
     }
 
     public function openDetail(int $logId): void
@@ -102,6 +111,44 @@ class ActivityLogIndex extends Component
     public function closeDetail(): void
     {
         $this->selectedLogId = null;
+    }
+
+    public function toggleSelectAllOnPage(): void
+    {
+        $pageIds = (clone $this->filteredQuery())
+            ->when($this->actionFilter !== '', fn ($query) => $query->where('action', $this->actionFilter))
+            ->latest()
+            ->paginate(10)
+            ->pluck('id')
+            ->all();
+
+        if (array_diff($pageIds, $this->selected) === []) {
+            $this->selected = array_values(array_diff($this->selected, $pageIds));
+        } else {
+            $this->selected = array_values(array_unique(array_merge($this->selected, $pageIds)));
+        }
+    }
+
+    public function deselectAll(): void
+    {
+        $this->selected = [];
+    }
+
+    /**
+     * Exclui os registros de log selecionados direto, sem registrar a
+     * própria exclusão no histórico — diferente dos outros bulkDelete do
+     * admin: aqui o conteúdo excluído É o histórico, então auditar "exclusão
+     * de log" dentro do próprio log só adicionaria ruído recursivo.
+     */
+    public function bulkDelete(): void
+    {
+        abort_unless(auth()->user()->can('activity-log.delete'), 403);
+
+        $count = ActivityLog::whereIn('id', $this->selected)->count();
+        ActivityLog::whereIn('id', $this->selected)->delete();
+
+        $this->selected = [];
+        $this->dispatch('toast', title: 'Histórico de Atividades', message: $count.' registro(s) excluído(s) com sucesso.', variant: 'danger');
     }
 
     private function filteredQuery(): Builder
@@ -135,7 +182,9 @@ class ActivityLogIndex extends Component
 
         return view('livewire.admin.activity-log-index', [
             'logs' => $logs,
+            'allSelectedOnPage' => $logs->isNotEmpty() && array_diff($logs->pluck('id')->all(), $this->selected) === [],
             'tabCounts' => $tabCounts,
+            'totalTrend' => $this->weeklyTrend(clone $this->filteredQuery(), 'created_at'),
             'stats' => [
                 'total' => (clone $this->filteredQuery())->count(),
                 'today' => (clone $this->filteredQuery())->whereDate('created_at', today())->count(),

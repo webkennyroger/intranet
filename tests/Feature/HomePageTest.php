@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Home\HomeIndex;
+use App\Livewire\Site\Home\HomeIndex;
 use App\Models\Article;
 use App\Models\BirthdayBanner;
 use App\Models\Category;
@@ -93,6 +93,15 @@ test('articles already shown in Em Destaque do not also appear in Últimas Notí
     expect($latestNews->pluck('title')->all())
         ->toBe(['Notícia Comum'])
         ->and($latestNews->pluck('title'))->not->toContain('Notícia Destaque', 'Mural Destaque');
+});
+
+test('the Em Destaque headline card links to the article show page', function () {
+    $user = User::factory()->create();
+    $article = Article::factory()->create(['title' => 'Manchete do Dia', 'is_published' => true, 'published_at' => now()]);
+
+    $response = $this->actingAs($user)->get(route('inicio'));
+
+    $response->assertSee('href="'.route('mural.show', $article).'"', false);
 });
 
 test('toggling the like button likes and unlikes the headline article', function () {

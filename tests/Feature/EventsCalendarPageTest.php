@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Events\EventsIndex;
+use App\Livewire\Site\Events\EventsIndex;
 use App\Models\Event;
 use App\Models\User;
 use Livewire\Livewire;

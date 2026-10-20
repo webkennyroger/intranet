@@ -115,7 +115,7 @@ test('council member create, activation toggle and delete are logged', function 
     Livewire::test(CouncilMemberIndex::class)->call('toggleActive', $member->id);
     expect(ActivityLog::where('action', 'deactivated')->where('subject_id', $member->id)->exists())->toBeTrue();
 
-    Livewire::test(CouncilMemberIndex::class)->call('delete', $member->id);
+    Livewire::test(CouncilMemberIndex::class)->call('deleteMember', $member->id);
     expect(ActivityLog::where('action', 'deleted')->where('subject_id', $member->id)->exists())->toBeTrue();
 });
 

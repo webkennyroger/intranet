@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Admin\Documents;
 
+use App\Livewire\Concerns\ComputesWeeklyTrend;
 use App\Models\Document;
 use App\Models\DocumentCategory;
 use App\Services\ActivityLogger;
 use Illuminate\Support\Str;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -18,7 +20,7 @@ use Livewire\WithPagination;
  */
 class DocumentIndex extends Component
 {
-    use WithPagination;
+    use ComputesWeeklyTrend, WithPagination;
 
     public string $activeTab = 'documentos';
 
@@ -161,8 +163,7 @@ class DocumentIndex extends Component
 
     public function toggleSelectAllOnPage(): void
     {
-        $pageIds = Document::when($this->search !== '', fn ($query) => $query->where('title', 'like', "%{$this->search}%"))
-            ->latest()->paginate(10)->pluck('id')->all();
+        $pageIds = $this->documents->pluck('id')->all();
 
         if (array_diff($pageIds, $this->selected) === []) {
             $this->selected = array_values(array_diff($this->selected, $pageIds));
@@ -223,19 +224,35 @@ class DocumentIndex extends Component
         $this->dispatch('toast', title: 'Documentos', message: $documents->count().' documento(s) excluído(s) com sucesso.', variant: 'danger');
     }
 
-    public function render()
+    /**
+     * Isolada num island (ver document-index.blade.php): precisa estar
+     * acessível via $this-> porque islands não têm acesso a variáveis de
+     * view vindas de fora deles, só a propriedades/métodos do componente.
+     */
+    #[Computed]
+    public function documents()
     {
-        $documents = Document::with('category')
+        return Document::with('category')
             ->when($this->search !== '', fn ($query) => $query->where('title', 'like', "%{$this->search}%"))
             ->latest()->paginate(10);
+    }
 
+    #[Computed]
+    public function allSelectedOnPage(): bool
+    {
+        return $this->documents->isNotEmpty() && array_diff($this->documents->pluck('id')->all(), $this->selected) === [];
+    }
+
+    public function render()
+    {
         return view('livewire.admin.documents.document-index', [
-            'documents' => $documents,
-            'allSelectedOnPage' => $documents->isNotEmpty() && array_diff($documents->pluck('id')->all(), $this->selected) === [],
             'editingDocument' => $this->editingDocumentId ? Document::find($this->editingDocumentId) : null,
             'totalDocuments' => Document::count(),
+            'totalDocumentsTrend' => $this->weeklyTrend(Document::query(), 'created_at'),
             'publishedDocuments' => Document::where('is_published', true)->count(),
+            'publishedDocumentsTrend' => $this->weeklyTrend(Document::query()->where('is_published', true), 'created_at'),
             'draftDocuments' => Document::where('is_published', false)->count(),
+            'draftDocumentsTrend' => $this->weeklyTrend(Document::query()->where('is_published', false), 'created_at'),
             'categories' => DocumentCategory::withCount('documents')->orderBy('name')->get(),
         ])->layout('layouts.admin', ['title' => 'Documentos']);
     }

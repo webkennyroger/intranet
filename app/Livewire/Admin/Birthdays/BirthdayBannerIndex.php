@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\Birthdays;
 
+use App\Livewire\Concerns\ComputesWeeklyTrend;
 use App\Models\BirthdayBanner;
 use App\Services\ActivityLogger;
 use Livewire\Attributes\On;
@@ -13,6 +14,8 @@ use Livewire\Component;
  */
 class BirthdayBannerIndex extends Component
 {
+    use ComputesWeeklyTrend;
+
     public ?int $editingBannerId = null;
 
     #[On('birthday-banner-saved')]
@@ -61,7 +64,9 @@ class BirthdayBannerIndex extends Component
             'banners' => $banners,
             'editingBanner' => $this->editingBannerId ? BirthdayBanner::find($this->editingBannerId) : null,
             'totalBanners' => $banners->count(),
+            'totalBannersTrend' => $this->weeklyTrend(BirthdayBanner::query(), 'created_at'),
             'publishedBanners' => $banners->where('is_published', true)->count(),
+            'publishedBannersTrend' => $this->weeklyTrend(BirthdayBanner::query()->where('is_published', true), 'created_at'),
         ])->layout('layouts.admin', ['title' => 'Banners de Aniversariantes']);
     }
 }

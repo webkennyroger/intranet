@@ -2,19 +2,21 @@
 
 namespace App\Livewire\Admin\Events;
 
+use App\Livewire\Concerns\ComputesWeeklyTrend;
 use App\Models\Event;
 use App\Services\ActivityLogger;
 use Livewire\Attributes\On;
 use Livewire\Component;
-use Livewire\WithPagination;
 
 /**
- * Tela admin "Eventos": lista os eventos cadastrados, permitindo editar,
- * publicar/despublicar e excluir cada um.
+ * Tela admin "Eventos": lista os eventos cadastrados, permitindo
+ * reordenar por arrastar-e-soltar, editar, publicar/despublicar e
+ * excluir cada um. A reordenação só fica disponível com a busca vazia,
+ * já que ela precisa do conjunto completo pra não embaralhar a ordem.
  */
 class EventIndex extends Component
 {
-    use WithPagination;
+    use ComputesWeeklyTrend;
 
     public ?int $editingEventId = null;
 
@@ -25,7 +27,6 @@ class EventIndex extends Component
 
     public function updatedSearch(): void
     {
-        $this->resetPage();
         $this->selected = [];
     }
 
@@ -76,7 +77,7 @@ class EventIndex extends Component
 
     public function toggleSelectAllOnPage(): void
     {
-        $pageIds = $this->filteredQuery()->orderBy('starts_at')->paginate(10)->pluck('id')->all();
+        $pageIds = $this->filteredQuery()->orderBy('order')->pluck('id')->all();
 
         if (array_diff($pageIds, $this->selected) === []) {
             $this->selected = array_values(array_diff($this->selected, $pageIds));
@@ -137,16 +138,40 @@ class EventIndex extends Component
         $this->dispatch('toast', title: 'Eventos', message: $events->count().' evento(s) excluído(s) com sucesso.', variant: 'danger');
     }
 
+    /**
+     * @param  array<int, int>  $ids
+     */
+    public function reorder(array $ids): void
+    {
+        abort_unless(auth()->user()->can('events.update'), 403);
+
+        $existingCount = Event::whereIn('id', $ids)->count();
+
+        // A lista arrastada pelo navegador pode não bater com o banco (ids
+        // duplicados, removidos por outra aba, etc.) — essa checagem garante
+        // que $ids é exatamente o conjunto atual de eventos antes de aplicar
+        // a nova ordem, evitando corromper o campo "order". Só é possível
+        // chegar aqui com a busca vazia (ver sortable no Blade), então o
+        // conjunto arrastado já é sempre o total.
+        abort_if($existingCount !== count(array_unique($ids)) || $existingCount !== Event::count(), 403);
+
+        foreach ($ids as $position => $id) {
+            Event::whereKey($id)->update(['order' => $position]);
+        }
+    }
+
     public function render()
     {
-        $events = $this->filteredQuery()->orderBy('starts_at')->paginate(10);
+        $events = $this->filteredQuery()->orderBy('order')->get();
 
         return view('livewire.admin.events.event-index', [
             'events' => $events,
             'allSelectedOnPage' => $events->isNotEmpty() && array_diff($events->pluck('id')->all(), $this->selected) === [],
             'editingEvent' => $this->editingEventId ? Event::find($this->editingEventId) : null,
             'totalEvents' => Event::count(),
+            'totalEventsTrend' => $this->weeklyTrend(Event::query(), 'created_at'),
             'upcomingEvents' => Event::where('starts_at', '>=', now())->count(),
+            'upcomingEventsTrend' => $this->weeklyTrend(Event::query()->where('starts_at', '>=', now()), 'created_at'),
         ])->layout('layouts.admin', ['title' => 'Eventos']);
     }
 }
