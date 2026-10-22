@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    image: intranet-dpemt:latest
+    restart: unless-stopped
+    env_file: .env.docker
+    ports:
+      - "8080:80"
+    volumes:
+      - db:/data
+      - storage:/var/www/html/storage
+
+volumes:
+  db:
+  storage:

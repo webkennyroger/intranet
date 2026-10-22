@@ -30,3 +30,5 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /storage/backups/
+
+.env.docker
