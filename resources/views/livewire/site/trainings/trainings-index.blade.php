@@ -14,21 +14,24 @@
     @if ($categories->isNotEmpty())
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             @foreach ($categories as $category)
+                @php $isSelected = (string) $categoryId === (string) $category->id; @endphp
                 <button
                     type="button"
                     wire:click="selectCategory({{ $category->id }})"
-                    class="group relative overflow-hidden rounded-2xl p-5 flex items-center gap-4 text-left transition border {{ (string) $categoryId === (string) $category->id ? 'border-transparent shadow-md' : 'border-slate-200 dark:border-(--border-color) hover:border-slate-300' }}"
-                    style="background-color: {{ (string) $categoryId === (string) $category->id ? $category->color : 'var(--bg-card)' }};"
+                    class="ui-card group relative overflow-hidden p-5 flex items-center gap-4 text-left transition hover:-translate-y-0.5 hover:shadow-lg {{ $isSelected ? 'shadow-md' : '' }}"
+                    style="background-color: {{ $isSelected ? $category->color : 'var(--bg-card)' }};"
                 >
-                    <span class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition" style="background-color: {{ (string) $categoryId === (string) $category->id ? 'rgba(255,255,255,0.2)' : $category->lightColor() }};">
-                        <i class="fa-solid fa-{{ $category->icon }} text-2xl" style="color: {{ (string) $categoryId === (string) $category->id ? '#fff' : $category->color }};"></i>
+                    <span class="absolute left-0 right-0 top-0 h-1.5 transition-transform {{ $isSelected ? '' : 'scale-x-0 group-hover:scale-x-100' }}" style="background-color: {{ $isSelected ? 'rgba(255,255,255,0.5)' : $category->color }};"></span>
+
+                    <span class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition group-hover:scale-105" style="background-color: {{ $isSelected ? 'rgba(255,255,255,0.2)' : $category->lightColor() }};">
+                        <i class="fa-solid fa-{{ $category->icon }} text-2xl" style="color: {{ $isSelected ? '#fff' : $category->color }};"></i>
                     </span>
                     <div class="min-w-0">
-                        <span class="font-bold text-base block {{ (string) $categoryId === (string) $category->id ? 'text-white' : 'text-slate-800 dark:text-(--text-primary)' }}">{{ $category->name }}</span>
-                        <span class="text-xs block mt-0.5 {{ (string) $categoryId === (string) $category->id ? 'text-white/80' : 'text-slate-400 dark:text-(--text-muted)' }}">{{ $category->trainings_count }} {{ $category->trainings_count === 1 ? 'capacitação' : 'capacitações' }}</span>
+                        <span class="font-bold text-base block {{ $isSelected ? 'text-white' : '' }}" @if (! $isSelected) style="color: var(--text-primary);" @endif>{{ $category->name }}</span>
+                        <span class="text-xs block mt-0.5 {{ $isSelected ? 'text-white/80' : '' }}" @if (! $isSelected) style="color: var(--text-muted);" @endif>{{ $category->trainings_count }} {{ $category->trainings_count === 1 ? 'capacitação' : 'capacitações' }}</span>
                     </div>
-                    @if ((string) $categoryId === (string) $category->id)
-                        <i class="fa-solid fa-circle-check absolute top-3 right-3 text-white/90"></i>
+                    @if ($isSelected)
+                        <i class="fa-solid fa-circle-check absolute top-4 right-4 text-white/90"></i>
                     @endif
                 </button>
             @endforeach
@@ -98,11 +101,11 @@
                 <button
                     type="button"
                     x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'training-{{ $training->id }}' }))"
-                    class="ui-card flex flex-col overflow-hidden hover:shadow-md transition text-left w-full"
+                    class="ui-card group flex flex-col overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition text-left w-full"
                 >
                     <div class="h-1.5" style="background-color: {{ $accent }};"></div>
                     <div class="p-4 flex items-start gap-3">
-                        <span class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background-color: {{ $training->category?->lightColor() ?? 'rgba(12,74,52,0.1)' }};">
+                        <span class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition group-hover:scale-105" style="background-color: {{ $training->category?->lightColor() ?? 'rgba(12,74,52,0.1)' }};">
                             <i class="fa-solid fa-graduation-cap text-lg" style="color: {{ $accent }};"></i>
                         </span>
                         <div class="min-w-0">
@@ -119,36 +122,52 @@
 
                 <x-ui.modal :name="'training-'.$training->id" maxWidth="lg">
                     <x-slot:header>
-                        <div>
-                            @if ($training->category)
-                                <span class="text-[10px] font-bold uppercase tracking-wide" style="color: {{ $accent }};">{{ $training->category->name }}</span>
-                            @endif
-                            <p class="font-bold text-base" style="color: var(--text-primary);">{{ $training->title }}</p>
+                        <div class="flex items-center gap-3">
+                            <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, {{ $accent }} 14%, transparent);">
+                                <i class="fa-solid fa-graduation-cap" style="color: {{ $accent }};"></i>
+                            </span>
+                            <div>
+                                @if ($training->category)
+                                    <span class="text-[10px] font-bold uppercase tracking-wide" style="color: {{ $accent }};">{{ $training->category->name }}</span>
+                                @endif
+                                <p class="font-black text-base leading-snug" style="color: var(--text-primary);">{{ $training->title }}</p>
+                            </div>
                         </div>
                     </x-slot:header>
 
-                    @if ($training->description)
-                        <p class="text-sm" style="color: var(--text-secondary);">{{ $training->description }}</p>
+                    @if ($training->workload_hours || $training->starts_at)
+                        <div class="flex flex-wrap items-center gap-2 mb-4">
+                            @if ($training->workload_hours)
+                                <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold" style="background-color: var(--bg-elevated); color: var(--text-secondary);">
+                                    <i class="fa-solid fa-clock" style="color: {{ $accent }};"></i> {{ $training->workload_hours }}h
+                                </span>
+                            @endif
+                            @if ($training->starts_at)
+                                <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold" style="background-color: var(--bg-elevated); color: var(--text-secondary);">
+                                    <i class="fa-solid fa-calendar-days" style="color: {{ $accent }};"></i> {{ $training->starts_at->format('d/m/Y') }}
+                                </span>
+                            @endif
+                        </div>
                     @endif
 
-                    @if ($training->workload_hours || $training->starts_at)
-                        <p class="mt-3 text-xs font-semibold" style="color: var(--text-muted);">
-                            @if ($training->workload_hours) <i class="fa-solid fa-clock mr-1"></i>{{ $training->workload_hours }}h @endif
-                            @if ($training->starts_at) · {{ $training->starts_at->format('d/m/Y') }} @endif
-                        </p>
+                    @if ($training->description)
+                        <p class="text-sm leading-relaxed" style="color: var(--text-secondary);">{{ $training->description }}</p>
                     @endif
 
                     @php($links = $training->links ?? [])
                     @if (count($links))
-                        <div class="mt-4 pt-3 border-t -mx-1.5 flex flex-col" style="border-color: var(--border-color);">
+                        <div class="mt-4 space-y-2">
                             @foreach ($links as $i => $link)
                                 <a
                                     href="{{ $link['url'] }}" target="_blank" rel="noopener" title="{{ $link['label'] ?: 'Acessar '.($i + 1) }}"
-                                    class="group flex items-center gap-2 rounded-lg px-1.5 py-2 transition hover:bg-(--bg-hover)"
+                                    class="flex items-center gap-3 rounded-xl p-3 transition hover:-translate-y-0.5 hover:shadow-md"
+                                    style="background-color: var(--bg-elevated);"
                                 >
-                                    <i class="fa-solid fa-chevron-right text-[9px] shrink-0" style="color: {{ $accent }};"></i>
-                                    <span class="flex-1 min-w-0 truncate uppercase text-xs font-semibold" style="color: var(--text-primary);">{{ $link['label'] ?: (count($links) > 1 ? 'Acessar '.($i + 1) : 'Acessar') }}</span>
-                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] shrink-0" style="color: var(--text-muted);"></i>
+                                    <span class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, {{ $accent }} 14%, transparent);">
+                                        <i class="fa-solid fa-arrow-up-right-from-square text-xs" style="color: {{ $accent }};"></i>
+                                    </span>
+                                    <span class="flex-1 min-w-0 truncate text-sm font-bold" style="color: var(--text-primary);">{{ $link['label'] ?: (count($links) > 1 ? 'Acessar '.($i + 1) : 'Acessar treinamento') }}</span>
+                                    <i class="fa-solid fa-chevron-right text-[10px] shrink-0" style="color: {{ $accent }};"></i>
                                 </a>
                             @endforeach
                         </div>

@@ -19,6 +19,7 @@
     x-data="{
         active: 0,
         count: 0,
+        navTop: 0,
         timer: null,
         init() {
             this.count = this.$refs.track.children.length
@@ -41,6 +42,16 @@
             Array.from(this.$refs.track.children).forEach((el, i) => {
                 el.classList.toggle('hidden', i !== this.active)
             })
+            this.measureNavTop()
+        },
+        measureNavTop() {
+            // As setas ficam centralizadas na altura da(s) imagem(ns) do
+            // slide ativo, não do bloco inteiro — senão, num slide com
+            // legenda/texto abaixo da imagem (ex. galeria), elas desciam
+            // pra perto do rodapé em vez de ficarem na faixa da imagem.
+            const slide = this.$refs.track.children[this.active];
+            const img = slide?.querySelector('img');
+            this.navTop = img ? (img.offsetTop + img.offsetHeight / 2) : ((slide?.offsetHeight ?? 0) / 2);
         },
         next() {
             if (this.count < 2) return
@@ -88,8 +99,8 @@
             type="button"
             @click="prev()"
             aria-label="Anterior"
-            class="absolute left-2 top-1/2 -translate-y-1/2 rounded-full p-2 shadow-lg transition-opacity hover:opacity-80"
-            style="background-color: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border-color);"
+            class="absolute z-20 left-2 -translate-y-1/2 rounded-full p-2 shadow-lg transition-opacity hover:opacity-80"
+            :style="`top: ${navTop}px; background-color: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border-color);`"
         >
             <x-ui.icon name="chevron-left" class="w-4 h-4" />
         </button>
@@ -100,8 +111,8 @@
             type="button"
             @click="next()"
             aria-label="Próximo"
-            class="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 shadow-lg transition-opacity hover:opacity-80"
-            style="background-color: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border-color);"
+            class="absolute z-20 right-2 -translate-y-1/2 rounded-full p-2 shadow-lg transition-opacity hover:opacity-80"
+            :style="`top: ${navTop}px; background-color: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border-color);`"
         >
             <x-ui.icon name="chevron-right" class="w-4 h-4" />
         </button>

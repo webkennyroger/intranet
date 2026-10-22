@@ -54,19 +54,26 @@
         </div>
     </div>
 
-    <!-- Pastas (uma por categoria, com contagem real) -->
+    {{-- Pastas (uma por categoria, com contagem real). O risco colorido no
+         topo some por padrão e aparece só no hover (igual ao combinado na
+         grade de Serviços, mas no topo em vez da lateral) — na pasta
+         selecionada ele fica sempre visível, como indicador de estado. --}}
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3">
         @foreach ($categories as $category)
+            @php $isSelected = (string) $categoryId === (string) $category->id; @endphp
             <button
                 type="button"
                 wire:click="selectCategory({{ $category->id }})"
-                class="flex flex-col items-center gap-2 p-3 rounded-2xl border transition text-center {{ (string) $categoryId === (string) $category->id ? 'border-(--brand-primary)/40 bg-(--brand-primary)/5' : 'border-slate-200 dark:border-(--border-color) bg-white dark:bg-(--bg-card) hover:border-slate-300' }}"
+                class="ui-card relative overflow-hidden flex flex-col items-center gap-2 p-4 text-center transition group hover:-translate-y-0.5 hover:shadow-lg"
+                @if ($isSelected) style="box-shadow: 0 0 0 2px {{ $category->color }}, 0 10px 15px -3px var(--card-shadow-color), 0 4px 6px -4px var(--card-shadow-color);" @endif
             >
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background-color: {{ $category->lightColor() }};">
+                <span class="absolute left-0 right-0 top-0 h-1 transition-transform {{ $isSelected ? '' : 'scale-x-0 group-hover:scale-x-100' }}" style="background-color: {{ $category->color }};"></span>
+
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center transition group-hover:scale-105" style="background-color: {{ $category->lightColor() }};">
                     <i class="fa-solid fa-{{ $category->icon }} text-lg" style="color: {{ $category->color }};"></i>
                 </div>
-                <span class="text-xs font-semibold text-slate-700 dark:text-(--text-secondary) leading-tight">{{ $category->name }}</span>
-                <span class="text-[10px] text-slate-400 dark:text-(--text-muted)">{{ $category->documents_count }} {{ $category->documents_count === 1 ? 'arquivo' : 'arquivos' }}</span>
+                <span class="text-xs font-bold leading-tight" style="color: var(--text-primary);">{{ $category->name }}</span>
+                <span class="text-[10px]" style="color: var(--text-muted);">{{ $category->documents_count }} {{ $category->documents_count === 1 ? 'arquivo' : 'arquivos' }}</span>
             </button>
         @endforeach
     </div>

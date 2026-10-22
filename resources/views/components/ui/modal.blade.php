@@ -59,11 +59,11 @@
             x-transition:leave="transition ease-in duration-200"
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95"
-            class="w-full {{ $widthClass }} rounded-2xl shadow-2xl"
+            class="w-full {{ $widthClass }} max-h-[90vh] rounded-2xl shadow-2xl flex flex-col"
             style="background-color: var(--bg-surface); border: 1px solid var(--border-color);"
         >
             @if(isset($header))
-                <div class="px-6 py-4 flex items-center justify-between" style="border-bottom: 1px solid var(--border-color);">
+                <div class="px-6 py-4 flex items-center justify-between shrink-0" style="border-bottom: 1px solid var(--border-color);">
                     <div>{{ $header }}</div>
                     <button @click="open = false" class="p-1 rounded-lg transition-colors" style="color: var(--text-secondary);" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,12 +73,16 @@
                 </div>
             @endif
 
-            <div class="px-6 py-5">
+            {{-- overflow-y-auto aqui (não só no backdrop) pra qualquer modal com
+                 imagem/texto grande ganhar barra de rolagem própria, com
+                 cabeçalho e rodapé sempre fixos — em vez de empurrar o topo do
+                 modal pra fora da tela, como acontecia antes. --}}
+            <div class="px-6 py-5 overflow-y-auto">
                 {{ $slot }}
             </div>
 
             @if(isset($footer))
-                <div class="px-6 py-4 flex items-center justify-end gap-3" style="border-top: 1px solid var(--border-color);">
+                <div class="px-6 py-4 flex items-center justify-end gap-3 shrink-0" style="border-top: 1px solid var(--border-color);">
                     {{ $footer }}
                 </div>
             @endif

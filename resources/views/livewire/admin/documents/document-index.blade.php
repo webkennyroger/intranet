@@ -11,49 +11,61 @@
         title="Documentos"
         subtitle="Gerencie os documentos disponibilizados para os servidores."
         :breadcrumbs="[['label' => 'Painel', 'href' => route('dashboard')], ['label' => 'Documentos']]"
-    />
+    >
+        @if ($activeTab === 'documentos')
+            <x-slot:actions>
+                <x-ui.button wire:click="closeForm" x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'document-form' }))">
+                    Novo documento
+                </x-ui.button>
+            </x-slot:actions>
+        @endif
+    </x-admin.page-header>
 
-    <!-- Abas -->
-    <div class="flex items-center gap-1 p-1 rounded-xl w-fit" style="background-color: var(--bg-elevated);">
-        <button type="button" wire:click="setTab('documentos')" class="flex items-center gap-2 pl-1.5 pr-4 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap {{ $activeTab === 'documentos' ? 'shadow-sm' : '' }}" style="{{ $activeTab === 'documentos' ? 'background-color: var(--bg-card); color: var(--text-primary);' : 'color: var(--text-secondary);' }}">
-            <span class="w-7 h-7 inline-flex items-center justify-center rounded-lg" style="background-color: rgba(37, 99, 235, 0.1); color: #2563EB;">
-                <i class="fa-solid fa-file-lines text-xs"></i>
+    @if ($activeTab === 'documentos')
+        <!-- Toolbar: total (compacto) + busca na mesma linha, em vez de um
+             grid de cards de dashboard inteiro acima de um card de busca
+             enorme — mesmo padrão de Capacitações. -->
+        <div class="flex flex-col sm:flex-row items-stretch gap-3">
+            <div class="ui-card px-4 py-2.5 flex items-center gap-3 shrink-0" style="border-top: 2px solid #2563EB;">
+                <span class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #2563EB 14%, transparent);">
+                    <i class="fa-solid fa-file-lines text-sm" style="color: #2563EB;"></i>
+                </span>
+                <div class="whitespace-nowrap">
+                    <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Total</p>
+                    <p class="text-lg font-black leading-tight" style="color: var(--text-primary);">{{ $totalDocuments }}</p>
+                </div>
+            </div>
+
+            <div class="ui-card px-4 py-2.5 flex items-center gap-2.5 flex-1">
+                <i class="fa-solid fa-magnifying-glass text-xs shrink-0" style="color: var(--text-muted);"></i>
+                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por título..."
+                    class="flex-1 min-w-0 bg-transparent text-sm focus:outline-none"
+                    style="color: var(--text-primary);" />
+            </div>
+        </div>
+    @endif
+
+    <!-- Abas: centralizadas, com cantos maiores e sombra na ativa — mesmo
+         padrão de Capacitações. Borda própria (não só a cor de fundo) pra
+         ficar visível tanto no claro quanto no escuro. Hover igual ao das
+         pastas de Documentos do site: risco colorido no topo que aparece
+         ao passar o mouse + leve elevação com sombra. -->
+    <div class="flex items-center justify-center gap-2 p-1.5 rounded-2xl w-fit mx-auto" style="background-color: var(--bg-elevated); border: 1px solid var(--border-color);">
+        <button type="button" wire:click="setTab('documentos')" class="group relative overflow-hidden flex items-center gap-2.5 pl-2 pr-5 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition {{ $activeTab === 'documentos' ? 'shadow-md' : 'hover:-translate-y-0.5 hover:shadow-md' }}" style="{{ $activeTab === 'documentos' ? 'background-color: var(--bg-card); color: var(--text-primary);' : 'color: var(--text-secondary);' }}">
+            <span class="absolute left-0 right-0 top-0 h-1 transition-transform {{ $activeTab === 'documentos' ? '' : 'scale-x-0 group-hover:scale-x-100' }}" style="background-color: #2563EB;"></span>
+            <span class="w-8 h-8 inline-flex items-center justify-center rounded-lg transition group-hover:scale-105" style="background-color: color-mix(in srgb, #2563EB 14%, transparent); color: #2563EB;">
+                <i class="fa-solid fa-file-lines text-sm"></i>
             </span>
             Documentos
         </button>
-        <button type="button" wire:click="setTab('pastas')" class="flex items-center gap-2 pl-1.5 pr-4 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap {{ $activeTab === 'pastas' ? 'shadow-sm' : '' }}" style="{{ $activeTab === 'pastas' ? 'background-color: var(--bg-card); color: var(--text-primary);' : 'color: var(--text-secondary);' }}">
-            <span class="w-7 h-7 inline-flex items-center justify-center rounded-lg" style="background-color: rgba(217, 119, 6, 0.1); color: #D97706;">
-                <i class="fa-solid fa-folder text-xs"></i>
+        <button type="button" wire:click="setTab('pastas')" class="group relative overflow-hidden flex items-center gap-2.5 pl-2 pr-5 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition {{ $activeTab === 'pastas' ? 'shadow-md' : 'hover:-translate-y-0.5 hover:shadow-md' }}" style="{{ $activeTab === 'pastas' ? 'background-color: var(--bg-card); color: var(--text-primary);' : 'color: var(--text-secondary);' }}">
+            <span class="absolute left-0 right-0 top-0 h-1 transition-transform {{ $activeTab === 'pastas' ? '' : 'scale-x-0 group-hover:scale-x-100' }}" style="background-color: #D97706;"></span>
+            <span class="w-8 h-8 inline-flex items-center justify-center rounded-lg transition group-hover:scale-105" style="background-color: color-mix(in srgb, #D97706 14%, transparent); color: #D97706;">
+                <i class="fa-solid fa-folder text-sm"></i>
             </span>
             Pastas
         </button>
     </div>
-
-    @if ($activeTab === 'documentos')
-        <!-- Estatísticas (Cards) -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <x-admin.trend-stat-card label="Total de documentos" :value="$totalDocuments" :changePercent="$totalDocumentsTrend['changePercent']" :values="$totalDocumentsTrend['values']" icon="file-lines" color="#2563EB" />
-            <x-admin.trend-stat-card label="Publicados" :value="$publishedDocuments" :changePercent="$publishedDocumentsTrend['changePercent']" :values="$publishedDocumentsTrend['values']" icon="check" color="#059669" />
-            <x-admin.trend-stat-card label="Rascunhos" :value="$draftDocuments" :changePercent="$draftDocumentsTrend['changePercent']" :values="$draftDocumentsTrend['values']" icon="pen" color="#F59E0B" />
-        </div>
-
-        <!-- Busca -->
-        <div class="ui-card p-5">
-            <div class="flex flex-col md:flex-row md:items-center gap-3">
-                <div class="relative flex-1">
-                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: var(--text-muted);"></i>
-                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por título..."
-                        class="w-full rounded-full pl-11 pr-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-(--focus-ring)/40 transition"
-                        style="background-color: var(--bg-elevated); border: 1px solid var(--border-color); color: var(--text-primary);" />
-                </div>
-                <button type="button" wire:click="$refresh" class="inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:brightness-110 active:brightness-95 transition shrink-0" style="background-color: var(--admin-primary, var(--brand-primary, #0C4A34));">
-                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                    <span>Buscar</span>
-                </button>
-            </div>
-        </div>
-
-    @endif
 
     {{-- Tabela de Documentos — isolada num island: selecionar linhas,
          paginar e publicar/excluir só atualizam esta região. O island
@@ -62,8 +74,8 @@
     @island(name: 'documents-list', always: true)
         @if ($this->activeTab === 'documentos')
             <div class="space-y-4">
-                <div class="flex items-center justify-end gap-2">
-                    @if (count($this->selected) > 0)
+                @if (count($this->selected) > 0)
+                    <div class="flex items-center justify-end gap-2">
                         <span class="text-xs font-semibold" style="color: var(--text-muted);">{{ count($this->selected) }} selecionado(s)</span>
                         @can('documents.update')
                             <x-ui.button type="button" wire:click="bulkPublish" variant="secondary" size="sm">
@@ -79,12 +91,8 @@
                             </x-ui.button>
                         @endcan
                         <x-ui.button type="button" wire:click="deselectAll" variant="ghost" size="sm">Cancelar</x-ui.button>
-                    @else
-                        <x-ui.button wire:click="closeForm" x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'document-form' }))">
-                            Novo documento
-                        </x-ui.button>
-                    @endif
-                </div>
+                    </div>
+                @endif
 
                 @if ($this->documents->isEmpty())
                     <x-ui.empty-state title="Nenhum documento cadastrado ainda." icon="document" />
@@ -154,7 +162,17 @@
 
     <!-- Modal: Formulário de Documento -->
     <x-ui.modal name="document-form" maxWidth="lg">
-        <x-slot:header>Documento</x-slot:header>
+        <x-slot:header>
+            <div class="flex items-center gap-3">
+                <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, var(--admin-primary, var(--brand-primary, #0C4A34)), color-mix(in srgb, var(--admin-primary, var(--brand-primary, #0C4A34)) 70%, black));">
+                    <i class="fa-solid fa-file-lines text-white"></i>
+                </span>
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wide" style="color: var(--admin-primary, var(--brand-primary, #0C4A34));">Documentos</span>
+                    <p class="font-black text-base leading-snug" style="color: var(--text-primary);">{{ $editingDocument ? 'Editar documento' : 'Novo documento' }}</p>
+                </div>
+            </div>
+        </x-slot:header>
         <livewire:admin.documents.document-form :document="$editingDocument" :key="'document-form-'.($editingDocumentId ?? 'new')" />
     </x-ui.modal>
 
@@ -167,10 +185,12 @@
                 @else
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         @foreach ($categories as $category)
-                            <div class="rounded-2xl p-4" style="background-color: var(--bg-card); border: 1px solid var(--border-color);" wire:key="category-{{ $category->id }}">
+                            <div class="group relative overflow-hidden rounded-2xl p-4 transition hover:-translate-y-0.5 hover:shadow-md" style="background-color: var(--bg-card); border: 1px solid var(--border-color);" wire:key="category-{{ $category->id }}">
+                                <span class="absolute left-0 right-0 top-0 h-1 scale-x-0 transition-transform group-hover:scale-x-100" style="background-color: {{ $category->color }};"></span>
+
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="flex items-start gap-3 min-w-0">
-                                        <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: {{ $category->lightColor() }};">
+                                        <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition group-hover:scale-105" style="background-color: {{ $category->lightColor() }};">
                                             <i class="fa-solid fa-{{ $category->icon }}" style="color: {{ $category->color }};"></i>
                                         </span>
                                         <div class="min-w-0">
@@ -209,7 +229,7 @@
 
                     <form wire:submit="saveCategory" class="space-y-4">
                         <x-ui.input wire:model="categoryName" label="Nome *" placeholder="Ex: Portarias" />
-                        <x-ui.input wire:model="categoryIcon" label="Ícone" placeholder="Ex: folder" hint="Nome de um ícone do FontAwesome (fa-solid), sem o prefixo fa-." />
+                        <x-ui.autocomplete wire:model="categoryIcon" :options="\App\Services\IconCatalog::suggestions()" label="Ícone" placeholder="Ex: folder" hint="Nome de um ícone do FontAwesome (fa-solid), sem o prefixo fa-." />
                         <x-ui.color-picker wire:model="categoryColor" label="Cor" hint="Usada no selo e no ícone desta pasta." />
 
                         <div class="flex items-center gap-3 pt-2">

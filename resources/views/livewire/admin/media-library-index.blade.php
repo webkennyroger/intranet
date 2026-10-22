@@ -1,15 +1,16 @@
 {{--
 Biblioteca de Mídia (admin): reúne todo arquivo real já enviado no
-sistema (documentos, fotos de álbum) num layout "meu drive" — barra
-lateral com busca/upload/origens, pastas por origem com contagem e
+sistema num layout "meu drive" — barra lateral com busca/upload/pastas,
+uma pasta por seção de conteúdo (Mural, Notícia, SOS DPEMT, Fotos,
+Documentos, Eventos, Aniversariantes, Conselho Superior) com contagem e
 tamanho reais, lista de arquivos recentes e um resumo com gráfico de
-rosca (imagens x documentos). Mural é posts/conteúdo editorial, não
-arquivo de mídia — não entra aqui. O botão "Upload" só funciona depois
-de escolher uma origem (Documentos ou Fotos) — essa origem define a
-categoria do arquivo enviado. Só os itens enviados direto aqui podem
-ser excluídos nesta tela — os demais pertencem a um conteúdo real.
-Imagens abrem no x-ui.lightbox (componente reutilizável): tela cheia,
-setas de navegação, loop, teclado (←/→/Esc) e swipe no touch.
+rosca. O botão "Upload" só funciona depois de escolher uma pasta — essa
+pasta define a categoria do arquivo enviado direto aqui (sem dono
+próprio); os demais arquivos pertencem a um conteúdo real (artigo, foto,
+documento, evento, banner ou membro do conselho) e só podem ser
+renomeados/excluídos a partir desse conteúdo. Imagens abrem no
+x-ui.lightbox (componente reutilizável): tela cheia, setas de
+navegação, loop, teclado (←/→/Esc) e swipe no touch.
 --}}
 @php
     $imageItems = $media->where('type', 'image')->map(fn($item) => ['url' => $item['url'], 'name' => $item['name']])->values();
@@ -92,48 +93,42 @@ setas de navegação, loop, teclado (←/→/Esc) e swipe no touch.
         subtitle="Documentos e fotos enviados no sistema."
         :breadcrumbs="[['label' => 'Painel', 'href' => route('dashboard')], ['label' => 'Biblioteca de Mídia']]" />
 
-    <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-4 items-start">
-        <!-- Área Central: pastas por origem + busca + arquivos -->
-        <div class="space-y-4 min-w-0">
-            <!-- Pastas (uma por origem, com contagem e tamanho reais) -->
-            <div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    @foreach ($sourceStats as $stat)
-                        @php
-                            $sourceColor = \App\Livewire\Admin\MediaLibraryIndex::sourceColor($stat['source']);
-                            $isActiveSource = $source === $stat['source'];
-                        @endphp
-                        <button wire:click="$set('source', '{{ $stat['source'] }}')"
-                            class="group relative flex items-center gap-4 text-left rounded-2xl p-4 overflow-hidden transition-all {{ $isActiveSource ? 'ring-2' : 'hover:shadow-md hover:-translate-y-0.5' }}"
-                            style="background-color: var(--bg-card); border: 1px solid var(--border-color); {{ $isActiveSource ? 'ring-color: '.$sourceColor.';' : '' }}">
-                            <!-- Faixa decorativa com a cor da origem -->
-                            <span class="absolute inset-y-0 left-0 w-1.5" style="background-color: {{ $sourceColor }};"></span>
+    <div class="grid grid-cols-1 lg:grid-cols-[240px_1fr_380px] gap-4 items-start">
+        <!-- Árvore de Pastas: igual a um gerenciador de arquivos — Fotos e Documentos
+             sempre abertos, com as subpastas reais logo abaixo de cada um, visíveis
+             sem precisar clicar em nada. "Eventos" aparece nos dois grupos porque um
+             evento pode ter capa (imagem) e anexo (documento) ao mesmo tempo; a
+             contagem de cada entrada reflete só o tipo do grupo em que está. -->
+        <aside class="ui-card p-3 space-y-4 lg:sticky lg:top-4">
+            <button wire:click="$set('source', '')"
+                class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-bold transition"
+                style="{{ $source === '' ? 'background-color: var(--admin-primary, var(--brand-primary, #0C4A34)); color: #fff;' : 'color: var(--text-primary);' }}">
+                <i class="fa-solid fa-folder-tree"></i> Todos os arquivos
+            </button>
 
-                            <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105"
-                                style="background-color: {{ $sourceColor }}1A;">
-                                <i class="fa-solid fa-{{ \App\Livewire\Admin\MediaLibraryIndex::sourceIcon($stat['source']) }} text-lg"
-                                    style="color: {{ $sourceColor }};"></i>
-                            </div>
-
-                            <div class="flex-1 min-w-0">
-                                <div class="text-sm font-bold truncate" style="color: var(--text-primary);">{{ $stat['source'] }}</div>
-                                <div class="text-xs mt-0.5" style="color: var(--text-muted);">
-                                    {{ $stat['count'] }} {{ $stat['count'] === 1 ? 'arquivo' : 'arquivos' }}
-                                    &middot; {{ \App\Livewire\Admin\MediaLibraryIndex::formatSize($stat['size']) }}
-                                </div>
-                            </div>
-
-                            @if ($isActiveSource)
-                                <span class="shrink-0 text-xs font-bold inline-flex items-center gap-1 rounded-full px-2.5 py-1"
-                                    style="background-color: {{ $sourceColor }}1A; color: {{ $sourceColor }};">
-                                    <i class="fa-solid fa-circle-check"></i> Filtrando
-                                </span>
-                            @endif
-                        </button>
-                    @endforeach
+            @foreach (['Fotos' => $photoFolders, 'Documentos' => $documentFolders] as $groupLabel => $groupStats)
+                @php $groupColor = \App\Livewire\Admin\MediaLibraryIndex::sourceColor($groupLabel); @endphp
+                <div>
+                    <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-bold uppercase tracking-wide" style="color: {{ $groupColor }};">
+                        <i class="fa-solid fa-{{ \App\Livewire\Admin\MediaLibraryIndex::sourceIcon($groupLabel) }}"></i> {{ $groupLabel }}
+                    </div>
+                    <div class="space-y-0.5 pl-2" style="border-left: 2px solid {{ $groupColor }}33; margin-left: 1.1rem;">
+                        @foreach ($groupStats as $stat)
+                            @php $isActiveSource = $source === $stat['source']; @endphp
+                            <button wire:click="$set('source', '{{ $stat['source'] }}')"
+                                class="w-full flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-lg text-left text-sm transition {{ $isActiveSource ? 'font-bold' : 'hover:bg-(--bg-hover)' }}"
+                                style="{{ $isActiveSource ? 'background-color: var(--admin-primary-light, color-mix(in srgb, var(--admin-primary) 14%, transparent)); color: var(--admin-primary);' : 'color: var(--text-secondary);' }}">
+                                <span class="truncate flex-1">{{ $stat['source'] }}</span>
+                                <span class="shrink-0 text-[11px] font-semibold opacity-70">{{ $stat['count'] }}</span>
+                            </button>
+                        @endforeach
+                    </div>
                 </div>
-            </div>
+            @endforeach
+        </aside>
 
+        <!-- Área Central: busca + arquivos -->
+        <div class="space-y-4 min-w-0">
             <!-- Busca -->
             <div class="ui-card p-5">
                 <div class="flex flex-col md:flex-row md:items-center gap-3">
@@ -150,7 +145,7 @@ setas de navegação, loop, teclado (←/→/Esc) e swipe no touch.
                 </div>
             </div>
 
-            <!-- Arquivos -->
+            <!-- Arquivos: a árvore à esquerda só filtra, nunca escondo a lista -->
             <div>
                 <div class="flex items-center justify-between mb-2">
                     <div class="text-sm font-bold" style="color: var(--text-primary);">
@@ -417,7 +412,9 @@ setas de navegação, loop, teclado (←/→/Esc) e swipe no touch.
                                 <line x1="{{ $divider['inner']['x'] }}" y1="{{ $divider['inner']['y'] }}" x2="{{ $divider['outer']['x'] }}" y2="{{ $divider['outer']['y'] }}" stroke="var(--bg-surface)" stroke-width="3" stroke-linecap="round" />
                             @endforeach
                             @foreach ($donutSegments as $segment)
-                                @if ($segment['pct'] > 0)
+                                {{-- Fatias finas (abaixo de 6%) não cabem um número legível sem
+                                     sobrepor a vizinha — essas ficam só na legenda/lista abaixo. --}}
+                                @if ($segment['pct'] >= 6)
                                     <text x="{{ $segment['label']['x'] }}" y="{{ $segment['label']['y'] }}" text-anchor="middle" dominant-baseline="middle" class="fill-white font-bold" style="font-size: 7.5px;">{{ $segment['pct'] }}%</text>
                                 @endif
                             @endforeach
@@ -448,27 +445,43 @@ setas de navegação, loop, teclado (←/→/Esc) e swipe no touch.
                     @endforeach
                 </div>
 
-                <ul class="list-none space-y-4">
-                    @foreach ($sourceStats as $stat)
-                        <li class="flex items-center">
-                            <div class="shrink-0">
-                                <div class="w-8 h-8 rounded flex items-center justify-center"
-                                    style="background-color: {{ \App\Livewire\Admin\MediaLibraryIndex::sourceColor($stat['source']) }}1A;">
-                                    <i class="fa-solid fa-{{ \App\Livewire\Admin\MediaLibraryIndex::sourceIcon($stat['source']) }} text-sm"
-                                        style="color: {{ \App\Livewire\Admin\MediaLibraryIndex::sourceColor($stat['source']) }};"></i>
-                                </div>
+                <div class="space-y-5">
+                    @foreach (['Fotos' => $photoFolders, 'Documentos' => $documentFolders] as $groupLabel => $groupStats)
+                        @php
+                            $groupColor = \App\Livewire\Admin\MediaLibraryIndex::sourceColor($groupLabel);
+                            $groupSize = $groupStats->sum('size');
+                        @endphp
+                        <div>
+                            <div class="flex items-center justify-between mb-2.5">
+                                <span class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide" style="color: {{ $groupColor }};">
+                                    <i class="fa-solid fa-{{ \App\Livewire\Admin\MediaLibraryIndex::sourceIcon($groupLabel) }}"></i> {{ $groupLabel }}
+                                </span>
+                                <span class="text-xs font-semibold" style="color: var(--text-muted);">{{ \App\Livewire\Admin\MediaLibraryIndex::formatSize($groupSize) }}</span>
                             </div>
-                            <div class="flex-1 min-w-0 ml-3">
-                                <h5 class="mb-0.5 text-sm font-semibold truncate" style="color: var(--text-primary);">
-                                    {{ $stat['source'] }}</h5>
-                                <p class="mb-0 text-xs" style="color: var(--text-muted);">{{ $stat['count'] }}
-                                    {{ $stat['count'] === 1 ? 'arquivo' : 'arquivos' }}</p>
-                            </div>
-                            <b class="text-sm shrink-0"
-                                style="color: var(--text-primary);">{{ \App\Livewire\Admin\MediaLibraryIndex::formatSize($stat['size']) }}</b>
-                        </li>
+                            <ul class="list-none space-y-3">
+                                @foreach ($groupStats as $stat)
+                                    <li class="flex items-center">
+                                        <div class="shrink-0">
+                                            <div class="w-8 h-8 rounded flex items-center justify-center"
+                                                style="background-color: {{ \App\Livewire\Admin\MediaLibraryIndex::sourceColor($stat['source']) }}1A;">
+                                                <i class="fa-solid fa-{{ \App\Livewire\Admin\MediaLibraryIndex::sourceIcon($stat['source']) }} text-sm"
+                                                    style="color: {{ \App\Livewire\Admin\MediaLibraryIndex::sourceColor($stat['source']) }};"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-1 min-w-0 ml-3">
+                                            <h5 class="mb-0.5 text-sm font-semibold truncate" style="color: var(--text-primary);">
+                                                {{ $stat['source'] }}</h5>
+                                            <p class="mb-0 text-xs" style="color: var(--text-muted);">{{ $stat['count'] }}
+                                                {{ $stat['count'] === 1 ? 'arquivo' : 'arquivos' }}</p>
+                                        </div>
+                                        <b class="text-sm shrink-0"
+                                            style="color: var(--text-primary);">{{ \App\Livewire\Admin\MediaLibraryIndex::formatSize($stat['size']) }}</b>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
                     @endforeach
-                </ul>
+                </div>
 
                 <div class="mt-4 pt-3 flex items-center justify-between text-sm"
                     style="border-top: 1px dashed var(--border-color);">
@@ -567,14 +580,24 @@ setas de navegação, loop, teclado (←/→/Esc) e swipe no touch.
 
     <!-- Modal: Renomear arquivo (só pros enviados direto aqui, via Media) -->
     <x-ui.modal name="media-rename" maxWidth="sm">
-        <x-slot:header>Renomear arquivo</x-slot:header>
+        <x-slot:header>
+            <div class="flex items-center gap-3">
+                <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, var(--admin-primary, var(--brand-primary, #0C4A34)), color-mix(in srgb, var(--admin-primary, var(--brand-primary, #0C4A34)) 70%, black));">
+                    <i class="fa-solid fa-pen text-white"></i>
+                </span>
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wide" style="color: var(--admin-primary, var(--brand-primary, #0C4A34));">Biblioteca de Mídia</span>
+                    <p class="font-black text-base leading-snug" style="color: var(--text-primary);">Renomear arquivo</p>
+                </div>
+            </div>
+        </x-slot:header>
 
         <form wire:submit="renameItem" class="space-y-4">
             <x-ui.input wire:model="renamingName" label="Nome do arquivo" autofocus />
 
             <div class="flex justify-end gap-2">
                 <x-ui.button type="button" variant="ghost" x-on:click="window.dispatchEvent(new CustomEvent('close-modal', { detail: 'media-rename' }))">Cancelar</x-ui.button>
-                <x-ui.button type="submit">Salvar</x-ui.button>
+                <x-ui.button type="submit"><i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar</x-ui.button>
             </div>
         </form>
     </x-ui.modal>
@@ -582,7 +605,15 @@ setas de navegação, loop, teclado (←/→/Esc) e swipe no touch.
     <!-- Modal: Prévia de Documento (imagens usam o lightbox nativo, abaixo) -->
     <x-ui.modal name="media-preview" maxWidth="2xl">
         <x-slot:header>
-            <span x-text="preview?.name"></span>
+            <div class="flex items-center gap-3">
+                <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, var(--admin-primary, var(--brand-primary, #0C4A34)), color-mix(in srgb, var(--admin-primary, var(--brand-primary, #0C4A34)) 70%, black));">
+                    <i class="fa-solid fa-file-lines text-white"></i>
+                </span>
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wide" style="color: var(--admin-primary, var(--brand-primary, #0C4A34));">Biblioteca de Mídia</span>
+                    <p class="font-black text-base leading-snug truncate" style="color: var(--text-primary);" x-text="preview?.name"></p>
+                </div>
+            </div>
         </x-slot:header>
 
         <div class="space-y-4" x-show="preview">

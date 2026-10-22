@@ -1,54 +1,64 @@
 {{--
 Tela de gestão do Conselho Superior (admin): processos SEI do conselho
-(busca, criar, editar, publicar/despublicar, excluir).
+(busca, criar, editar, publicar/despublicar, excluir). Os membros exibidos
+na página pública não têm cadastro aqui — são os usuários com o papel
+"Defensor", atribuído em Usuários & Acessos.
 --}}
 <div class="space-y-6">
     <!-- Cabeçalho da Página -->
     <x-admin.page-header icon="user-tie" title="Conselho Superior"
-        subtitle="Gerencie os processos exibidos na página do Conselho Superior." :breadcrumbs="[['label' => 'Painel', 'href' => route('dashboard')], ['label' => 'Conselho Superior']]" />
+        subtitle="Gerencie os processos exibidos na página do Conselho Superior." :breadcrumbs="[['label' => 'Painel', 'href' => route('dashboard')], ['label' => 'Conselho Superior']]">
+        <x-slot:actions>
+            <x-ui.button wire:click="closeProcessForm"
+                x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'council-process-form' }))">
+                Novo processo
+            </x-ui.button>
+        </x-slot:actions>
+    </x-admin.page-header>
 
     <div class="space-y-4">
-        <!-- Estatísticas (Cards) -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <x-admin.trend-stat-card label="Total de processos" :value="$totalProcesses" :changePercent="$totalProcessesTrend['changePercent']" :values="$totalProcessesTrend['values']" icon="folder-open" color="#2563EB" />
-            <x-admin.trend-stat-card label="Publicados" :value="$publishedProcesses" :changePercent="$publishedProcessesTrend['changePercent']" :values="$publishedProcessesTrend['values']" icon="check" color="#059669" />
-            <x-admin.trend-stat-card label="Rascunhos" :value="$draftProcesses" :changePercent="$draftProcessesTrend['changePercent']" :values="$draftProcessesTrend['values']" icon="pen" color="#F59E0B" />
-        </div>
-
-        <!-- Busca -->
-        <div class="ui-card p-5">
-            <div class="flex flex-col md:flex-row md:items-center gap-3">
-                <div class="relative flex-1">
-                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-sm"
-                        style="color: var(--text-muted);"></i>
-                    <input type="text" wire:model.live.debounce.300ms="processSearch"
-                        placeholder="Buscar por número, assunto, relator ou interessado..."
-                        class="w-full rounded-full pl-11 pr-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-(--focus-ring)/40 transition"
-                        style="background-color: var(--bg-elevated); border: 1px solid var(--border-color); color: var(--text-primary);" />
+        <!-- Toolbar: total de processos (compacto, não é mais um card de
+             dashboard inteiro) + busca na mesma barra — em vez de dois
+             blocos grandes empilhados (grid de estatística + card de busca
+             enorme), os dois cabem numa linha só, enxuta. -->
+        <div class="flex flex-col sm:flex-row items-stretch gap-3">
+            <div class="ui-card px-4 py-2.5 flex items-center gap-3 shrink-0" style="border-top: 2px solid #2563EB;">
+                <span class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #2563EB 14%, transparent);">
+                    <i class="fa-solid fa-folder-open text-sm" style="color: #2563EB;"></i>
+                </span>
+                <div class="whitespace-nowrap">
+                    <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Total de processos</p>
+                    <p class="text-lg font-black leading-tight" style="color: var(--text-primary);">{{ $totalProcesses }}</p>
                 </div>
-                <button type="button" wire:click="$refresh" class="inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:brightness-110 active:brightness-95 transition shrink-0" style="background-color: var(--admin-primary, var(--brand-primary, #0C4A34));">
-                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                    <span>Buscar</span>
-                </button>
             </div>
-            @if ($processSearch !== '')
-                <div class="flex items-center justify-between text-xs mt-3" style="color: var(--text-muted);">
-                    <span>{{ $this->processes->total() }} {{ $this->processes->total() === 1 ? 'resultado' : 'resultados' }}</span>
-                    <button type="button" wire:click="$set('processSearch', '')" class="font-semibold hover:underline"
-                        style="color: var(--admin-primary, var(--brand-primary, #0C4A34));">Limpar filtro</button>
-                </div>
-            @endif
+
+            <div class="ui-card px-4 py-2.5 flex items-center gap-2.5 flex-1">
+                <i class="fa-solid fa-magnifying-glass text-xs shrink-0" style="color: var(--text-muted);"></i>
+                <input type="text" wire:model.live.debounce.300ms="processSearch"
+                    placeholder="Buscar por número, assunto, relator ou interessado..."
+                    class="flex-1 min-w-0 bg-transparent text-sm focus:outline-none"
+                    style="color: var(--text-primary);" />
+                @if ($processSearch !== '')
+                    <span class="text-xs shrink-0" style="color: var(--text-muted);">{{ $this->processes->total() }} {{ $this->processes->total() === 1 ? 'resultado' : 'resultados' }}</span>
+                    <button type="button" wire:click="$set('processSearch', '')" class="text-xs font-semibold shrink-0 hover:underline"
+                        style="color: var(--admin-primary, var(--brand-primary, #0C4A34));">Limpar</button>
+                @endif
+            </div>
         </div>
 
         {{-- Tabela de Processos — isolada num island: selecionar linhas,
              paginar e publicar/excluir só atualizam esta região. --}}
         @island(name: 'council-processes-list', always: true)
         <div class="space-y-4">
-            <div class="flex items-center justify-end gap-2">
-                @if (count($this->selectedProcesses) > 0)
+            {{-- Barra de ações em massa: só aparece com algo selecionado. Fica
+                 aqui dentro do island (não no cabeçalho) porque selecionar
+                 uma linha só atualiza esta região — fora do island, o
+                 contador/botões ficariam presos no estado inicial. --}}
+            @if (count($this->selectedProcesses) > 0)
+                <div class="flex items-center justify-end gap-2">
                     <span class="text-xs font-semibold" style="color: var(--text-muted);">{{ count($this->selectedProcesses) }}
                         selecionado(s)</span>
-                    @can('council-processes.update')
+                    @can('council.update')
                         <x-ui.button type="button" wire:click="bulkPublish" variant="secondary" size="sm">
                             <i class="fa-solid fa-check mr-1"></i> Publicar
                         </x-ui.button>
@@ -56,7 +66,7 @@ Tela de gestão do Conselho Superior (admin): processos SEI do conselho
                             <i class="fa-solid fa-ban mr-1"></i> Despublicar
                         </x-ui.button>
                     @endcan
-                    @can('council-processes.delete')
+                    @can('council.delete')
                         <x-ui.button type="button"
                             @click="confirmAction('Confirma a exclusão de {{ count($this->selectedProcesses) }} processo(s) selecionado(s)?', () => $wire.bulkDeleteProcesses())"
                             variant="danger" size="sm">
@@ -65,13 +75,8 @@ Tela de gestão do Conselho Superior (admin): processos SEI do conselho
                     @endcan
                     <x-ui.button type="button" wire:click="deselectAllProcesses" variant="ghost"
                         size="sm">Cancelar</x-ui.button>
-                @else
-                    <x-ui.button wire:click="closeProcessForm"
-                        x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'council-process-form' }))">
-                        Novo processo
-                    </x-ui.button>
-                @endif
-            </div>
+                </div>
+            @endif
 
             @if ($this->processes->isEmpty())
                 <x-ui.empty-state title="Nenhum processo cadastrado ainda." icon="folder" />
@@ -121,7 +126,7 @@ Tela de gestão do Conselho Superior (admin): processos SEI do conselho
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
                             </x-ui.tooltip>
-                            @can('council-processes.update')
+                            @can('council.update')
                                 <x-ui.tooltip :text="$process->is_published ? 'Despublicar' : 'Publicar'">
                                     <button wire:click="togglePublish({{ $process->id }})"
                                         class="w-9 h-9 inline-flex items-center justify-center rounded transition hover:brightness-95"
@@ -130,7 +135,7 @@ Tela de gestão do Conselho Superior (admin): processos SEI do conselho
                                     </button>
                                 </x-ui.tooltip>
                             @endcan
-                            @can('council-processes.delete')
+                            @can('council.delete')
                                 <x-ui.tooltip text="Excluir">
                                     <button
                                         @click="confirmAction('Confirma a exclusão deste processo?', () => $wire.deleteProcess({{ $process->id }}))"
@@ -154,7 +159,17 @@ Tela de gestão do Conselho Superior (admin): processos SEI do conselho
 
         <!-- Modal: Formulário de Processo -->
         <x-ui.modal name="council-process-form" maxWidth="lg">
-            <x-slot:header>Processo do Conselho</x-slot:header>
+            <x-slot:header>
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, var(--admin-primary, var(--brand-primary, #0C4A34)), color-mix(in srgb, var(--admin-primary, var(--brand-primary, #0C4A34)) 70%, black));">
+                        <i class="fa-solid fa-folder-open text-white"></i>
+                    </span>
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wide" style="color: var(--admin-primary, var(--brand-primary, #0C4A34));">Conselho Superior</span>
+                        <p class="font-black text-base leading-snug" style="color: var(--text-primary);">{{ $editingProcess ? 'Editar processo' : 'Novo processo' }}</p>
+                    </div>
+                </div>
+            </x-slot:header>
             <livewire:admin.council.council-process-form :process="$editingProcess"
                 :key="'council-process-form-' . ($editingProcessId ?? 'new')" />
         </x-ui.modal>

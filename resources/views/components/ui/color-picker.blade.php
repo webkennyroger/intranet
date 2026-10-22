@@ -7,15 +7,17 @@
     'label' => null,
     'hint' => null,
     'error' => null,
-    'value' => '#10b981',
+    'value' => '#00bc7d',
     'swatches' => null,
 ])
 
 @php
     $modelName = $attributes->wire('model')->value();
-    $defaultSwatches = ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b', '#111827'];
+    // Tailwind v4 (não v3): red-500, orange-500, amber-500, emerald-500,
+    // cyan-500, blue-500, violet-500, pink-500, slate-500, gray-900.
+    $defaultSwatches = ['#fb2c36', '#ff6900', '#fe9a00', '#00bc7d', '#00b8db', '#2b7fff', '#8e51ff', '#f6339a', '#62748e', '#101828'];
     $swatchList = $swatches ?? $defaultSwatches;
-    $initial = $value ?: '#10b981';
+    $initial = $value ?: '#00bc7d';
 @endphp
 
 <div
@@ -66,14 +68,16 @@
     @if(!empty($swatchList))
         <div class="flex flex-wrap items-center gap-1.5 pt-1">
             @foreach($swatchList as $swatch)
-                <button
-                    type="button"
-                    @click="hex = '{{ $swatch }}'"
-                    class="w-6 h-6 rounded-full transition-transform duration-150 hover:scale-110 border-2"
-                    :class="hex.toLowerCase() === '{{ strtolower($swatch) }}' ? 'border-emerald-500 scale-110' : 'border-[var(--border-color)]'"
-                    style="background-color: {{ $swatch }};"
-                    aria-label="{{ $swatch }}"
-                ></button>
+                <x-ui.tooltip :text="$swatch">
+                    <button
+                        type="button"
+                        @click="hex = '{{ $swatch }}'"
+                        class="w-6 h-6 rounded-full transition-transform duration-150 hover:scale-110 border-2"
+                        :class="hex.toLowerCase() === '{{ strtolower($swatch) }}' ? 'border-emerald-500 scale-110' : 'border-[var(--border-color)]'"
+                        style="background-color: {{ $swatch }};"
+                        aria-label="{{ $swatch }}"
+                    ></button>
+                </x-ui.tooltip>
             @endforeach
         </div>
     @endif

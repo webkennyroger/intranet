@@ -72,7 +72,7 @@
                             },
                             toggle() {
                                 if (sidebarCollapsed) {
-                                    this.flyoutOpen ? (this.flyoutOpen = false) : this.openFlyout();
+                                    this.openFlyout();
                                 } else {
                                     this.open = !this.open;
                                 }
@@ -93,10 +93,10 @@
                             @click="toggle()"
                             @mouseenter="sidebarCollapsed && openFlyout()"
                             @mouseleave="sidebarCollapsed && scheduleClose()"
-                            class="relative w-full flex flex-row items-center gap-3 pl-3 pr-3 py-2.5 rounded-xl font-medium transition hover:bg-black/5"
+                            class="relative w-full flex flex-row items-center gap-3 pl-3 pr-3 py-2.5 rounded-xl font-medium transition hover:bg-black/8"
                             :class="sidebarCollapsed ? 'lg:flex-col lg:gap-0.5 lg:justify-center lg:px-1 lg:py-2.5' : ''"
                         >
-                            <i class="fa-solid fa-{{ $section['icon'] }} w-4 text-center opacity-70"></i>
+                            <i class="fa-solid fa-{{ $section['icon'] }} w-4 text-center"></i>
                             <span class="flex-1 text-left" :class="sidebarCollapsed ? 'lg:text-[9px] lg:text-center lg:leading-tight' : ''">{{ $section['group'] }}</span>
                             <i
                                 class="fa-solid text-[10px] opacity-70"
@@ -111,7 +111,7 @@
                                 @php $isActive = ! ($item['alias'] ?? false) && request()->routeIs($item['route']); @endphp
                                 <a
                                     href="{{ route($item['route']) }}"
-                                    class="relative flex items-center gap-2.5 pl-4 pr-3 py-2 rounded-lg transition text-xs {{ $isActive ? 'font-semibold' : 'font-medium opacity-80 hover:bg-black/5' }}"
+                                    class="relative flex items-center gap-2.5 pl-4 pr-3 py-2 rounded-lg transition text-xs {{ $isActive ? 'font-semibold' : 'font-medium hover:bg-black/8' }}"
                                     @if ($isActive)
                                         style="color: var(--admin-sidebar-active-text); background-color: var(--admin-sidebar-active-bg);"
                                     @else
@@ -178,7 +178,7 @@
                                 @mouseenter="if (sidebarCollapsed) { tipTop = $el.getBoundingClientRect().top + $el.getBoundingClientRect().height / 2; showTip = true; }"
                                 @mouseleave="showTip = false"
                                 :class="sidebarCollapsed ? 'lg:flex-col lg:gap-0.5 lg:justify-center lg:px-1 lg:py-2.5' : ''"
-                                class="relative flex flex-row items-center gap-3 pl-3 py-2.5 transition {{ $isActive ? 'font-bold -mr-3 pr-6 rounded-l-xl' : 'font-medium pr-3 rounded-xl hover:bg-black/5' }}"
+                                class="relative flex flex-row items-center gap-3 pl-3 py-2.5 transition {{ $isActive ? 'font-bold -mr-3 pr-6 rounded-l-xl' : 'font-medium pr-3 rounded-xl hover:bg-black/8' }}"
                                 @if ($isActive) style="background-color: var(--admin-sidebar-active-bg); color: var(--admin-sidebar-active-text);" @endif
                             >
                                 <span
@@ -186,11 +186,11 @@
                                     @if ($isActive) style="background-color: color-mix(in srgb, var(--admin-sidebar-active-text) 18%, transparent);" @endif
                                 >
                                     <i
-                                        class="fa-solid fa-{{ $item['icon'] }} text-sm {{ $isActive ? '' : 'opacity-70' }}"
+                                        class="fa-solid fa-{{ $item['icon'] }} text-sm"
                                         @if ($isActive) style="color: var(--admin-sidebar-active-text);" @endif
                                     ></i>
                                 </span>
-                                <span class="flex-1 {{ $isActive ? '' : 'opacity-80' }}" :class="sidebarCollapsed ? 'lg:text-[9px] lg:text-center lg:leading-tight' : ''">{{ $item['label'] }}</span>
+                                <span class="flex-1" :class="sidebarCollapsed ? 'lg:text-[9px] lg:text-center lg:leading-tight' : ''">{{ $item['label'] }}</span>
                                 @if ($isActive)
                                     <span class="absolute right-0.5 inset-y-0 w-1" style="background-color: var(--admin-sidebar-active-text);"></span>
                                 @endif

@@ -32,16 +32,20 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2 shrink-0">
-                                    <x-ui.tooltip text="Editar">
-                                        <button wire:click="edit({{ $category->id }})" class="w-9 h-9 inline-flex items-center justify-center rounded transition hover:brightness-95" style="background-color: rgba(37, 99, 235, 0.1); color: #2563EB;">
-                                            <i class="fa-solid fa-pen"></i>
-                                        </button>
-                                    </x-ui.tooltip>
-                                    <x-ui.tooltip text="Excluir">
-                                        <button @click="confirmAction(@js('Confirma a exclusão da categoria "'.$category->name.'"? Ela será removida de todos os artigos que a usam.'), () => $wire.delete({{ $category->id }}))" class="w-9 h-9 inline-flex items-center justify-center rounded transition hover:brightness-95" style="background-color: rgba(220, 38, 38, 0.1); color: #DC2626;">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                    </x-ui.tooltip>
+                                    @can('categories.update')
+                                        <x-ui.tooltip text="Editar">
+                                            <button wire:click="edit({{ $category->id }})" class="w-9 h-9 inline-flex items-center justify-center rounded transition hover:brightness-95" style="background-color: rgba(37, 99, 235, 0.1); color: #2563EB;">
+                                                <i class="fa-solid fa-pen"></i>
+                                            </button>
+                                        </x-ui.tooltip>
+                                    @endcan
+                                    @can('categories.delete')
+                                        <x-ui.tooltip text="Excluir">
+                                            <button @click="confirmAction(@js('Confirma a exclusão da categoria "'.$category->name.'"? Ela será removida de todos os artigos que a usam.'), () => $wire.delete({{ $category->id }}))" class="w-9 h-9 inline-flex items-center justify-center rounded transition hover:brightness-95" style="background-color: rgba(220, 38, 38, 0.1); color: #DC2626;">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </x-ui.tooltip>
+                                    @endcan
                                 </div>
                             </div>
 

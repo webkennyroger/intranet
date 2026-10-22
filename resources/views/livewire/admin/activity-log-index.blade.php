@@ -12,8 +12,8 @@
         subtitle="Registro completo de todas as ações realizadas no sistema."
         :breadcrumbs="[['label' => 'Painel', 'href' => route('dashboard')], ['label' => 'Histórico de Atividades']]"
     >
-        @if (count($selected) > 0)
-            <x-slot:actions>
+        <x-slot:actions>
+            @if (count($selected) > 0)
                 <span class="text-xs font-semibold" style="color: var(--text-muted);">{{ count($selected) }} selecionado(s)</span>
                 @can('activity-log.delete')
                     <x-ui.button type="button" @click="confirmAction('Confirma a exclusão de {{ count($selected) }} registro(s) selecionado(s)?', () => $wire.bulkDelete())" variant="danger" size="sm">
@@ -21,58 +21,90 @@
                     </x-ui.button>
                 @endcan
                 <x-ui.button type="button" wire:click="deselectAll" variant="ghost" size="sm">Cancelar</x-ui.button>
-            </x-slot:actions>
-        @endif
+            @endif
+
+            <!-- Exportar: mesmo botão/dropdown e ícones de arquivo (Excel/PDF)
+                 usados no ESDEP, pra manter a mesma linguagem visual entre
+                 os dois sistemas da Defensoria. -->
+            <x-ui.dropdown align="right" width="56">
+                <x-slot:trigger>
+                    <button type="button" class="inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-semibold text-white shadow-xs transition hover:brightness-110 active:brightness-95" style="background-color: var(--admin-primary, var(--brand-primary, #0C4A34));">
+                        <i class="fa-solid fa-download text-xs"></i>
+                        Exportar
+                    </button>
+                </x-slot:trigger>
+
+                <x-ui.context-item icon="" wire:click="exportExcel">
+                    <span class="flex items-center gap-2.5">
+                        <x-icons.excel-icon class="h-5 w-5 shrink-0" />
+                        Excel (.xlsx)
+                    </span>
+                </x-ui.context-item>
+                <x-ui.context-item icon="" wire:click="exportPdf">
+                    <span class="flex items-center gap-2.5">
+                        <x-icons.pdf-icon class="h-5 w-5 shrink-0" />
+                        PDF (.pdf)
+                    </span>
+                </x-ui.context-item>
+            </x-ui.dropdown>
+        </x-slot:actions>
     </x-admin.page-header>
 
-    <!-- Estatísticas (Cards) -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <x-admin.trend-stat-card label="Total de atividades" :value="$stats['total']" :changePercent="$totalTrend['changePercent']" :values="$totalTrend['values']" icon="list-check" color="#0891B2" />
-        <x-admin.stat-card label="Hoje" :value="$stats['today']" icon="clock" iconColor="#2563eb" />
-        <x-admin.stat-card label="Esta semana" :value="$stats['thisWeek']" icon="calendar-week" iconColor="#9333ea" />
-    </div>
-
-    <!-- Filtros e Abas -->
-    <div class="rounded-2xl p-5 space-y-4" style="background-color: var(--bg-card); border: 1px solid var(--border-color);">
-        <div class="flex flex-wrap items-end gap-4">
-            <div class="flex-1 min-w-[12rem]">
-                <x-ui.input wire:model.live="search" label="Buscar" placeholder="Buscar por descrição ou usuário..." />
+    <!-- Painel único: busca + filtros + abas, dentro do mesmo cartão — sem
+         a linha de estatísticas (não existe no print de referência) e sem
+         divisórias internas, pra ficar uma superfície só, igual ao print. -->
+    <div class="ui-card p-5 space-y-4">
+        <div class="flex flex-wrap items-center gap-3">
+            <div class="relative flex-1 basis-72">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-xs" style="color: var(--text-muted);"></i>
+                <input type="text" wire:model.live.debounce.300ms="search"
+                    placeholder="Buscar por descrição ou usuário..."
+                    class="w-full rounded-lg pl-9 pr-3 h-10 text-sm focus:outline-none focus:ring-2 focus:ring-(--focus-ring)/40 transition"
+                    style="background-color: var(--bg-elevated); border: 1px solid var(--border-color); color: var(--text-primary);" />
             </div>
 
-            <div class="min-w-[10rem]">
-                <x-ui.select wire:model.live="typeFilter" label="Tipo" placeholder="Todos os tipos">
+            <div class="flex-1 basis-40">
+                <x-ui.select wire:model.live="typeFilter" placeholder="Todos os tipos">
                     @foreach ($typeOptions as $value => $label)
                         <option value="{{ $value }}">{{ $label }}</option>
                     @endforeach
                 </x-ui.select>
             </div>
 
-            <div class="min-w-[9rem]">
-                <x-ui.select wire:model.live="periodFilter" label="Período" placeholder="Todo o período">
+            <div class="flex-1 basis-40">
+                <x-ui.select wire:model.live="periodFilter" placeholder="Todo o período">
                     <option value="today">Hoje</option>
                     <option value="week">Esta semana</option>
                     <option value="month">Este mês</option>
                 </x-ui.select>
             </div>
 
-            <div class="min-w-[10rem]">
-                <x-ui.select wire:model.live="userFilter" label="Usuário" placeholder="Todos os usuários">
+            <div class="flex-1 basis-40">
+                <x-ui.select wire:model.live="userFilter" placeholder="Todos os usuários">
                     @foreach ($userOptions as $user)
                         <option value="{{ $user->id }}">{{ $user->name }}</option>
                     @endforeach
                 </x-ui.select>
             </div>
 
-            <x-ui.button type="button" wire:click="$refresh">
-                <i class="fa-solid fa-magnifying-glass mr-1"></i> Buscar
-            </x-ui.button>
+            <button type="button" x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'activity-log-filters' }))" class="inline-flex items-center gap-2 rounded-lg h-10 px-4 text-sm font-semibold text-white shrink-0" style="background-color: #405189;">
+                <i class="fa-solid fa-filter text-xs"></i>
+                Filtros
+                @if ($dateFrom !== '' && $dateTo !== '')
+                    <span class="w-2 h-2 rounded-full" style="background-color: #F06548;"></span>
+                @endif
+            </button>
         </div>
 
-        <x-admin.filter-tabs
-            :tabs="collect(\App\Livewire\Admin\ActivityLogIndex::ACTIONS)->mapWithKeys(fn ($label, $action) => [$action => ['label' => $label, 'count' => $tabCounts[$action]]])"
-            :active="$actionFilter"
-            action="setActionFilter"
-        />
+        <div class="mt-2">
+            <x-admin.filter-tabs
+                :tabs="collect(\App\Livewire\Admin\ActivityLogIndex::ACTIONS)->mapWithKeys(fn ($label, $action) => [$action => ['label' => $label, 'count' => $tabCounts[$action]]])"
+                :active="$actionFilter"
+                action="setActionFilter"
+                :colors="['' => 'var(--admin-primary)', 'created' => '#059669', 'updated' => '#2563EB', 'activated' => '#059669', 'deactivated' => '#D97706', 'deleted' => '#DC2626']"
+                :icons="['' => 'list-check', 'created' => 'plus', 'updated' => 'pen', 'activated' => 'toggle-on', 'deactivated' => 'toggle-off', 'deleted' => 'trash']"
+            />
+        </div>
     </div>
 
     <!-- Tabela de Atividades -->
@@ -91,13 +123,13 @@
             <tr wire:key="activity-log-{{ $log->id }}">
                 <td class="px-4 py-3"><x-ui.table-checkbox wire:model.live="selected" value="{{ $log->id }}" /></td>
                 <td class="px-6 py-3">
-                    <x-ui.badge :variant="$log->action_variant">
-                        <i class="fa-solid fa-{{ $log->action_icon }} mr-1"></i> {{ $log->action_label }}
-                    </x-ui.badge>
+                    <span class="inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold uppercase" style="border-radius: 4px; background-color: color-mix(in srgb, {{ $log->action_color }} 12%, transparent); color: {{ $log->action_color }};">
+                        {{ $log->action_label }}
+                    </span>
                 </td>
-                <td class="px-4 py-3 text-sm" style="color: var(--text-primary);">{{ $log->description }}</td>
+                <td class="px-4 py-3 text-[13px]" style="color: var(--text-primary);">{{ $log->description }}</td>
                 <td class="px-4 py-3">
-                    <span class="rounded-full px-2 py-0.5 text-xs font-medium" style="background-color: var(--bg-elevated); color: var(--text-muted);">
+                    <span class="px-1.5 py-0.5 text-[10px] font-semibold uppercase" style="border-radius: 4px; background-color: var(--bg-elevated); color: var(--text-secondary);">
                         {{ $log->subject_label }}
                     </span>
                 </td>
@@ -113,12 +145,14 @@
                 </td>
                 <td class="px-4 py-3 text-sm" style="color: var(--text-secondary);">
                     <p>{{ $log->created_at->format('d/m/Y') }}</p>
-                    <p class="text-xs" style="color: var(--text-muted);">{{ $log->created_at->format('H:i:s') }}</p>
+                    <p class="text-xs" style="color: var(--text-muted);">{{ $log->created_at->format('H:i:s') }} &middot; {{ $log->created_at->diffForHumans() }}</p>
                 </td>
                 <td class="px-4 py-3">
-                    <button wire:click="openDetail({{ $log->id }})" x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'activity-log-detail' }))" class="rounded-lg px-3 py-1.5 text-xs font-semibold" style="background-color: var(--bg-elevated); color: var(--text-primary);">
-                        Ver
-                    </button>
+                    <x-ui.tooltip text="Ver detalhes">
+                        <button wire:click="openDetail({{ $log->id }})" x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'activity-log-detail' }))" class="w-8 h-8 rounded-md flex items-center justify-center transition hover:bg-(--bg-hover)" style="color: var(--text-secondary);">
+                            <i class="fa-solid fa-eye text-sm"></i>
+                        </button>
+                    </x-ui.tooltip>
                 </td>
             </tr>
         @empty
@@ -134,18 +168,58 @@
         </x-slot:footer>
     </x-ui.data-table>
 
+    <!-- Modal: Filtros avançados (intervalo de data customizado, além dos
+         períodos fixos hoje/semana/mês já disponíveis na barra) -->
+    <x-ui.modal name="activity-log-filters" maxWidth="sm">
+        <x-slot:header>
+            <div class="flex items-center gap-3">
+                <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, var(--admin-primary, var(--brand-primary, #0C4A34)), color-mix(in srgb, var(--admin-primary, var(--brand-primary, #0C4A34)) 70%, black));">
+                    <i class="fa-solid fa-filter text-white"></i>
+                </span>
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wide" style="color: var(--admin-primary, var(--brand-primary, #0C4A34));">Histórico de Atividades</span>
+                    <p class="font-black text-base leading-snug" style="color: var(--text-primary);">Filtros avançados</p>
+                </div>
+            </div>
+        </x-slot:header>
+
+        <form wire:submit="applyDateRange" class="space-y-4">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: var(--text-muted);">Intervalo de data</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <x-ui.input type="date" wire:model="dateFrom" label="De" />
+                    <x-ui.input type="date" wire:model="dateTo" label="Até" />
+                </div>
+                <p class="text-xs mt-2" style="color: var(--text-muted);">Filtra pela data em que a ação aconteceu, além (ou no lugar) dos períodos fixos da barra de busca.</p>
+            </div>
+
+            <div class="flex justify-between gap-2">
+                <x-ui.button type="button" variant="ghost" wire:click="clearDateRange">Limpar</x-ui.button>
+                <x-ui.button type="submit">Aplicar</x-ui.button>
+            </div>
+        </form>
+    </x-ui.modal>
+
     <!-- Modal: Detalhes da Atividade -->
     <x-ui.modal name="activity-log-detail" maxWidth="lg">
-        <x-slot:header>Detalhes da atividade</x-slot:header>
+        <x-slot:header>
+            @if ($selectedLog)
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, {{ $selectedLog->action_color }}, color-mix(in srgb, {{ $selectedLog->action_color }} 70%, black));">
+                        <i class="fa-solid fa-{{ $selectedLog->action_icon }} text-white"></i>
+                    </span>
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wide" style="color: {{ $selectedLog->action_color }};">{{ $selectedLog->subject_label }}</span>
+                        <p class="font-black text-base leading-snug" style="color: var(--text-primary);">{{ $selectedLog->action_label }}</p>
+                    </div>
+                </div>
+            @else
+                Detalhes da atividade
+            @endif
+        </x-slot:header>
 
         @if ($selectedLog)
             <div class="space-y-4">
-                <div>
-                    <x-ui.badge :variant="$selectedLog->action_variant">
-                        <i class="fa-solid fa-{{ $selectedLog->action_icon }} mr-1"></i> {{ $selectedLog->action_label }}
-                    </x-ui.badge>
-                </div>
-
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wide" style="color: var(--text-muted);">Descrição</p>
                     <p class="text-sm mt-1" style="color: var(--text-primary);">{{ $selectedLog->description }}</p>

@@ -68,7 +68,7 @@
 </head>
 <body
     class="site-dark-bg font-sans antialiased bg-slate-100 dark:text-(--text-primary) text-slate-800"
-    x-data="{ sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true', mobileSidebarOpen: false }"
+    x-data="{ sidebarCollapsed: localStorage.getItem('sidebarCollapsed') !== 'false', mobileSidebarOpen: false }"
     x-init="$watch('sidebarCollapsed', (value) => localStorage.setItem('sidebarCollapsed', value))"
 >
     <!-- Header -->

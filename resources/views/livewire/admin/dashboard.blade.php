@@ -12,47 +12,65 @@
         message="Aqui está um resumo do painel administrativo hoje."
         :badge="$canViewContent && $draftArticles > 0 ? $draftArticles.' rascunho(s) pendente(s)' : null"
     />
-    <!-- Estatísticas (Cards com variação e mini-gráfico dos últimos 7 dias) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <!-- Estatísticas: um cartão só, ocupando a largura toda, dividido por
+         uma linha fina — mesmo padrão usado nas outras páginas do admin. -->
+    <div class="ui-card flex flex-wrap items-stretch divide-x divide-(--border-color)">
         @if ($canViewContent)
-            <x-admin.trend-stat-card
-                label="Artigos Publicados" :value="$publishedArticles"
-                :changePercent="$publishedArticlesTrend['changePercent']" :values="$publishedArticlesTrend['values']"
-                icon="newspaper" color="#2563EB"
-            />
-            <x-admin.trend-stat-card
-                label="Curtidas Totais" :value="$totalLikes"
-                :changePercent="$likesTrend['changePercent']" :values="$likesTrend['values']"
-                icon="heart" color="#EC4899"
-            />
+            <div class="flex items-center gap-3 px-5 py-4 flex-1 min-w-48">
+                <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #2563EB 14%, transparent);">
+                    <i class="fa-solid fa-newspaper text-sm" style="color: #2563EB;"></i>
+                </span>
+                <div class="whitespace-nowrap">
+                    <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Artigos Publicados</p>
+                    <p class="text-xl font-black leading-tight" style="color: var(--text-primary);">{{ $publishedArticles }}</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 px-5 py-4 flex-1 min-w-48">
+                <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #EC4899 14%, transparent);">
+                    <i class="fa-solid fa-heart text-sm" style="color: #EC4899;"></i>
+                </span>
+                <div class="whitespace-nowrap">
+                    <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Curtidas Totais</p>
+                    <p class="text-xl font-black leading-tight" style="color: var(--text-primary);">{{ $totalLikes }}</p>
+                </div>
+            </div>
         @endif
         @if ($canViewUsers)
-            <x-admin.trend-stat-card
-                label="Total de Usuários" :value="$totalUsers"
-                :changePercent="$usersTrend['changePercent']" :values="$usersTrend['values']"
-                icon="users" color="#059669"
-            />
+            <div class="flex items-center gap-3 px-5 py-4 flex-1 min-w-48">
+                <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #059669 14%, transparent);">
+                    <i class="fa-solid fa-users text-sm" style="color: #059669;"></i>
+                </span>
+                <div class="whitespace-nowrap">
+                    <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Total de Usuários</p>
+                    <p class="text-xl font-black leading-tight" style="color: var(--text-primary);">{{ $totalUsers }}</p>
+                </div>
+            </div>
         @endif
         @if ($canViewServices)
-            <x-admin.trend-stat-card
-                label="Serviços Ativos" :value="$activeServices"
-                :changePercent="$activeServicesTrend['changePercent']" :values="$activeServicesTrend['values']"
-                icon="sliders" color="#F59E0B"
-            />
+            <div class="flex items-center gap-3 px-5 py-4 flex-1 min-w-48">
+                <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #F59E0B 14%, transparent);">
+                    <i class="fa-solid fa-sliders text-sm" style="color: #F59E0B;"></i>
+                </span>
+                <div class="whitespace-nowrap">
+                    <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Serviços Ativos</p>
+                    <p class="text-xl font-black leading-tight" style="color: var(--text-primary);">{{ $activeServices }}</p>
+                </div>
+            </div>
         @endif
     </div>
     <!-- Gráficos e Resumos (se tiver permissão) -->
     @if ($canViewContent)
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <!-- Notícias: curtidas em destaque + visitas x curtidas por mês -->
-            <div class="ui-card h-full flex flex-col p-6 lg:col-span-2">
+            <div class="ui-card h-full flex flex-col p-6 lg:col-span-2" style="border-top: 2px solid #06B6D4;">
                 <div class="flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3">
-                        <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--admin-primary-light, rgba(12, 74, 52, 0.1)); color: var(--admin-primary);">
+                        <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #06B6D4 14%, transparent); color: #06B6D4;">
                             <i class="fa-solid fa-newspaper text-sm"></i>
                         </span>
                         <div>
-                            <div class="font-semibold" style="color: var(--text-primary);">Notícias</div>
+                            <div class="font-bold" style="color: var(--text-primary);">Notícias</div>
                             <div class="text-xs" style="color: var(--text-muted);">Visitas e curtidas por mês</div>
                         </div>
                     </div>
@@ -103,13 +121,13 @@
             </div>
 
             <!-- Comentários Recentes -->
-            <div class="ui-card h-full flex flex-col">
+            <div class="ui-card h-full flex flex-col" style="border-top: 2px solid #8B5CF6;">
                 <div class="px-5 py-4 flex items-center gap-3 shrink-0" style="border-bottom: 1px solid var(--border-color);">
-                    <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--admin-primary-light, rgba(12, 74, 52, 0.1)); color: var(--admin-primary);">
+                    <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #8B5CF6 14%, transparent); color: #8B5CF6;">
                         <i class="fa-solid fa-comments text-sm"></i>
                     </span>
                     <div>
-                        <div class="font-semibold" style="color: var(--text-primary);">Comentários Recentes</div>
+                        <div class="font-bold" style="color: var(--text-primary);">Comentários Recentes</div>
                         <div class="text-xs" style="color: var(--text-muted);">O que os servidores estão comentando</div>
                     </div>
                 </div>
@@ -118,7 +136,7 @@
                         <x-ui.empty-state title="Nenhum comentário ainda." icon="comment" />
                     </div>
                 @else
-                    <div class="sidebar-card flex-1 min-h-0 overflow-y-auto p-2 space-y-1">
+                    <div class="sidebar-card max-h-96 overflow-y-auto p-2 space-y-1">
                         @foreach ($recentComments as $comment)
                             <a href="{{ route('mural.show', $comment->article) }}" class="flex items-start gap-3 rounded-xl p-3 transition hover:bg-slate-50 dark:hover:bg-white/5">
                                 <x-ui.avatar :name="$comment->author?->name ?? '—'" size="sm" />
@@ -146,14 +164,14 @@
          pode ficar dentro de @if/@foreach — ver docs do Livewire 4). --}}
     @island(name: 'recent-articles', always: true)
         @if (auth()->user()->can('articles.view'))
-            <div class="ui-card overflow-hidden">
+            <div class="ui-card overflow-hidden" style="border-top: 2px solid #2563EB;">
                 <div class="p-5 flex items-center justify-between gap-3 flex-wrap" style="border-bottom: 1px solid var(--border-color);">
                     <div class="flex items-center gap-3">
-                        <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--admin-primary-light, rgba(12, 74, 52, 0.1)); color: var(--admin-primary);">
+                        <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #2563EB 14%, transparent); color: #2563EB;">
                             <i class="fa-solid fa-newspaper text-sm"></i>
                         </span>
                         <div>
-                            <div class="font-semibold" style="color: var(--text-primary);">Últimos Artigos</div>
+                            <div class="font-bold" style="color: var(--text-primary);">Últimos Artigos</div>
                             <div class="text-xs" style="color: var(--text-muted);">Publicados no mural</div>
                         </div>
                     </div>

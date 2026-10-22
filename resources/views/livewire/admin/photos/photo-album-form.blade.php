@@ -52,7 +52,7 @@
 
     <!-- Adicionar Novas Fotos -->
     <div class="space-y-1.5">
-        <x-ui.file-upload wire:model="newPhotos" multiple accept="image/*" label="Adicionar fotos" />
+        <x-ui.file-upload wire:model="newPhotos" multiple accept="image/*" label="Adicionar fotos" hint="PNG, JPG ou GIF (máx. 4 MB cada). Pode selecionar ou arrastar várias de uma vez." />
         @error('newPhotos.*') <p class="text-xs text-red-400">{{ $message }}</p> @enderror
 
         @if (! empty($newPhotos))
@@ -73,5 +73,7 @@
         @endif
     </div>
 
-    <x-ui.button type="submit">Salvar</x-ui.button>
+    <x-ui.button type="submit" class="w-full justify-center">
+        <i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar
+    </x-ui.button>
 </form>

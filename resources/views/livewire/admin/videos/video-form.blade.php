@@ -14,5 +14,7 @@
 
     <x-ui.input wire:model="url" type="url" label="URL do vídeo" hint="Link do YouTube, Vimeo ou outro serviço." />
 
-    <x-ui.button type="submit">Salvar</x-ui.button>
+    <x-ui.button type="submit" class="w-full justify-center">
+        <i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar
+    </x-ui.button>
 </form>

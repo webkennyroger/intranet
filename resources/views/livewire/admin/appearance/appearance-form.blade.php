@@ -21,72 +21,39 @@
             // invisíveis — faz sentido só nas outras linhas (fundo/texto).
             $accentPalette = \Illuminate\Support\Arr::where($palette, fn ($color) => strtoupper($color) !== '#FFFFFF');
         @endphp
-        <x-ui.card :padding="false">
+        @php
+            // Linhas da tabela: campo, ícone, título, descrição, paleta e cor
+            // padrão — monta cada bloco de swatches num loop só, em vez de
+            // repetir a mesma estrutura 5 vezes.
+            $rows = [
+                ['field' => 'primaryColor', 'value' => $primaryColor, 'icon' => 'droplet', 'title' => 'Cor de destaque', 'description' => 'Botões, links e realces em todo o painel.', 'palette' => $accentPalette, 'default' => '#0C4A34'],
+                ['field' => 'navHeaderColor', 'value' => $navHeaderColor, 'icon' => 'user-shield', 'title' => 'Canto da marca', 'description' => 'Fundo do emblema no topo do menu lateral.', 'palette' => $palette, 'default' => '#FFFFFF'],
+                ['field' => 'headerColor', 'value' => $headerColor, 'icon' => 'bars', 'title' => 'Barra superior', 'description' => 'Fundo da barra fixa no topo de cada página.', 'palette' => $palette, 'default' => '#FFFFFF'],
+                ['field' => 'sidebarColor', 'value' => $sidebarColor, 'icon' => 'table-columns', 'title' => 'Menu lateral', 'description' => 'Fundo da coluna de navegação à esquerda.', 'palette' => $palette, 'default' => '#FFFFFF'],
+                ['field' => 'textColor', 'value' => $textColor, 'icon' => 'font', 'title' => 'Cor do texto', 'description' => 'Cor principal dos textos do painel (modo claro — no modo escuro o texto continua claro).', 'palette' => $palette, 'default' => '#0F172A'],
+            ];
+        @endphp
+
+        {{-- Friso no topo na própria cor de destaque escolhida — a única
+             página do admin onde isso faz sentido, já que é literalmente o
+             que está sendo editado. --}}
+        <x-ui.card :padding="false" style="border-top: 3px solid {{ $primaryColor }};">
             <div>
-                <div class="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div class="flex items-start gap-3 sm:w-72 shrink-0">
-                        <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--bg-elevated); color: var(--text-secondary);">
-                            <i class="fa-solid fa-droplet"></i>
-                        </span>
-                        <div>
-                            <p class="font-semibold text-sm" style="color: var(--text-primary);">Cor de destaque</p>
-                            <p class="text-xs mt-0.5" style="color: var(--text-muted);">Botões, links e realces em todo o painel.</p>
+                @foreach ($rows as $i => $row)
+                    <div class="group p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4 transition hover:bg-(--bg-hover)" @if ($i > 0) style="border-top: 1px solid var(--border-color);" @endif>
+                        <div class="flex items-start gap-3 sm:w-72 shrink-0">
+                            <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition group-hover:scale-105" style="background-color: var(--bg-elevated); color: var(--text-secondary);">
+                                <i class="fa-solid fa-{{ $row['icon'] }}"></i>
+                            </span>
+                            <div>
+                                <p class="font-semibold text-sm" style="color: var(--text-primary);">{{ $row['title'] }}</p>
+                                <p class="text-xs mt-0.5" style="color: var(--text-muted);">{{ $row['description'] }}</p>
+                                <p class="text-[11px] font-mono font-bold uppercase mt-1" style="color: var(--text-secondary);">{{ $row['value'] }}</p>
+                            </div>
                         </div>
+                        <x-admin.color-picker :field="$row['field']" :value="$row['value']" :palette="$row['palette']" :default="$row['default']" />
                     </div>
-                    <x-admin.color-picker field="primaryColor" :value="$primaryColor" :palette="$accentPalette" default="#0C4A34" />
-                </div>
-
-                <div class="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4" style="border-top: 1px solid var(--border-color);">
-                    <div class="flex items-start gap-3 sm:w-72 shrink-0">
-                        <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--bg-elevated); color: var(--text-secondary);">
-                            <i class="fa-solid fa-user-shield"></i>
-                        </span>
-                        <div>
-                            <p class="font-semibold text-sm" style="color: var(--text-primary);">Canto da marca</p>
-                            <p class="text-xs mt-0.5" style="color: var(--text-muted);">Fundo do emblema no topo do menu lateral.</p>
-                        </div>
-                    </div>
-                    <x-admin.color-picker field="navHeaderColor" :value="$navHeaderColor" :palette="$palette" default="#FFFFFF" />
-                </div>
-
-                <div class="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4" style="border-top: 1px solid var(--border-color);">
-                    <div class="flex items-start gap-3 sm:w-72 shrink-0">
-                        <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--bg-elevated); color: var(--text-secondary);">
-                            <i class="fa-solid fa-bars"></i>
-                        </span>
-                        <div>
-                            <p class="font-semibold text-sm" style="color: var(--text-primary);">Barra superior</p>
-                            <p class="text-xs mt-0.5" style="color: var(--text-muted);">Fundo da barra fixa no topo de cada página.</p>
-                        </div>
-                    </div>
-                    <x-admin.color-picker field="headerColor" :value="$headerColor" :palette="$palette" default="#FFFFFF" />
-                </div>
-
-                <div class="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4" style="border-top: 1px solid var(--border-color);">
-                    <div class="flex items-start gap-3 sm:w-72 shrink-0">
-                        <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--bg-elevated); color: var(--text-secondary);">
-                            <i class="fa-solid fa-table-columns"></i>
-                        </span>
-                        <div>
-                            <p class="font-semibold text-sm" style="color: var(--text-primary);">Menu lateral</p>
-                            <p class="text-xs mt-0.5" style="color: var(--text-muted);">Fundo da coluna de navegação à esquerda.</p>
-                        </div>
-                    </div>
-                    <x-admin.color-picker field="sidebarColor" :value="$sidebarColor" :palette="$palette" default="#FFFFFF" />
-                </div>
-
-                <div class="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4" style="border-top: 1px solid var(--border-color);">
-                    <div class="flex items-start gap-3 sm:w-72 shrink-0">
-                        <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background-color: var(--bg-elevated); color: var(--text-secondary);">
-                            <i class="fa-solid fa-font"></i>
-                        </span>
-                        <div>
-                            <p class="font-semibold text-sm" style="color: var(--text-primary);">Cor do texto</p>
-                            <p class="text-xs mt-0.5" style="color: var(--text-muted);">Cor principal dos textos do painel (modo claro — no modo escuro o texto continua claro).</p>
-                        </div>
-                    </div>
-                    <x-admin.color-picker field="textColor" :value="$textColor" :palette="$palette" default="#0F172A" />
-                </div>
+                @endforeach
             </div>
         </x-ui.card>
 

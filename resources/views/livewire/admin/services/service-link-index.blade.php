@@ -37,11 +37,42 @@
         </x-slot:actions>
     </x-admin.page-header>
 
-    <!-- Estatísticas (Cards) -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <x-admin.trend-stat-card label="Total de serviços" :value="$totalLinks" :changePercent="$totalLinksTrend['changePercent']" :values="$totalLinksTrend['values']" icon="link" color="#2563EB" />
-        <x-admin.trend-stat-card label="Ativos" :value="$activeLinks" :changePercent="$activeLinksTrend['changePercent']" :values="$activeLinksTrend['values']" icon="check" color="#059669" />
-        <x-admin.trend-stat-card label="Inativos" :value="$inactiveLinks" :changePercent="$inactiveLinksTrend['changePercent']" :values="$inactiveLinksTrend['values']" icon="ban" color="#DC2626" />
+    <!-- Estatísticas: um cartão só, ocupando a largura toda, com cada
+         número dividido por uma linha fina — em vez de 3 caixas soltas com
+         um vão vazio depois delas. Sem busca aqui: a lista é arrastável
+         (reorder), então precisa ficar sempre completa na tela — filtrar
+         quebraria o "reorder", que manda e valida a lista inteira a cada
+         arrasto. -->
+    <div class="ui-card flex items-stretch divide-x divide-(--border-color)">
+        <div class="flex items-center gap-3 px-5 py-4 flex-1">
+            <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #2563EB 14%, transparent);">
+                <i class="fa-solid fa-link text-sm" style="color: #2563EB;"></i>
+            </span>
+            <div class="whitespace-nowrap">
+                <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Total</p>
+                <p class="text-xl font-black leading-tight" style="color: var(--text-primary);">{{ $totalLinks }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 px-5 py-4 flex-1">
+            <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #059669 14%, transparent);">
+                <i class="fa-solid fa-check text-sm" style="color: #059669;"></i>
+            </span>
+            <div class="whitespace-nowrap">
+                <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Ativos</p>
+                <p class="text-xl font-black leading-tight" style="color: var(--text-primary);">{{ $activeLinks }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 px-5 py-4 flex-1">
+            <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #DC2626 14%, transparent);">
+                <i class="fa-solid fa-ban text-sm" style="color: #DC2626;"></i>
+            </span>
+            <div class="whitespace-nowrap">
+                <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Inativos</p>
+                <p class="text-xl font-black leading-tight" style="color: var(--text-primary);">{{ $inactiveLinks }}</p>
+            </div>
+        </div>
     </div>
 
     <!-- Tabela de Serviços (Reordenável) -->
@@ -102,7 +133,17 @@
 
     <!-- Modal: Formulário de Serviço -->
     <x-ui.modal name="service-link-form" maxWidth="lg">
-        <x-slot:header>Serviço</x-slot:header>
+        <x-slot:header>
+            <div class="flex items-center gap-3">
+                <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, var(--admin-primary, var(--brand-primary, #0C4A34)), color-mix(in srgb, var(--admin-primary, var(--brand-primary, #0C4A34)) 70%, black));">
+                    <i class="fa-solid fa-link text-white"></i>
+                </span>
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wide" style="color: var(--admin-primary, var(--brand-primary, #0C4A34));">Serviços</span>
+                    <p class="font-black text-base leading-snug" style="color: var(--text-primary);">{{ $editingLink ? 'Editar serviço' : 'Novo serviço' }}</p>
+                </div>
+            </div>
+        </x-slot:header>
         <livewire:admin.services.service-link-form :link="$editingLink" :key="'service-link-form-'.($editingLinkId ?? 'new')" />
     </x-ui.modal>
 </div>

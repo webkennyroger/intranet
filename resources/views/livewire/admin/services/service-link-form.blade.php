@@ -5,9 +5,11 @@
 --}}
 <form wire:submit="save" class="space-y-4">
     <x-ui.input wire:model="title" label="Título" />
-    <x-ui.input wire:model="icon" label="Ícone (Font Awesome)" hint="Nome do ícone sem o prefixo, ex: book-open" />
+    <x-ui.autocomplete wire:model="icon" :options="\App\Services\IconCatalog::suggestions()" label="Ícone (Font Awesome)" hint="Nome do ícone sem o prefixo, ex: book-open" />
     <x-ui.input wire:model="url" type="url" label="URL" />
     <x-ui.checkbox wire:model="isActive" label="Ativo" />
 
-    <x-ui.button type="submit">Salvar</x-ui.button>
+    <x-ui.button type="submit" class="w-full justify-center">
+        <i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar
+    </x-ui.button>
 </form>

@@ -100,5 +100,7 @@
         @error('files.*') <p class="text-xs text-red-400">{{ $message }}</p> @enderror
     </div>
 
-    <x-ui.button type="submit">Salvar</x-ui.button>
+    <x-ui.button type="submit" class="w-full justify-center">
+        <i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar
+    </x-ui.button>
 </form>

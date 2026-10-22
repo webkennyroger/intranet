@@ -12,48 +12,62 @@
         title="Capacitações"
         subtitle="Gerencie os cursos e treinamentos disponibilizados para os servidores."
         :breadcrumbs="[['label' => 'Painel', 'href' => route('dashboard')], ['label' => 'Capacitações']]"
-    />
+    >
+        @if ($activeTab === 'capacitacoes')
+            <x-slot:actions>
+                <x-ui.button wire:click="closeForm" x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'training-form' }))">
+                    Nova capacitação
+                </x-ui.button>
+            </x-slot:actions>
+        @endif
+    </x-admin.page-header>
 
-    <!-- Abas -->
-    <div class="flex items-center gap-1 p-1 rounded-xl w-fit" style="background-color: var(--bg-elevated);">
-        <button type="button" wire:click="setTab('capacitacoes')" class="flex items-center gap-2 pl-1.5 pr-4 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap {{ $activeTab === 'capacitacoes' ? 'shadow-sm' : '' }}" style="{{ $activeTab === 'capacitacoes' ? 'background-color: var(--bg-card); color: var(--text-primary);' : 'color: var(--text-secondary);' }}">
-            <span class="w-7 h-7 inline-flex items-center justify-center rounded-lg" style="background-color: rgba(37, 99, 235, 0.1); color: #2563EB;">
-                <i class="fa-solid fa-graduation-cap text-xs"></i>
+    @if ($activeTab === 'capacitacoes')
+        <!-- Toolbar: total (compacto) + busca na mesma linha, em vez de um
+             grid de cards de dashboard inteiro acima de um card de busca
+             enorme. -->
+        <div class="flex flex-col sm:flex-row items-stretch gap-3">
+            <div class="ui-card px-4 py-2.5 flex items-center gap-3 shrink-0" style="border-top: 2px solid #2563EB;">
+                <span class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #2563EB 14%, transparent);">
+                    <i class="fa-solid fa-graduation-cap text-sm" style="color: #2563EB;"></i>
+                </span>
+                <div class="whitespace-nowrap">
+                    <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Total</p>
+                    <p class="text-lg font-black leading-tight" style="color: var(--text-primary);">{{ $totalTrainings }}</p>
+                </div>
+            </div>
+
+            <div class="ui-card px-4 py-2.5 flex items-center gap-2.5 flex-1">
+                <i class="fa-solid fa-magnifying-glass text-xs shrink-0" style="color: var(--text-muted);"></i>
+                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por título..."
+                    class="flex-1 min-w-0 bg-transparent text-sm focus:outline-none"
+                    style="color: var(--text-primary);" />
+            </div>
+        </div>
+    @endif
+
+    <!-- Abas: centralizadas, com cantos maiores e sombra na ativa. Borda
+         própria (não só a cor de fundo) pra ficar visível tanto no claro
+         quanto no escuro — "--bg-elevated" é bem parecido com o fundo da
+         página no tema claro, sem a borda a pílula ficava invisível. Hover
+         igual ao das pastas de Documentos do site: risco colorido no topo
+         que aparece ao passar o mouse + leve elevação com sombra. -->
+    <div class="flex items-center justify-center gap-2 p-1.5 rounded-2xl w-fit mx-auto" style="background-color: var(--bg-elevated); border: 1px solid var(--border-color);">
+        <button type="button" wire:click="setTab('capacitacoes')" class="group relative overflow-hidden flex items-center gap-2.5 pl-2 pr-5 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition {{ $activeTab === 'capacitacoes' ? 'shadow-md' : 'hover:-translate-y-0.5 hover:shadow-md' }}" style="{{ $activeTab === 'capacitacoes' ? 'background-color: var(--bg-card); color: var(--text-primary);' : 'color: var(--text-secondary);' }}">
+            <span class="absolute left-0 right-0 top-0 h-1 transition-transform {{ $activeTab === 'capacitacoes' ? '' : 'scale-x-0 group-hover:scale-x-100' }}" style="background-color: #2563EB;"></span>
+            <span class="w-8 h-8 inline-flex items-center justify-center rounded-lg transition group-hover:scale-105" style="background-color: color-mix(in srgb, #2563EB 14%, transparent); color: #2563EB;">
+                <i class="fa-solid fa-graduation-cap text-sm"></i>
             </span>
             Capacitações
         </button>
-        <button type="button" wire:click="setTab('pastas')" class="flex items-center gap-2 pl-1.5 pr-4 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap {{ $activeTab === 'pastas' ? 'shadow-sm' : '' }}" style="{{ $activeTab === 'pastas' ? 'background-color: var(--bg-card); color: var(--text-primary);' : 'color: var(--text-secondary);' }}">
-            <span class="w-7 h-7 inline-flex items-center justify-center rounded-lg" style="background-color: rgba(217, 119, 6, 0.1); color: #D97706;">
-                <i class="fa-solid fa-folder text-xs"></i>
+        <button type="button" wire:click="setTab('pastas')" class="group relative overflow-hidden flex items-center gap-2.5 pl-2 pr-5 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition {{ $activeTab === 'pastas' ? 'shadow-md' : 'hover:-translate-y-0.5 hover:shadow-md' }}" style="{{ $activeTab === 'pastas' ? 'background-color: var(--bg-card); color: var(--text-primary);' : 'color: var(--text-secondary);' }}">
+            <span class="absolute left-0 right-0 top-0 h-1 transition-transform {{ $activeTab === 'pastas' ? '' : 'scale-x-0 group-hover:scale-x-100' }}" style="background-color: #D97706;"></span>
+            <span class="w-8 h-8 inline-flex items-center justify-center rounded-lg transition group-hover:scale-105" style="background-color: color-mix(in srgb, #D97706 14%, transparent); color: #D97706;">
+                <i class="fa-solid fa-folder text-sm"></i>
             </span>
             Pastas
         </button>
     </div>
-
-    @if ($activeTab === 'capacitacoes')
-        <!-- Estatísticas (Cards) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <x-admin.trend-stat-card label="Total de capacitações" :value="$totalTrainings" :changePercent="$totalTrainingsTrend['changePercent']" :values="$totalTrainingsTrend['values']" icon="graduation-cap" color="#2563EB" />
-            <x-admin.trend-stat-card label="Publicadas" :value="$publishedTrainings" :changePercent="$publishedTrainingsTrend['changePercent']" :values="$publishedTrainingsTrend['values']" icon="check" color="#059669" />
-        </div>
-
-        <!-- Busca -->
-        <div class="ui-card p-5">
-            <div class="flex flex-col md:flex-row md:items-center gap-3">
-                <div class="relative flex-1">
-                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-sm" style="color: var(--text-muted);"></i>
-                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por título..."
-                        class="w-full rounded-full pl-11 pr-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-(--focus-ring)/40 transition"
-                        style="background-color: var(--bg-elevated); border: 1px solid var(--border-color); color: var(--text-primary);" />
-                </div>
-                <button type="button" wire:click="$refresh" class="inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:brightness-110 active:brightness-95 transition shrink-0" style="background-color: var(--admin-primary, var(--brand-primary, #0C4A34));">
-                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                    <span>Buscar</span>
-                </button>
-            </div>
-        </div>
-
-    @endif
 
     {{-- Tabela de Capacitações — isolada num island (fora do @if da aba,
          islands não podem ficar dentro de @if/@foreach; checa a aba por
@@ -62,8 +76,11 @@
     @island(name: 'trainings-list', always: true)
         @if ($this->activeTab === 'capacitacoes')
             <div class="space-y-4">
-                <div class="flex items-center justify-end gap-2">
-                    @if (count($this->selected) > 0)
+                {{-- Barra de ações em massa: só aparece com algo selecionado.
+                     Fica dentro do island (não no cabeçalho) porque
+                     selecionar uma linha só atualiza esta região. --}}
+                @if (count($this->selected) > 0)
+                    <div class="flex items-center justify-end gap-2">
                         <span class="text-xs font-semibold" style="color: var(--text-muted);">{{ count($this->selected) }} selecionado(s)</span>
                         @can('trainings.update')
                             <x-ui.button type="button" wire:click="bulkPublish" variant="secondary" size="sm">
@@ -79,12 +96,8 @@
                             </x-ui.button>
                         @endcan
                         <x-ui.button type="button" wire:click="deselectAll" variant="ghost" size="sm">Cancelar</x-ui.button>
-                    @else
-                        <x-ui.button wire:click="closeForm" x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'training-form' }))">
-                            Nova capacitação
-                        </x-ui.button>
-                    @endif
-                </div>
+                    </div>
+                @endif
 
                 @if ($this->trainings->isEmpty())
                     <x-ui.empty-state title="Nenhuma capacitação cadastrada ainda." icon="link" />
@@ -154,7 +167,17 @@
 
     <!-- Modal: Formulário de Capacitação -->
     <x-ui.modal name="training-form" maxWidth="lg">
-        <x-slot:header>Capacitação</x-slot:header>
+        <x-slot:header>
+            <div class="flex items-center gap-3">
+                <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, var(--admin-primary, var(--brand-primary, #0C4A34)), color-mix(in srgb, var(--admin-primary, var(--brand-primary, #0C4A34)) 70%, black));">
+                    <i class="fa-solid fa-graduation-cap text-white"></i>
+                </span>
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wide" style="color: var(--admin-primary, var(--brand-primary, #0C4A34));">Capacitações</span>
+                    <p class="font-black text-base leading-snug" style="color: var(--text-primary);">{{ $editingTraining ? 'Editar capacitação' : 'Nova capacitação' }}</p>
+                </div>
+            </div>
+        </x-slot:header>
         <livewire:admin.trainings.training-form :training="$editingTraining" :key="'training-form-'.($editingTrainingId ?? 'new')" />
     </x-ui.modal>
 
@@ -211,7 +234,7 @@
 
                     <form wire:submit="saveCategory" class="space-y-4">
                         <x-ui.input wire:model="categoryName" label="Nome *" placeholder="Ex: Treinamento" />
-                        <x-ui.input wire:model="categoryIcon" label="Ícone" placeholder="Ex: folder" hint="Nome de um ícone do FontAwesome (fa-solid), sem o prefixo fa-." />
+                        <x-ui.autocomplete wire:model="categoryIcon" :options="\App\Services\IconCatalog::suggestions()" label="Ícone" placeholder="Ex: folder" hint="Nome de um ícone do FontAwesome (fa-solid), sem o prefixo fa-." />
                         <x-ui.color-picker wire:model="categoryColor" label="Cor" hint="Usada no selo e no ícone desta pasta." />
 
                         <div class="flex items-center gap-3 pt-2">

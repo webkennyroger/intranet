@@ -1,8 +1,9 @@
 {{--
     Campo de texto com sugestões filtradas localmente (lista fixa recebida
     em "options", sem busca no servidor) exibidas num dropdown abaixo do
-    input. Componente genérico do kit de UI, ainda não usado em nenhuma
-    tela deste projeto.
+    input. Usado nos campos onde o admin digita o nome de um ícone do
+    FontAwesome à mão (ver App\Services\IconCatalog) — categorias de
+    Documentos/Capacitações, links de Serviços e capa de Artigos.
 --}}
 @props([
     'label' => null,

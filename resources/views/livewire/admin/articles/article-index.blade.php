@@ -14,55 +14,87 @@
         :breadcrumbs="[['label' => 'Painel', 'href' => route('dashboard')], ['label' => 'Notícias']]"
     >
         <x-slot:actions>
-            @if (count($selected) > 0)
-                <span class="text-xs font-semibold" style="color: var(--text-muted);">{{ count($selected) }} selecionado(s)</span>
-                @can('articles.update')
-                    <x-ui.button type="button" wire:click="bulkPublish" variant="secondary" size="sm">
-                        <i class="fa-solid fa-check mr-1"></i> Publicar
-                    </x-ui.button>
-                    <x-ui.button type="button" wire:click="bulkUnpublish" variant="secondary" size="sm">
-                        <i class="fa-solid fa-ban mr-1"></i> Despublicar
-                    </x-ui.button>
-                @endcan
-                @can('articles.delete')
-                    <x-ui.button type="button" @click="confirmAction('Confirma a exclusão de {{ count($selected) }} artigo(s) selecionado(s)?', () => $wire.bulkDelete())" variant="danger" size="sm">
-                        <i class="fa-solid fa-trash mr-1"></i> Excluir
-                    </x-ui.button>
-                @endcan
-                <x-ui.button type="button" wire:click="deselectAll" variant="ghost" size="sm">Cancelar</x-ui.button>
-            @else
-                <x-ui.button :href="route('admin.articles.create')">
-                    <i class="fa-solid fa-plus mr-1"></i> Nova notícia
-                </x-ui.button>
-            @endif
+            <x-ui.button :href="route('admin.articles.create')">
+                <i class="fa-solid fa-plus mr-1"></i> Nova notícia
+            </x-ui.button>
         </x-slot:actions>
     </x-admin.page-header>
 
-    <!-- Estatísticas (Cards) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <x-admin.trend-stat-card label="Total de artigos" :value="$totalArticles" :changePercent="$totalArticlesTrend['changePercent']" :values="$totalArticlesTrend['values']" icon="newspaper" color="#2563EB" />
-        <x-admin.trend-stat-card label="Publicados" :value="$publishedArticles" :changePercent="$publishedArticlesTrend['changePercent']" :values="$publishedArticlesTrend['values']" icon="check" color="#059669" />
-        <x-admin.trend-stat-card label="Rascunhos" :value="$draftArticles" :changePercent="$draftArticlesTrend['changePercent']" :values="$draftArticlesTrend['values']" icon="pen" color="#F59E0B" />
-        <x-admin.trend-stat-card label="Curtidas" :value="$totalLikes" :changePercent="$totalLikesTrend['changePercent']" :values="$totalLikesTrend['values']" icon="heart" color="#EC4899" />
+    <!-- Estatísticas: um cartão só, ocupando a largura toda, dividido por
+         uma linha fina — em vez de 4 cards de dashboard inteiros com um
+         vão vazio depois deles. -->
+    <div class="ui-card flex flex-wrap items-stretch divide-x divide-(--border-color)">
+        <div class="flex items-center gap-3 px-5 py-4 flex-1 min-w-48">
+            <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #2563EB 14%, transparent);">
+                <i class="fa-solid fa-newspaper text-sm" style="color: #2563EB;"></i>
+            </span>
+            <div class="whitespace-nowrap">
+                <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Total de artigos</p>
+                <p class="text-xl font-black leading-tight" style="color: var(--text-primary);">{{ $totalArticles }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 px-5 py-4 flex-1 min-w-48">
+            <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #059669 14%, transparent);">
+                <i class="fa-solid fa-check text-sm" style="color: #059669;"></i>
+            </span>
+            <div class="whitespace-nowrap">
+                <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Publicados</p>
+                <p class="text-xl font-black leading-tight" style="color: var(--text-primary);">{{ $publishedArticles }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 px-5 py-4 flex-1 min-w-48">
+            <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #F59E0B 14%, transparent);">
+                <i class="fa-solid fa-pen text-sm" style="color: #F59E0B;"></i>
+            </span>
+            <div class="whitespace-nowrap">
+                <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Rascunhos</p>
+                <p class="text-xl font-black leading-tight" style="color: var(--text-primary);">{{ $draftArticles }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 px-5 py-4 flex-1 min-w-48">
+            <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #EC4899 14%, transparent);">
+                <i class="fa-solid fa-heart text-sm" style="color: #EC4899;"></i>
+            </span>
+            <div class="whitespace-nowrap">
+                <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Curtidas</p>
+                <p class="text-xl font-black leading-tight" style="color: var(--text-primary);">{{ $totalLikes }}</p>
+            </div>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <!-- Barra Lateral -->
         <aside class="lg:col-span-1 space-y-4">
             <!-- Busca -->
-            <x-ui.card>
-                <div class="font-semibold text-sm mb-2" style="color: var(--text-primary);">Buscar</div>
-                <div class="space-y-2">
-                    <x-ui.input wire:model.live.debounce.400ms="search" icon="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" placeholder="Buscar artigo..." />
-                    <x-ui.button type="button" wire:click="$refresh" class="w-full justify-center">
-                        <i class="fa-solid fa-magnifying-glass mr-1"></i> Buscar
-                    </x-ui.button>
+            <x-ui.card :padding="false" style="border-top: 2px solid #2563EB;">
+                <div class="p-5">
+                    <div class="flex items-center gap-2.5 mb-3">
+                        <span class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #2563EB 14%, transparent);">
+                            <i class="fa-solid fa-magnifying-glass text-xs" style="color: #2563EB;"></i>
+                        </span>
+                        <span class="font-bold text-sm" style="color: var(--text-primary);">Buscar</span>
+                    </div>
+                    <div class="space-y-2">
+                        <x-ui.input wire:model.live.debounce.400ms="search" icon="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" placeholder="Buscar artigo..." />
+                        <x-ui.button type="button" wire:click="$refresh" class="w-full justify-center">
+                            <i class="fa-solid fa-magnifying-glass mr-1"></i> Buscar
+                        </x-ui.button>
+                    </div>
                 </div>
             </x-ui.card>
 
             <!-- Categorias -->
-            <x-ui.card>
-                <div class="font-semibold text-sm mb-2" style="color: var(--text-primary);">Categorias</div>
+            <x-ui.card :padding="false" style="border-top: 2px solid #D97706;">
+                <div class="p-5">
+                <div class="flex items-center gap-2.5 mb-3">
+                    <span class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #D97706 14%, transparent);">
+                        <i class="fa-solid fa-folder text-xs" style="color: #D97706;"></i>
+                    </span>
+                    <span class="font-bold text-sm" style="color: var(--text-primary);">Categorias</span>
+                </div>
                 <ul class="space-y-1 text-sm">
                     <li>
                         <button
@@ -92,12 +124,19 @@
                         </li>
                     @endforeach
                 </ul>
+                </div>
             </x-ui.card>
 
             <!-- Arquivo -->
             @if ($archiveYears->isNotEmpty())
-                <x-ui.card>
-                    <div class="font-semibold text-sm mb-2" style="color: var(--text-primary);">Arquivo</div>
+                <x-ui.card :padding="false" style="border-top: 2px solid #9333EA;">
+                    <div class="p-5">
+                    <div class="flex items-center gap-2.5 mb-3">
+                        <span class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #9333EA 14%, transparent);">
+                            <i class="fa-solid fa-calendar-days text-xs" style="color: #9333EA;"></i>
+                        </span>
+                        <span class="font-bold text-sm" style="color: var(--text-primary);">Arquivo</span>
+                    </div>
                     <ul class="space-y-1 text-sm">
                         @foreach ($archiveYears as $archiveYear => $count)
                             <li>
@@ -113,13 +152,20 @@
                             </li>
                         @endforeach
                     </ul>
+                    </div>
                 </x-ui.card>
             @endif
 
             <!-- Posts Populares -->
             @if ($popularPosts->isNotEmpty())
-                <x-ui.card>
-                    <div class="font-semibold text-sm mb-3" style="color: var(--text-primary);">Posts Populares</div>
+                <x-ui.card :padding="false" style="border-top: 2px solid #EC4899;">
+                    <div class="p-5">
+                    <div class="flex items-center gap-2.5 mb-3">
+                        <span class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #EC4899 14%, transparent);">
+                            <i class="fa-solid fa-fire text-xs" style="color: #EC4899;"></i>
+                        </span>
+                        <span class="font-bold text-sm" style="color: var(--text-primary);">Posts Populares</span>
+                    </div>
                     <ul class="space-y-3">
                         @foreach ($popularPosts as $post)
                             <li>
@@ -139,31 +185,56 @@
                             </li>
                         @endforeach
                     </ul>
+                    </div>
                 </x-ui.card>
             @endif
 
         </aside>
 
-        <!-- Lista de Artigos -->
+        <!-- Lista de Artigos — isolada num island: selecionar linhas,
+             paginar e publicar/excluir só atualizam esta região, sem
+             re-renderizar o cabeçalho/estatísticas/barra lateral da
+             página. -->
+        @island(name: 'articles-list', always: true)
         <div class="lg:col-span-3 space-y-4">
-            @if ($search !== '' || $categoryId !== '' || $year !== '')
+            @if (count($this->selected) > 0)
+                <div class="flex items-center justify-end gap-2">
+                    <span class="text-xs font-semibold" style="color: var(--text-muted);">{{ count($this->selected) }} selecionado(s)</span>
+                    @can('articles.update')
+                        <x-ui.button type="button" wire:click="bulkPublish" variant="secondary" size="sm">
+                            <i class="fa-solid fa-check mr-1"></i> Publicar
+                        </x-ui.button>
+                        <x-ui.button type="button" wire:click="bulkUnpublish" variant="secondary" size="sm">
+                            <i class="fa-solid fa-ban mr-1"></i> Despublicar
+                        </x-ui.button>
+                    @endcan
+                    @can('articles.delete')
+                        <x-ui.button type="button" @click="confirmAction('Confirma a exclusão de {{ count($this->selected) }} artigo(s) selecionado(s)?', () => $wire.bulkDelete())" variant="danger" size="sm">
+                            <i class="fa-solid fa-trash mr-1"></i> Excluir
+                        </x-ui.button>
+                    @endcan
+                    <x-ui.button type="button" wire:click="deselectAll" variant="ghost" size="sm">Cancelar</x-ui.button>
+                </div>
+            @endif
+
+            @if ($this->search !== '' || $this->categoryId !== '' || $this->year !== '')
                 <div class="flex items-center justify-between rounded-xl px-4 py-2.5 text-sm" style="background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-secondary);">
-                    <span>Filtros aplicados — {{ $articles->total() }} {{ $articles->total() === 1 ? 'resultado' : 'resultados' }}</span>
+                    <span>Filtros aplicados — {{ $this->articles->total() }} {{ $this->articles->total() === 1 ? 'resultado' : 'resultados' }}</span>
                     <button type="button" wire:click="clearFilters" class="font-semibold hover:underline" style="color: var(--admin-primary);">Limpar filtros</button>
                 </div>
             @endif
 
-            @if ($articles->isEmpty())
+            @if ($this->articles->isEmpty())
                 <x-ui.empty-state title="Nenhum artigo encontrado." icon="document" />
             @else
-                <div class="flex items-center justify-between text-xs px-1">
+                <div class="flex items-center justify-between text-xs px-4">
                     <label class="inline-flex items-center gap-2 cursor-pointer select-none" style="color: var(--text-secondary);">
-                        <x-ui.checkbox wire:click="toggleSelectAllOnPage" :checked="$allSelectedOnPage" />
+                        <x-ui.checkbox wire:click="toggleSelectAllOnPage" :checked="$this->allSelectedOnPage" />
                         Selecionar todos nesta página
                     </label>
                 </div>
 
-                @foreach ($articles as $article)
+                @foreach ($this->articles as $article)
                     <div class="rounded-2xl p-4 flex flex-col sm:flex-row gap-4" style="background-color: var(--bg-card); border: 1px solid var(--border-color);" wire:key="article-{{ $article->id }}">
                         <div class="shrink-0 pt-1 sm:pt-2">
                             <x-ui.checkbox wire:model.live="selected" value="{{ $article->id }}" />
@@ -232,8 +303,9 @@
                     </div>
                 @endforeach
 
-                <div>{{ $articles->links() }}</div>
+                <div>{{ $this->articles->links() }}</div>
             @endif
         </div>
+        @endisland
     </div>
 </div>

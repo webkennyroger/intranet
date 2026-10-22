@@ -165,93 +165,97 @@ do Mural, Fotos, Eventos e Usuários — o mesmo conteúdo gerido no admin.
             <!-- 3. AGENDA & EVENTOS -->
             <!-- ========================================== -->
             <section class="space-y-4">
-                <div class="flex items-center justify-between pb-5">
+                <div class="flex flex-wrap items-center justify-between gap-3 pb-5">
                     <h3 class="font-black text-lg text-slate-800 dark:text-(--text-primary) tracking-tight uppercase section-title-line flex items-center gap-2">
                         <i class="fa-regular fa-calendar-days text-(--brand-primary-dark)"></i> Agenda & Eventos
                         Institucionais
                     </h3>
-                    <a href="#" class="text-md text-(--brand-primary-dark) font-bold transition flex items-center gap-1 group">
+
+                    <a href="{{ route('events.index') }}" class="text-md text-(--brand-primary-dark) font-bold transition flex items-center gap-1 group whitespace-nowrap">
                         Ver agenda completa <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1"></i>
                     </a>
                 </div>
 
-                @if ($nextEvent)
-                    <div class="relative overflow-hidden rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-center"
-                        style="background-color: var(--color-primary-500, #22b573);">
-                        <div class="absolute rounded-full pointer-events-none"
-                            style="width: 16rem; height: 16rem; top: -4rem; right: -4rem; border: 1px solid var(--color-primary-600, #138856);">
-                        </div>
-                        <div class="absolute rounded-full pointer-events-none"
-                            style="width: 10rem; height: 10rem; bottom: -3rem; left: -3rem; border: 1px solid var(--color-primary-600, #138856);">
-                        </div>
+                @if ($upcomingEvents->isNotEmpty())
+                    <x-ui.carousel :autoplay="$upcomingEvents->count() > 1" :interval="7000">
+                        @foreach ($upcomingEvents as $event)
+                            <div class="relative overflow-hidden rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-center"
+                                style="background-color: var(--color-primary-500, #22b573);">
+                                <div class="absolute rounded-full pointer-events-none"
+                                    style="width: 16rem; height: 16rem; top: -4rem; right: -4rem; border: 1px solid var(--color-primary-600, #138856);">
+                                </div>
+                                <div class="absolute rounded-full pointer-events-none"
+                                    style="width: 10rem; height: 10rem; bottom: -3rem; left: -3rem; border: 1px solid var(--color-primary-600, #138856);">
+                                </div>
 
-                        <div class="relative z-10 w-full md:w-5/12 text-white rounded-xl p-6 overflow-hidden flex flex-col justify-between min-h-50"
-                            style="{{ $nextEvent->coverImageUrl() ? 'background-image: url(' . $nextEvent->coverImageUrl() . '); background-size: cover; background-position: center;' : 'background-color: #0f172a;' }}">
-                            @if ($nextEvent->coverImageUrl())
-                                <div class="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-black/10"></div>
-                            @endif
+                                <div class="relative z-10 w-full md:w-5/12 text-white rounded-xl p-6 overflow-hidden flex flex-col justify-between min-h-50"
+                                    style="{{ $event->coverImageUrl() ? 'background-image: url(' . $event->coverImageUrl() . '); background-size: cover; background-position: center;' : 'background-color: #0f172a;' }}">
+                                    @if ($event->coverImageUrl())
+                                        <div class="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-black/10"></div>
+                                    @endif
 
-                            <div class="flex items-center justify-between z-10">
-                                <span class="bg-red-600 text-white font-extrabold text-[10px] uppercase px-2.5 py-1 rounded">Próximo
-                                    Evento</span>
-                                @if ($nextEvent->location)
-                                    <span class="text-xs text-slate-300 font-medium truncate max-w-[12rem]">{{ $nextEvent->location }}</span>
-                                @endif
-                            </div>
-
-                            <div class="my-4 z-10">
-                                <h4 class="text-xl font-black leading-tight text-white">
-                                    {{ Str::upper($nextEvent->title) }}
-                                </h4>
-                            </div>
-
-                            <div class="flex items-center justify-between pt-3 border-t border-slate-800 z-10">
-                                <div class="flex items-center gap-2">
-                                    <div class="bg-red-600 text-white px-3 py-1 rounded-lg text-center">
-                                        <span class="block text-xs font-bold uppercase">{{ Str::upper($nextEvent->starts_at->translatedFormat('M')) }}</span>
-                                        <span class="block text-lg font-black leading-none">{{ $nextEvent->starts_at->format('d') }}</span>
+                                    <div class="flex items-center justify-between z-10">
+                                        <span class="bg-red-600 text-white font-extrabold text-[10px] uppercase px-2.5 py-1 rounded">{{ $loop->first ? 'Próximo Evento' : 'Evento' }}</span>
+                                        @if ($event->location)
+                                            <span class="text-xs text-slate-300 font-medium truncate max-w-[12rem]">{{ $event->location }}</span>
+                                        @endif
                                     </div>
+
+                                    <div class="my-4 z-10">
+                                        <h4 class="text-xl font-black leading-tight text-white">
+                                            {{ Str::upper($event->title) }}
+                                        </h4>
+                                    </div>
+
+                                    <div class="flex items-center justify-between pt-3 border-t border-slate-800 z-10">
+                                        <div class="flex items-center gap-2">
+                                            <div class="bg-red-600 text-white px-3 py-1 rounded-lg text-center">
+                                                <span class="block text-xs font-bold uppercase">{{ Str::upper($event->starts_at->translatedFormat('M')) }}</span>
+                                                <span class="block text-lg font-black leading-none">{{ $event->starts_at->format('d') }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="block text-xs font-bold text-white">
+                                                    {{ $event->starts_at->format('H\hi') }}{{ $event->ends_at ? ' às ' . $event->ends_at->format('H\hi') : '' }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @unless ($event->coverImageUrl())
+                                        <i class="fa-solid fa-gavel text-slate-800 text-8xl absolute -right-4 -bottom-4 pointer-events-none"></i>
+                                    @endunless
+                                </div>
+
+                                <div class="relative z-10 w-full md:w-7/12 space-y-4">
                                     <div>
-                                        <span class="block text-xs font-bold text-white">
-                                            {{ $nextEvent->starts_at->format('H\hi') }}{{ $nextEvent->ends_at ? ' às ' . $nextEvent->ends_at->format('H\hi') : '' }}
-                                        </span>
+                                        <span class="text-white/80 text-xs font-bold uppercase tracking-wider">Evento
+                                            Institucional</span>
+                                        <h4 class="text-lg font-black text-white uppercase leading-snug mt-1">
+                                            {{ $event->title }}
+                                        </h4>
+                                        @if ($event->description)
+                                            <p class="text-xs sm:text-sm text-white/80 mt-2 leading-relaxed">
+                                                {{ $event->description }}
+                                            </p>
+                                        @endif
+                                    </div>
+
+                                    <div class="flex flex-wrap items-center gap-3 pt-2">
+                                        @if ($event->link)
+                                            <a href="{{ $event->link }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-xs font-bold shadow-sm transition hover:brightness-95" style="color: var(--color-primary-700, #0f6d47);">
+                                                <i class="fa-solid fa-pen-to-square"></i> Realizar Inscrição
+                                            </a>
+                                        @endif
+                                        @if ($event->file_path)
+                                            <a href="{{ $event->fileUrl() }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-5 py-2.5 text-xs font-bold text-white transition shadow-sm">
+                                                <i class="fa-solid fa-{{ $event->fileIcon() }}"></i> Baixar Programação
+                                            </a>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
-
-                            @unless ($nextEvent->coverImageUrl())
-                                <i class="fa-solid fa-gavel text-slate-800 text-8xl absolute -right-4 -bottom-4 pointer-events-none"></i>
-                            @endunless
-                        </div>
-
-                        <div class="relative z-10 w-full md:w-7/12 space-y-4">
-                            <div>
-                                <span class="text-white/80 text-xs font-bold uppercase tracking-wider">Evento
-                                    Institucional</span>
-                                <h4 class="text-lg font-black text-white uppercase leading-snug mt-1">
-                                    {{ $nextEvent->title }}
-                                </h4>
-                                @if ($nextEvent->description)
-                                    <p class="text-xs sm:text-sm text-white/80 mt-2 leading-relaxed">
-                                        {{ $nextEvent->description }}
-                                    </p>
-                                @endif
-                            </div>
-
-                            <div class="flex flex-wrap items-center gap-3 pt-2">
-                                @if ($nextEvent->link)
-                                    <a href="{{ $nextEvent->link }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-xs font-bold shadow-sm transition hover:brightness-95" style="color: var(--color-primary-700, #0f6d47);">
-                                        <i class="fa-solid fa-pen-to-square"></i> Realizar Inscrição
-                                    </a>
-                                @endif
-                                @if ($nextEvent->file_path)
-                                    <a href="{{ $nextEvent->fileUrl() }}" target="_blank" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-5 py-2.5 text-xs font-bold text-white transition shadow-sm">
-                                        <i class="fa-solid fa-{{ $nextEvent->fileIcon() }}"></i> Baixar Programação
-                                    </a>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
+                        @endforeach
+                    </x-ui.carousel>
                 @else
                     <div class="ui-card p-12 text-center text-slate-500 dark:text-(--text-secondary)">
                         Nenhum evento programado por enquanto.

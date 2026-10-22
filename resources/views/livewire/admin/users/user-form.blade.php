@@ -20,5 +20,7 @@
 
     <x-ui.input wire:model="birthDate" type="date" label="Data de nascimento" hint="Usada na página de Aniversariantes." />
 
-    <x-ui.button type="submit">Salvar</x-ui.button>
+    <x-ui.button type="submit" class="w-full justify-center">
+        <i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar
+    </x-ui.button>
 </form>

@@ -192,18 +192,23 @@
                 class="w-full max-w-md rounded-2xl shadow-2xl p-6"
                 style="background-color: var(--bg-surface); border: 1px solid var(--border-color);"
             >
-                <div class="font-semibold mb-4" style="color: var(--text-primary);">
-                    {{ $editingRoleId ? 'Editar papel' : 'Novo papel' }}
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, var(--admin-primary, var(--brand-primary, #0C4A34)), color-mix(in srgb, var(--admin-primary, var(--brand-primary, #0C4A34)) 70%, black));">
+                        <i class="fa-solid fa-shield-halved text-white"></i>
+                    </span>
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wide" style="color: var(--admin-primary, var(--brand-primary, #0C4A34));">Papéis & Permissões</span>
+                        <p class="font-black text-base leading-snug" style="color: var(--text-primary);">{{ $editingRoleId ? 'Editar papel' : 'Novo papel' }}</p>
+                    </div>
                 </div>
 
                 <form wire:submit="saveRole" class="space-y-4">
                     <x-ui.input wire:model="roleName" label="Nome *" placeholder="Ex: Editor de Conteúdo" />
                     <x-ui.input wire:model="roleDescription" label="Descrição" placeholder="Resumo curto do que este papel pode fazer." />
 
-                    <div class="flex items-center gap-3 pt-2">
-                        <x-ui.button type="submit" class="flex-1">Salvar</x-ui.button>
-                        <x-ui.button type="button" variant="ghost" wire:click="closeRoleForm">Cancelar</x-ui.button>
-                    </div>
+                    <x-ui.button type="submit" class="w-full justify-center">
+                        <i class="fa-solid fa-floppy-disk mr-1.5"></i> Salvar
+                    </x-ui.button>
                 </form>
             </div>
         </div>

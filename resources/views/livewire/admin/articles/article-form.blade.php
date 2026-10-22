@@ -128,7 +128,7 @@
                             </div>
                         @endif
 
-                        <x-ui.file-upload wire:model="featuredImage" accept="image/*" />
+                        <x-ui.file-upload wire:model="featuredImage" accept="image/*" hint="PNG, JPG ou GIF (máx. 4 MB)" />
                         @error('featuredImage') <p class="text-xs text-red-500">{{ $message }}</p> @enderror
 
                         @if ($existingFeaturedImage || $featuredImage)
@@ -138,7 +138,7 @@
                         <div class="pt-2 space-y-3" style="border-top: 1px solid var(--border-color);">
                             <p class="text-xs" style="color: var(--text-muted);">Usada quando não há imagem: cor e ícone de reserva.</p>
                             <x-ui.color-picker wire:model="coverColor" label="Cor da capa" />
-                            <x-ui.input wire:model="coverIcon" label="Ícone da capa (Font Awesome)" hint="Ex: leaf, newspaper, bullhorn" />
+                            <x-ui.autocomplete wire:model="coverIcon" :options="\App\Services\IconCatalog::suggestions()" label="Ícone da capa (Font Awesome)" hint="Ex: leaf, newspaper, bullhorn" />
                             <x-ui.input wire:model="coverLabel" label="Rótulo da capa (opcional)" />
                         </div>
                     </div>
@@ -185,7 +185,11 @@
                                             — envie outro arquivo para substituir.
                                         </div>
                                     @endif
-                                    <x-ui.file-upload wire:model="customFields.{{ $index }}.file" :accept="$field['type'] === 'imagem' ? 'image/*' : '*'" />
+                                    <x-ui.file-upload
+                                        wire:model="customFields.{{ $index }}.file"
+                                        :accept="$field['type'] === 'imagem' ? 'image/*' : '*'"
+                                        :hint="$field['type'] === 'imagem' ? 'PNG, JPG ou GIF (máx. 10 MB)' : 'Qualquer tipo de arquivo (máx. 10 MB)'"
+                                    />
                                     @error("customFields.{$index}.file") <p class="text-xs text-red-500">{{ $message }}</p> @enderror
                                 @endif
                             </div>

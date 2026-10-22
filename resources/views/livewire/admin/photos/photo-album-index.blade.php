@@ -14,13 +14,47 @@
         title="Fotos"
         subtitle="Gerencie os álbuns de fotos exibidos no site."
         :breadcrumbs="[['label' => 'Painel', 'href' => route('dashboard')], ['label' => 'Fotos']]"
-    />
+    >
+        <x-slot:actions>
+            <x-ui.button wire:click="closeForm" x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'photo-album-form' }))">
+                Novo álbum
+            </x-ui.button>
+        </x-slot:actions>
+    </x-admin.page-header>
 
-    <!-- Estatísticas (Cards) -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <x-admin.trend-stat-card label="Total de álbuns" :value="$totalAlbums" :changePercent="$totalAlbumsTrend['changePercent']" :values="$totalAlbumsTrend['values']" icon="images" color="#2563EB" />
-        <x-admin.trend-stat-card label="Publicados" :value="$publishedAlbums" :changePercent="$publishedAlbumsTrend['changePercent']" :values="$publishedAlbumsTrend['values']" icon="check" color="#059669" />
-        <x-admin.trend-stat-card label="Total de fotos" :value="$totalPhotos" :changePercent="$totalPhotosTrend['changePercent']" :values="$totalPhotosTrend['values']" icon="image" color="#9333EA" />
+    <!-- Estatísticas: um cartão só, ocupando a largura toda, dividido por
+         uma linha fina — em vez de 3 cards de dashboard inteiros com um
+         vão vazio depois deles. -->
+    <div class="ui-card flex items-stretch divide-x divide-(--border-color)">
+        <div class="flex items-center gap-3 px-5 py-4 flex-1">
+            <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #2563EB 14%, transparent);">
+                <i class="fa-solid fa-images text-sm" style="color: #2563EB;"></i>
+            </span>
+            <div class="whitespace-nowrap">
+                <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Total de álbuns</p>
+                <p class="text-xl font-black leading-tight" style="color: var(--text-primary);">{{ $totalAlbums }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 px-5 py-4 flex-1">
+            <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #059669 14%, transparent);">
+                <i class="fa-solid fa-check text-sm" style="color: #059669;"></i>
+            </span>
+            <div class="whitespace-nowrap">
+                <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Publicados</p>
+                <p class="text-xl font-black leading-tight" style="color: var(--text-primary);">{{ $publishedAlbums }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 px-5 py-4 flex-1">
+            <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #9333EA 14%, transparent);">
+                <i class="fa-solid fa-image text-sm" style="color: #9333EA;"></i>
+            </span>
+            <div class="whitespace-nowrap">
+                <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Total de fotos</p>
+                <p class="text-xl font-black leading-tight" style="color: var(--text-primary);">{{ $totalPhotos }}</p>
+            </div>
+        </div>
     </div>
 
     <!-- Busca -->
@@ -43,8 +77,8 @@
          e publicar/excluir só atualizam esta região. --}}
     @island(name: 'albums-list', always: true)
     <div class="space-y-4">
-        <div class="flex items-center justify-end gap-2">
-            @if (count($this->selected) > 0)
+        @if (count($this->selected) > 0)
+            <div class="flex items-center justify-end gap-2">
                 <span class="text-xs font-semibold" style="color: var(--text-muted);">{{ count($this->selected) }} selecionado(s)</span>
                 @can('photos.update')
                     <x-ui.button type="button" wire:click="bulkPublish" variant="secondary" size="sm">
@@ -60,12 +94,8 @@
                     </x-ui.button>
                 @endcan
                 <x-ui.button type="button" wire:click="deselectAll" variant="ghost" size="sm">Cancelar</x-ui.button>
-            @else
-                <x-ui.button wire:click="closeForm" x-on:click="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'photo-album-form' }))">
-                    Novo álbum
-                </x-ui.button>
-            @endif
-        </div>
+            </div>
+        @endif
 
         @if ($this->albums->isEmpty())
             <x-ui.empty-state title="Nenhum álbum cadastrado ainda." icon="photo" />
@@ -147,7 +177,17 @@
              receberia o álbum novo (ficava sempre com os dados do primeiro
              carregamento, ou vazio pra álbum nenhum). --}}
         <x-ui.modal name="photo-album-form" maxWidth="2xl">
-            <x-slot:header>Álbum de Fotos</x-slot:header>
+            <x-slot:header>
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, var(--admin-primary, var(--brand-primary, #0C4A34)), color-mix(in srgb, var(--admin-primary, var(--brand-primary, #0C4A34)) 70%, black));">
+                        <i class="fa-solid fa-images text-white"></i>
+                    </span>
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wide" style="color: var(--admin-primary, var(--brand-primary, #0C4A34));">Fotos</span>
+                        <p class="font-black text-base leading-snug" style="color: var(--text-primary);">{{ $this->editingAlbum ? 'Editar álbum' : 'Novo álbum' }}</p>
+                    </div>
+                </div>
+            </x-slot:header>
             <livewire:admin.photos.photo-album-form :album="$this->editingAlbum" :key="'photo-album-form-'.($this->editingAlbumId ?? 'new')" />
         </x-ui.modal>
 

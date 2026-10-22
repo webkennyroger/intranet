@@ -111,7 +111,7 @@
 <body
     class="site-dark-bg font-sans antialiased bg-slate-100"
     style="color: var(--text-primary);"
-    x-data="{ sidebarCollapsed: localStorage.getItem('adminSidebarCollapsed') === 'true', mobileSidebarOpen: false }"
+    x-data="{ sidebarCollapsed: localStorage.getItem('adminSidebarCollapsed') !== 'false', mobileSidebarOpen: false }"
     x-init="$watch('sidebarCollapsed', (value) => localStorage.setItem('adminSidebarCollapsed', value))"
 >
     <!-- Overlay Mobile (Sidebar) -->

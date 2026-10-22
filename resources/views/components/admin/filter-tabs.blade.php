@@ -8,39 +8,38 @@
     'tabs' => [],
     'active' => null,
     'action' => 'setFilter',
+    'colors' => [],
+    'icons' => [],
 ])
 
-<div class="flex flex-wrap gap-2">
+<div class="flex flex-wrap items-center gap-9" style="border-bottom: 1px solid var(--border-color);">
     @foreach ($tabs as $value => $tab)
         @php
             $label = is_array($tab) ? $tab['label'] : $tab;
             $count = is_array($tab) ? ($tab['count'] ?? null) : null;
             $isActive = $active === $value;
+            $color = $colors[$value] ?? 'var(--admin-primary)';
+            $icon = $icons[$value] ?? null;
         @endphp
         <button
             type="button"
             wire:click="{{ $action }}('{{ $value }}')"
-            class="rounded-lg px-3 py-1.5 text-sm font-medium transition"
-            @if ($isActive)
-                style="background-color: var(--admin-primary); color: white;"
-            @else
-                style="color: var(--text-secondary);"
-            @endif
-            onmouseover="if (!this.hasAttribute('data-active')) this.style.backgroundColor = 'var(--bg-hover)';"
-            onmouseout="if (!this.hasAttribute('data-active')) this.style.backgroundColor = '';"
-            @if ($isActive) data-active @endif
+            class="group relative flex items-center gap-2 pb-3 text-[13px] font-medium transition"
+            style="color: {{ $isActive ? $color : 'var(--text-primary)' }};"
         >
-            {{ $label }}
-            @if (! is_null($count))
-                <span
-                    class="ml-1.5 rounded-full px-2 py-0.5 text-xs"
-                    @if ($isActive)
-                        style="background-color: rgba(255, 255, 255, 0.25); color: white;"
-                    @else
-                        style="background-color: var(--bg-elevated); color: var(--text-muted);"
-                    @endif
-                >{{ $count }}</span>
+            @if ($icon)
+                <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition" style="background-color: {{ $isActive ? $color : 'color-mix(in srgb, var(--text-muted) 16%, transparent)' }};">
+                    <i class="fa-solid fa-{{ $icon }} text-[9px] transition" style="color: {{ $isActive ? 'white' : 'var(--text-muted)' }};"></i>
+                </span>
             @endif
+
+            {{ $label }}
+
+            @if ($count)
+                <span class="inline-flex items-center justify-center text-[10px] font-bold px-1.5" style="border-radius: 4px; background-color: color-mix(in srgb, {{ $color }} 16%, transparent); color: {{ $color }};">{{ $count }}</span>
+            @endif
+
+            <span class="absolute inset-x-0 bottom-0 h-0.5 origin-left transition-transform duration-200" style="background-color: {{ $color }}; transform: scaleX({{ $isActive ? 1 : 0 }});"></span>
         </button>
     @endforeach
 </div>

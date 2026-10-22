@@ -141,7 +141,17 @@
 
     <!-- Modal: Formulário de Usuário -->
     <x-ui.modal name="user-form" maxWidth="lg">
-        <x-slot:header>Usuário</x-slot:header>
+        <x-slot:header>
+            <div class="flex items-center gap-3">
+                <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, var(--admin-primary, var(--brand-primary, #0C4A34)), color-mix(in srgb, var(--admin-primary, var(--brand-primary, #0C4A34)) 70%, black));">
+                    <i class="fa-solid fa-user text-white"></i>
+                </span>
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wide" style="color: var(--admin-primary, var(--brand-primary, #0C4A34));">Usuários</span>
+                    <p class="font-black text-base leading-snug" style="color: var(--text-primary);">{{ $editingUser ? 'Editar usuário' : 'Novo usuário' }}</p>
+                </div>
+            </div>
+        </x-slot:header>
         <livewire:admin.users.user-form :user="$editingUser" :key="'user-form-' . ($editingUserId ?? 'new')" />
     </x-ui.modal>
 </div>

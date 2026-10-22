@@ -18,10 +18,28 @@
         </x-slot:actions>
     </x-admin.page-header>
 
-    <!-- Estatísticas (Cards) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <x-admin.trend-stat-card label="Total de tópicos" :value="$totalTopics" :changePercent="$totalTopicsTrend['changePercent']" :values="$totalTopicsTrend['values']" icon="comments" color="#2563EB" />
-        <x-admin.trend-stat-card label="Total de respostas" :value="$totalReplies" :changePercent="$totalRepliesTrend['changePercent']" :values="$totalRepliesTrend['values']" icon="reply" color="#9333EA" />
+    <!-- Estatísticas: um cartão só, ocupando a largura toda, dividido por
+         uma linha fina — mesmo padrão usado nas outras páginas do admin. -->
+    <div class="ui-card flex flex-wrap items-stretch divide-x divide-(--border-color)">
+        <div class="flex items-center gap-3 px-5 py-4 flex-1 min-w-48">
+            <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #2563EB 14%, transparent);">
+                <i class="fa-solid fa-comments text-sm" style="color: #2563EB;"></i>
+            </span>
+            <div class="whitespace-nowrap">
+                <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Total de tópicos</p>
+                <p class="text-xl font-black leading-tight" style="color: var(--text-primary);">{{ $totalTopics }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 px-5 py-4 flex-1 min-w-48">
+            <span class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, #9333EA 14%, transparent);">
+                <i class="fa-solid fa-reply text-sm" style="color: #9333EA;"></i>
+            </span>
+            <div class="whitespace-nowrap">
+                <p class="text-[10px] font-bold uppercase tracking-wide leading-none" style="color: var(--text-muted);">Total de respostas</p>
+                <p class="text-xl font-black leading-tight" style="color: var(--text-primary);">{{ $totalReplies }}</p>
+            </div>
+        </div>
     </div>
 
     <!-- Busca -->
