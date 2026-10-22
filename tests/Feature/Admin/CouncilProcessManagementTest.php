@@ -7,6 +7,28 @@ use App\Models\User;
 use Database\Seeders\AclSeeder;
 use Livewire\Livewire;
 
+function actingAsRoleForCouncil(string $role): User
+{
+    test()->seed(AclSeeder::class);
+    $user = User::factory()->create();
+    $user->assignRole($role);
+    test()->actingAs($user);
+
+    return $user;
+}
+
+test('a Defensor can view the council admin page', function () {
+    actingAsRoleForCouncil('Defensor');
+
+    $this->get(route('admin.council.index'))->assertStatus(200);
+});
+
+test('an Administrador is forbidden from the council admin page', function () {
+    actingAsRoleForCouncil('Administrador');
+
+    $this->get(route('admin.council.index'))->assertStatus(403);
+});
+
 test('creating a council process stores it without a link by default', function () {
     actingAsRoleForCouncil('Defensor');
 

@@ -2,8 +2,6 @@
 
 use App\Livewire\Admin\Articles\ArticleForm;
 use App\Livewire\Admin\Articles\ArticleIndex;
-use App\Livewire\Admin\Council\CouncilMemberForm;
-use App\Livewire\Admin\Council\CouncilMemberIndex;
 use App\Livewire\Admin\Documents\DocumentForm;
 use App\Livewire\Admin\Documents\DocumentIndex;
 use App\Livewire\Admin\Events\EventForm;
@@ -21,9 +19,9 @@ use App\Livewire\Admin\Videos\VideoForm;
 use App\Livewire\Admin\Videos\VideoIndex;
 use App\Models\ActivityLog;
 use App\Models\Article;
-use App\Models\CouncilMember;
 use App\Models\Document;
 use App\Models\Event;
+use App\Models\EventCategory;
 use App\Models\ForumTopic;
 use App\Models\PhotoAlbum;
 use App\Models\ServiceLink;
@@ -101,24 +99,6 @@ test('document create, publish toggle and delete are logged', function () {
     expect(ActivityLog::where('action', 'deleted')->where('subject_id', $document->id)->exists())->toBeTrue();
 });
 
-test('council member create, activation toggle and delete are logged', function () {
-    actingAsSuperAdminForLogging();
-
-    Livewire::test(CouncilMemberForm::class)
-        ->set('name', 'Maria Silva')
-        ->set('role', 'Presidente')
-        ->call('save');
-
-    $member = CouncilMember::where('name', 'Maria Silva')->first();
-    expect(ActivityLog::where('action', 'created')->where('subject_id', $member->id)->exists())->toBeTrue();
-
-    Livewire::test(CouncilMemberIndex::class)->call('toggleActive', $member->id);
-    expect(ActivityLog::where('action', 'deactivated')->where('subject_id', $member->id)->exists())->toBeTrue();
-
-    Livewire::test(CouncilMemberIndex::class)->call('deleteMember', $member->id);
-    expect(ActivityLog::where('action', 'deleted')->where('subject_id', $member->id)->exists())->toBeTrue();
-});
-
 test('service link create, activation toggle and delete are logged', function () {
     actingAsSuperAdminForLogging();
 
@@ -173,19 +153,19 @@ test('video create, publish toggle and delete are logged', function () {
     expect(ActivityLog::where('action', 'deleted')->where('subject_id', $video->id)->exists())->toBeTrue();
 });
 
-test('event create, publish toggle and delete are logged', function () {
+test('event create and delete are logged', function () {
     actingAsSuperAdminForLogging();
+
+    $category = EventCategory::factory()->create();
 
     Livewire::test(EventForm::class)
         ->set('title', 'Semana da Defensoria')
         ->set('startsAt', '2026-11-10T09:00')
+        ->set('categoryId', $category->id)
         ->call('save');
 
     $event = Event::where('title', 'Semana da Defensoria')->first();
     expect(ActivityLog::where('action', 'created')->where('subject_id', $event->id)->exists())->toBeTrue();
-
-    Livewire::test(EventIndex::class)->call('togglePublish', $event->id);
-    expect(ActivityLog::whereIn('action', ['activated', 'deactivated'])->where('subject_id', $event->id)->exists())->toBeTrue();
 
     Livewire::test(EventIndex::class)->call('delete', $event->id);
     expect(ActivityLog::where('action', 'deleted')->where('subject_id', $event->id)->exists())->toBeTrue();

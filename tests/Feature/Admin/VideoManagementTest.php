@@ -151,3 +151,20 @@ test('searching filters the videos table by title', function () {
         ->assertSee('Tutorial do Sistema')
         ->assertDontSee('Outro Assunto');
 });
+
+test('filtering by status shows only published or only draft videos', function () {
+    actingAsRoleForVideos('Administrador');
+    Video::factory()->create(['title' => 'Vídeo Publicado', 'is_published' => true]);
+    Video::factory()->create(['title' => 'Vídeo Rascunho', 'is_published' => false]);
+
+    Livewire::test(VideoIndex::class)
+        ->set('status', 'published')
+        ->assertSee('Vídeo Publicado')
+        ->assertDontSee('Vídeo Rascunho')
+        ->set('status', 'draft')
+        ->assertSee('Vídeo Rascunho')
+        ->assertDontSee('Vídeo Publicado')
+        ->set('status', 'all')
+        ->assertSee('Vídeo Publicado')
+        ->assertSee('Vídeo Rascunho');
+});

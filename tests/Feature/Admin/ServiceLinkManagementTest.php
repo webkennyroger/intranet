@@ -173,6 +173,39 @@ test('a Defensor cannot bulk activate, deactivate or delete service links', func
     expect(ServiceLink::find($link->id))->not->toBeNull();
 });
 
+test('a Defensor cannot delete, toggle active or reorder a single service link', function () {
+    $this->seed(AclSeeder::class);
+    $defensor = User::factory()->create();
+    $defensor->assignRole('Defensor');
+    $this->actingAs($defensor);
+    $link = ServiceLink::factory()->create(['is_active' => false, 'order' => 1]);
+    $other = ServiceLink::factory()->create(['order' => 2]);
+
+    Livewire::test(ServiceLinkIndex::class)->call('toggleActive', $link->id)->assertForbidden();
+    expect($link->refresh()->is_active)->toBeFalse();
+
+    Livewire::test(ServiceLinkIndex::class)->call('reorder', [$other->id, $link->id])->assertForbidden();
+    expect($link->refresh()->order)->toBe(1);
+
+    Livewire::test(ServiceLinkIndex::class)->call('delete', $link->id)->assertForbidden();
+    expect(ServiceLink::find($link->id))->not->toBeNull();
+});
+
+test('a Defensor cannot create or update a service link', function () {
+    $this->seed(AclSeeder::class);
+    $defensor = User::factory()->create();
+    $defensor->assignRole('Defensor');
+    $this->actingAs($defensor);
+
+    Livewire::test(ServiceLinkForm::class)
+        ->set('title', 'Tentativa Sem Permissão')
+        ->set('icon', 'book-open')
+        ->set('url', 'https://example.com')
+        ->call('save')
+        ->assertForbidden();
+    expect(ServiceLink::where('title', 'Tentativa Sem Permissão')->exists())->toBeFalse();
+});
+
 test('toggleSelectAllOnPage selects then deselects every service link', function () {
     actingAsServicesAdmin();
     ServiceLink::factory()->count(3)->create();

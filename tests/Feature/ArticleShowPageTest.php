@@ -43,6 +43,13 @@ test('a draft article returns 404 on the public show page', function () {
     $this->actingAs($user)->get(route('mural.show', $article))->assertStatus(404);
 });
 
+test('a scheduled article (published_at in the future) returns 404 on the public show page', function () {
+    $user = User::factory()->create();
+    $article = Article::factory()->create(['title' => 'Agendado', 'is_published' => true, 'published_at' => now()->addDay()]);
+
+    $this->actingAs($user)->get(route('mural.show', $article))->assertStatus(404);
+});
+
 test('a guest is redirected to login from the article show page', function () {
     $article = Article::factory()->create(['is_published' => true, 'published_at' => now()]);
 
@@ -134,6 +141,22 @@ test('a user can reply to a comment and it is nested under its parent', function
     expect($comment->refresh()->replies)->toHaveCount(1)
         ->and($comment->replies->first()->body)->toBe('Concordo plenamente.')
         ->and($comment->replies->first()->author_id)->toBe($user->id);
+});
+
+test('replying to a comment id that belongs to a different article is rejected', function () {
+    $user = User::factory()->create();
+    test()->actingAs($user);
+    $article = Article::factory()->create(['is_published' => true, 'published_at' => now()]);
+    $otherArticle = Article::factory()->create(['is_published' => true, 'published_at' => now()]);
+    $commentOnOtherArticle = Comment::factory()->create(['article_id' => $otherArticle->id]);
+
+    Livewire::test(ArticleShow::class, ['article' => $article])
+        ->call('startReply', $commentOnOtherArticle->id)
+        ->set('newReply', 'Resposta forjada')
+        ->call('addReply')
+        ->assertStatus(404);
+
+    expect($commentOnOtherArticle->refresh()->replies)->toHaveCount(0);
 });
 
 test('a user can delete their own comment', function () {

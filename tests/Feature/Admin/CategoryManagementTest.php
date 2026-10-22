@@ -36,6 +36,20 @@ test('creating a category auto-generates the slug from the name', function () {
         ->and($category->slug)->toBe('comunicados-importantes');
 });
 
+test('a Defensor (no categories permission) cannot create, update or delete categories', function () {
+    actingAsRoleForCategories('Defensor');
+    $category = Category::factory()->create();
+
+    Livewire::test(CategoryIndex::class)
+        ->set('name', 'Tentativa Sem Permissão')
+        ->call('save')
+        ->assertForbidden();
+    expect(Category::where('name', 'Tentativa Sem Permissão')->exists())->toBeFalse();
+
+    Livewire::test(CategoryIndex::class)->call('delete', $category->id)->assertForbidden();
+    expect(Category::find($category->id))->not->toBeNull();
+});
+
 test('manually editing the slug stops it from following the name', function () {
     actingAsRoleForCategories('Administrador');
 

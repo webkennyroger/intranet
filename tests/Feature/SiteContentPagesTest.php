@@ -1,8 +1,6 @@
 <?php
 
-use App\Livewire\Site\Council\CouncilIndex;
 use App\Livewire\Site\Photos\PhotoAlbumShow;
-use App\Models\CouncilMember;
 use App\Models\Document;
 use App\Models\Event;
 use App\Models\PhotoAlbum;
@@ -20,17 +18,6 @@ test('the documents page only shows published documents', function () {
         ->assertOk()
         ->assertSee('Documento Público')
         ->assertDontSee('Documento Rascunho');
-});
-
-test('the council page only loads active members, even though the members section is currently hidden', function () {
-    $user = User::factory()->create();
-    CouncilMember::factory()->create(['name' => 'Membro Ativo', 'is_active' => true]);
-    CouncilMember::factory()->create(['name' => 'Membro Inativo', 'is_active' => false]);
-
-    $this->actingAs($user)->get(route('council.index'))->assertOk();
-
-    $component = Livewire::test(CouncilIndex::class);
-    expect($component->viewData('members')->pluck('name')->all())->toBe(['Membro Ativo']);
 });
 
 test('the photos page only shows published albums', function () {

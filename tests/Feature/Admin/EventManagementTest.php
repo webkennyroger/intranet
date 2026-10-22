@@ -2,7 +2,9 @@
 
 use App\Livewire\Admin\Events\EventForm;
 use App\Livewire\Admin\Events\EventIndex;
+use App\Models\Document;
 use App\Models\Event;
+use App\Models\EventCategory;
 use App\Models\User;
 use Database\Seeders\AclSeeder;
 use Illuminate\Http\UploadedFile;
@@ -25,14 +27,27 @@ test('an Administrador can view the events management page', function () {
     $this->get(route('admin.events.index'))->assertStatus(200);
 });
 
+test('upcomingEvents still lists an event scheduled earlier today, even after its start time has passed', function () {
+    actingAsRoleForEvents('Administrador');
+    $today = Event::factory()->create(['title' => 'Evento De Hoje Mais Cedo', 'starts_at' => today(), 'ends_at' => today()->addHour()]);
+    $yesterday = Event::factory()->create(['title' => 'Evento De Ontem', 'starts_at' => now()->subDay(), 'ends_at' => now()->subDay()]);
+
+    $ids = Livewire::test(EventIndex::class)->instance()->upcomingEvents()->pluck('id');
+
+    expect($ids)->toContain($today->id)
+        ->and($ids)->not->toContain($yesterday->id);
+});
+
 test('creating an event saves it with the given dates', function () {
     actingAsRoleForEvents('Administrador');
+    $category = EventCategory::factory()->create();
 
     Livewire::test(EventForm::class)
         ->set('title', 'Semana da Defensoria')
         ->set('location', 'Auditório Central')
         ->set('startsAt', '2026-11-10T09:00')
         ->set('endsAt', '2026-11-10T12:00')
+        ->set('categoryId', $category->id)
         ->call('save')
         ->assertHasNoErrors();
 
@@ -54,13 +69,72 @@ test('creating an event with an end date before the start date is rejected', fun
     expect(Event::where('title', 'Datas Inválidas')->exists())->toBeFalse();
 });
 
-test('a Defensor cannot publish an event', function () {
+test('creating an event without a category is rejected', function () {
+    actingAsRoleForEvents('Administrador');
+
+    Livewire::test(EventForm::class)
+        ->set('title', 'Reunião de Equipe')
+        ->set('startsAt', '2026-11-10T09:00')
+        ->call('save')
+        ->assertHasErrors(['categoryId']);
+
+    expect(Event::where('title', 'Reunião de Equipe')->exists())->toBeFalse();
+});
+
+test('creating an event with a category links it, and its color comes from the category', function () {
+    actingAsRoleForEvents('Administrador');
+    $category = EventCategory::factory()->create(['color' => '#9333ea']);
+
+    Livewire::test(EventForm::class)
+        ->set('title', 'Audiência Pública')
+        ->set('startsAt', '2026-11-10T09:00')
+        ->set('categoryId', $category->id)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $event = Event::where('title', 'Audiência Pública')->first();
+    expect($event->event_category_id)->toBe($category->id)
+        ->and($event->colorHex())->toBe('#9333ea');
+});
+
+test('editing an event to change its category updates its effective color', function () {
+    actingAsRoleForEvents('Administrador');
+    $oldCategory = EventCategory::factory()->create(['color' => '#111111']);
+    $newCategory = EventCategory::factory()->create(['color' => '#222222']);
+    $event = Event::factory()->create(['event_category_id' => $oldCategory->id, 'color' => null]);
+
+    Livewire::test(EventForm::class, ['event' => $event])
+        ->set('categoryId', $newCategory->id)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($event->refresh()->event_category_id)->toBe($newCategory->id)
+        ->and($event->colorHex())->toBe('#222222');
+});
+
+test('an invalid category id is rejected', function () {
+    actingAsRoleForEvents('Administrador');
+
+    Livewire::test(EventForm::class)
+        ->set('title', 'Categoria Inválida')
+        ->set('startsAt', '2026-11-10T09:00')
+        ->set('categoryId', 999999)
+        ->call('save')
+        ->assertHasErrors(['categoryId']);
+
+    expect(Event::where('title', 'Categoria Inválida')->exists())->toBeFalse();
+});
+
+test('a Defensor cannot edit an event', function () {
     actingAsRoleForEvents('Defensor');
-    $event = Event::factory()->create(['is_published' => false]);
+    $event = Event::factory()->create(['title' => 'Original']);
 
-    Livewire::test(EventIndex::class)->call('togglePublish', $event->id);
+    Livewire::test(EventForm::class, ['event' => $event])
+        ->set('title', 'Alterado')
+        ->call('save')
+        ->assertStatus(403);
 
-    expect($event->refresh()->is_published)->toBeFalse();
+    expect($event->refresh()->title)->toBe('Original');
 });
 
 test('an Administrador can delete an event', function () {
@@ -72,98 +146,89 @@ test('an Administrador can delete an event', function () {
     expect(Event::find($event->id))->toBeNull();
 });
 
-test('bulkPublish publishes only the selected draft events and leaves others untouched', function () {
-    actingAsRoleForEvents('Administrador');
-    $draft1 = Event::factory()->create(['is_published' => false]);
-    $draft2 = Event::factory()->create(['is_published' => false]);
-    $notSelected = Event::factory()->create(['is_published' => false]);
-
-    Livewire::test(EventIndex::class)
-        ->set('selected', [$draft1->id, $draft2->id])
-        ->call('bulkPublish');
-
-    expect($draft1->refresh()->is_published)->toBeTrue()
-        ->and($draft2->refresh()->is_published)->toBeTrue()
-        ->and($notSelected->refresh()->is_published)->toBeFalse();
-});
-
-test('bulkUnpublish unpublishes only the selected published events', function () {
-    actingAsRoleForEvents('Administrador');
-    $published = Event::factory()->create(['is_published' => true]);
-    $notSelected = Event::factory()->create(['is_published' => true]);
-
-    Livewire::test(EventIndex::class)
-        ->set('selected', [$published->id])
-        ->call('bulkUnpublish');
-
-    expect($published->refresh()->is_published)->toBeFalse()
-        ->and($notSelected->refresh()->is_published)->toBeTrue();
-});
-
-test('a Defensor cannot bulk publish or bulk unpublish events', function () {
-    actingAsRoleForEvents('Defensor');
-    $draft = Event::factory()->create(['is_published' => false]);
-    $published = Event::factory()->create(['is_published' => true]);
-
-    Livewire::test(EventIndex::class)->set('selected', [$draft->id])->call('bulkPublish');
-    Livewire::test(EventIndex::class)->set('selected', [$published->id])->call('bulkUnpublish');
-
-    expect($draft->refresh()->is_published)->toBeFalse()
-        ->and($published->refresh()->is_published)->toBeTrue();
-});
-
-test('bulkDelete removes every selected event and clears the selection', function () {
-    actingAsRoleForEvents('Administrador');
-    $event1 = Event::factory()->create();
-    $event2 = Event::factory()->create();
-
-    $component = Livewire::test(EventIndex::class)
-        ->set('selected', [$event1->id, $event2->id])
-        ->call('bulkDelete');
-
-    expect(Event::find($event1->id))->toBeNull()
-        ->and(Event::find($event2->id))->toBeNull();
-    $component->assertSet('selected', []);
-});
-
-test('a Defensor cannot bulk delete events', function () {
+test('a Defensor cannot delete an event', function () {
     actingAsRoleForEvents('Defensor');
     $event = Event::factory()->create();
 
-    Livewire::test(EventIndex::class)->set('selected', [$event->id])->call('bulkDelete');
+    Livewire::test(EventIndex::class)->call('delete', $event->id)->assertStatus(403);
 
     expect(Event::find($event->id))->not->toBeNull();
 });
 
-test('toggleSelectAllOnPage selects then deselects every event on the current page', function () {
+test('rescheduleEvent moves the event to the new date, keeping its time and duration', function () {
     actingAsRoleForEvents('Administrador');
-    Event::factory()->count(3)->create();
+    $event = Event::factory()->create([
+        'starts_at' => '2026-10-04 14:00:00',
+        'ends_at' => '2026-10-04 16:00:00',
+    ]);
 
-    $component = Livewire::test(EventIndex::class)->call('toggleSelectAllOnPage');
-    expect($component->get('selected'))->toHaveCount(3);
+    Livewire::test(EventIndex::class)->call('rescheduleEvent', $event->id, '2026-10-20');
 
-    $component->call('toggleSelectAllOnPage');
-    expect($component->get('selected'))->toHaveCount(0);
+    expect($event->refresh()->starts_at->format('Y-m-d H:i:s'))->toBe('2026-10-20 14:00:00')
+        ->and($event->ends_at->format('Y-m-d H:i:s'))->toBe('2026-10-20 16:00:00');
 });
 
-test('searching filters the events table by title', function () {
+test('a Defensor cannot reschedule an event', function () {
+    actingAsRoleForEvents('Defensor');
+    $event = Event::factory()->create(['starts_at' => '2026-10-04 14:00:00']);
+
+    Livewire::test(EventIndex::class)->call('rescheduleEvent', $event->id, '2026-10-20')->assertStatus(403);
+
+    expect($event->refresh()->starts_at->format('Y-m-d'))->toBe('2026-10-04');
+});
+
+test('quickCreate creates an event linked to the dropped category, with its name and date, and opens it for editing', function () {
     actingAsRoleForEvents('Administrador');
-    Event::factory()->create(['title' => 'Palestra de Direitos Humanos']);
-    Event::factory()->create(['title' => 'Outro Assunto']);
+    $category = EventCategory::factory()->create(['color' => '#0ab39c']);
+
+    $component = Livewire::test(EventIndex::class)->call('quickCreate', $category->id, 'Reunião', '2026-11-10');
+
+    $event = Event::where('title', 'Reunião')->first();
+    expect($event)->not->toBeNull()
+        ->and($event->event_category_id)->toBe($category->id)
+        ->and($event->colorHex())->toBe('#0ab39c')
+        ->and($event->starts_at->format('Y-m-d'))->toBe('2026-11-10')
+        ->and($event->is_published)->toBeTrue();
+    $component->assertSet('editingEventId', $event->id);
+});
+
+test('a Defensor cannot quickCreate an event', function () {
+    actingAsRoleForEvents('Defensor');
+    $category = EventCategory::factory()->create();
 
     Livewire::test(EventIndex::class)
-        ->set('search', 'Direitos Humanos')
-        ->assertSee('Palestra de Direitos Humanos')
-        ->assertDontSee('Outro Assunto');
+        ->call('quickCreate', $category->id, 'Reunião', '2026-11-10')
+        ->assertStatus(403);
+
+    expect(Event::where('title', 'Reunião')->exists())->toBeFalse();
+});
+
+test('createOnDate opens the form prefilled with the given date without creating anything', function () {
+    actingAsRoleForEvents('Administrador');
+
+    $component = Livewire::test(EventIndex::class)->call('createOnDate', '2026-11-15');
+
+    $component->assertSet('prefillStartsAt', '2026-11-15')
+        ->assertSet('editingEventId', null);
+    expect(Event::count())->toBe(0);
+});
+
+test('the prefilled date from createOnDate flows into the event form\'s startsAt field', function () {
+    actingAsRoleForEvents('Administrador');
+
+    Livewire::test(EventForm::class, ['prefillDate' => '2026-11-15'])
+        ->assertSet('startsAt', '2026-11-15T09:00');
 });
 
 test('creating an event saves its link and attached file of any type', function () {
     Storage::fake('public');
     actingAsRoleForEvents('Administrador');
+    $category = EventCategory::factory()->create();
 
     Livewire::test(EventForm::class)
         ->set('title', 'Semana Jurídica')
         ->set('startsAt', '2026-11-10T09:00')
+        ->set('categoryId', $category->id)
         ->set('link', 'https://meet.exemplo.com/semana-juridica')
         ->set('file', UploadedFile::fake()->create('programacao.zip', 100))
         ->call('save')
@@ -174,6 +239,38 @@ test('creating an event saves its link and attached file of any type', function 
         ->and($event->file_path)->not->toBeNull()
         ->and($event->fileIcon())->toBe('file-zipper');
     Storage::disk('public')->assertExists($event->file_path);
+});
+
+test('an event attachment with a disallowed file type (e.g. html or svg) is rejected', function () {
+    Storage::fake('public');
+    actingAsRoleForEvents('Administrador');
+    $category = EventCategory::factory()->create();
+
+    Livewire::test(EventForm::class)
+        ->set('title', 'Semana Jurídica')
+        ->set('startsAt', '2026-11-10T09:00')
+        ->set('categoryId', $category->id)
+        ->set('file', UploadedFile::fake()->create('ataque.html', 10, 'text/html'))
+        ->call('save')
+        ->assertHasErrors(['file']);
+
+    expect(Event::where('title', 'Semana Jurídica')->exists())->toBeFalse();
+});
+
+test('picking an existing file path that was never offered by the reuse list is forbidden', function () {
+    Storage::fake('public');
+    actingAsRoleForEvents('Administrador');
+    $category = EventCategory::factory()->create();
+
+    Livewire::test(EventForm::class)
+        ->set('title', 'Tentativa De Burlar A Lista')
+        ->set('startsAt', '2026-11-10T09:00')
+        ->set('categoryId', $category->id)
+        ->call('pickExistingFile', '../../.env')
+        ->call('save')
+        ->assertForbidden();
+
+    expect(Event::where('title', 'Tentativa De Burlar A Lista')->exists())->toBeFalse();
 });
 
 test('creating an event with an invalid link is rejected', function () {
@@ -192,7 +289,8 @@ test('creating an event with an invalid link is rejected', function () {
 test('removeFile clears the attached file when editing an event', function () {
     Storage::fake('public');
     actingAsRoleForEvents('Administrador');
-    $event = Event::factory()->create(['file_path' => 'events/programacao.pdf']);
+    $category = EventCategory::factory()->create();
+    $event = Event::factory()->create(['file_path' => 'events/programacao.pdf', 'event_category_id' => $category->id]);
 
     Livewire::test(EventForm::class, ['event' => $event])
         ->call('removeFile')
@@ -202,31 +300,63 @@ test('removeFile clears the attached file when editing an event', function () {
     expect($event->refresh()->file_path)->toBeNull();
 });
 
-test('reorder updates the order field of every selected event', function () {
+test('pickExistingFile reuses a path already in the media library instead of uploading again', function () {
+    Storage::fake('public');
     actingAsRoleForEvents('Administrador');
-    $first = Event::factory()->create(['order' => 0]);
-    $second = Event::factory()->create(['order' => 1]);
-    $third = Event::factory()->create(['order' => 2]);
+    $category = EventCategory::factory()->create();
+    $document = Document::factory()->create(['file_path' => 'documents/edital.pdf']);
+    Storage::disk('public')->put($document->file_path, 'fake');
 
-    Livewire::test(EventIndex::class)->call('reorder', [$third->id, $first->id, $second->id]);
+    Livewire::test(EventForm::class)
+        ->set('title', 'Evento Com Arquivo Reaproveitado')
+        ->set('startsAt', '2026-11-10T09:00')
+        ->set('categoryId', $category->id)
+        ->call('pickExistingFile', $document->file_path)
+        ->call('save')
+        ->assertHasNoErrors();
 
-    expect($third->refresh()->order)->toBe(0)
-        ->and($first->refresh()->order)->toBe(1)
-        ->and($second->refresh()->order)->toBe(2);
+    $event = Event::where('title', 'Evento Com Arquivo Reaproveitado')->first();
+    expect($event->file_path)->toBe($document->file_path);
 });
 
-test('reorder with a mismatched set of ids is rejected', function () {
+test('pickExistingCoverImage reuses a path already in the media library instead of uploading again', function () {
+    Storage::fake('public');
     actingAsRoleForEvents('Administrador');
-    $event = Event::factory()->create(['order' => 0]);
-    Event::factory()->create(['order' => 1]);
+    $category = EventCategory::factory()->create();
+    $other = Event::factory()->create(['cover_image' => 'events/outro/capa.jpg']);
+    Storage::disk('public')->put($other->cover_image, 'fake');
 
-    Livewire::test(EventIndex::class)->call('reorder', [$event->id])->assertStatus(403);
+    Livewire::test(EventForm::class)
+        ->set('title', 'Evento Com Capa Reaproveitada')
+        ->set('startsAt', '2026-11-10T09:00')
+        ->set('categoryId', $category->id)
+        ->call('pickExistingCoverImage', $other->cover_image)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $event = Event::where('title', 'Evento Com Capa Reaproveitada')->first();
+    expect($event->cover_image)->toBe($other->cover_image);
 });
 
-test('a Defensor cannot reorder events', function () {
-    actingAsRoleForEvents('Defensor');
-    $first = Event::factory()->create(['order' => 0]);
-    $second = Event::factory()->create(['order' => 1]);
+test('editing an event keeps its existing cover image and file when nothing is changed', function () {
+    Storage::fake('public');
+    actingAsRoleForEvents('Administrador');
+    $category = EventCategory::factory()->create();
+    $event = Event::factory()->create([
+        'event_category_id' => $category->id,
+        'cover_image' => 'events/abc/capa.jpg',
+        'file_path' => 'events/abc/programacao.pdf',
+    ]);
+    Storage::disk('public')->put($event->cover_image, 'fake');
+    Storage::disk('public')->put($event->file_path, 'fake');
 
-    Livewire::test(EventIndex::class)->call('reorder', [$second->id, $first->id])->assertStatus(403);
+    Livewire::test(EventForm::class, ['event' => $event])
+        ->set('title', 'Título Atualizado')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $event->refresh();
+    expect($event->title)->toBe('Título Atualizado')
+        ->and($event->cover_image)->toBe('events/abc/capa.jpg')
+        ->and($event->file_path)->toBe('events/abc/programacao.pdf');
 });

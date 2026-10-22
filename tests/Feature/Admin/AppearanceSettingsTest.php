@@ -19,7 +19,7 @@ function actingAsRoleForAppearance(string $role): User
 test('the default site setting uses green only for the primary color, white for the chrome', function () {
     $setting = SiteSetting::current();
 
-    expect($setting->primary_color)->toBe('#0C4A34')
+    expect($setting->primary_color)->toBe('#00C950')
         ->and($setting->nav_header_color)->toBe('#FFFFFF')
         ->and($setting->header_color)->toBe('#FFFFFF')
         ->and($setting->sidebar_color)->toBe('#FFFFFF')
@@ -81,7 +81,7 @@ test('an invalid hex color is rejected', function () {
         ->call('save')
         ->assertHasErrors(['primaryColor']);
 
-    expect(SiteSetting::current()->primary_color)->toBe('#0C4A34');
+    expect(SiteSetting::current()->primary_color)->toBe('#00C950');
 });
 
 test('the color picker never shows two checkmarks when the selected color matches both the row default and a palette swatch', function () {
@@ -113,7 +113,7 @@ test('white is not offered as an accent color option, since buttons/links in whi
 });
 
 test('the color picker still shows exactly one checkmark when the selected color is a palette swatch distinct from the default', function () {
-    SiteSetting::current()->update(['primary_color' => '#22B573']);
+    SiteSetting::current()->update(['primary_color' => '#FB2C36']);
     actingAsRoleForAppearance('Super Administrador');
 
     $html = $this->get(route('admin.appearance.edit'))->getContent();
@@ -219,7 +219,7 @@ test('the public site layout reflects the saved primary color', function () {
 });
 
 test('the sidebar active item keeps readable contrast when the sidebar color is as dark as the primary color', function () {
-    SiteSetting::current()->update(['sidebar_color' => '#0C4A34']);
+    SiteSetting::current()->update(['primary_color' => '#0C4A34', 'sidebar_color' => '#0C4A34']);
     actingAsRoleForAppearance('Super Administrador');
 
     $this->get(route('admin.users.index'))

@@ -58,6 +58,21 @@ test('the home page shows the next upcoming published event', function () {
         ->assertDontSee('Evento Passado');
 });
 
+test('the home page still shows an event scheduled earlier today, even after its start time has passed', function () {
+    $user = User::factory()->create();
+    Event::factory()->create([
+        'title' => 'Evento De Hoje Mais Cedo',
+        'starts_at' => today(),
+        'ends_at' => today()->addHour(),
+    ]);
+    Event::factory()->create(['title' => 'Evento De Ontem', 'starts_at' => now()->subDay(), 'ends_at' => now()->subDay()]);
+
+    $this->actingAs($user)
+        ->get(route('inicio'))
+        ->assertSee('Evento De Hoje Mais Cedo')
+        ->assertDontSee('Evento De Ontem');
+});
+
 test('the home page shows the current month\'s published birthday banner image', function () {
     $user = User::factory()->create();
     $banner = BirthdayBanner::factory()->create(['month' => now()->month, 'is_published' => true]);
@@ -115,4 +130,17 @@ test('toggling the like button likes and unlikes the headline article', function
 
     Livewire::test(HomeIndex::class)->call('toggleLike', $article->id);
     expect($article->isLikedBy($user))->toBeFalse();
+});
+
+test('liking an unpublished article or album via the home page is rejected', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $draftArticle = Article::factory()->create(['is_published' => false]);
+    $draftAlbum = PhotoAlbum::factory()->create(['is_published' => false]);
+
+    Livewire::test(HomeIndex::class)->call('toggleLike', $draftArticle->id)->assertStatus(404);
+    Livewire::test(HomeIndex::class)->call('toggleAlbumLike', $draftAlbum->id)->assertStatus(404);
+
+    expect($draftArticle->isLikedBy($user))->toBeFalse()
+        ->and($draftAlbum->isLikedBy($user))->toBeFalse();
 });

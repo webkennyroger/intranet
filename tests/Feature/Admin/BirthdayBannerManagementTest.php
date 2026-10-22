@@ -19,6 +19,29 @@ function actingAsRoleForBirthdayBanners(string $role): User
     return $user;
 }
 
+test('the management page always lists all 12 months, even with no banners cadastrados', function () {
+    actingAsRoleForBirthdayBanners('Administrador');
+
+    Livewire::test(BirthdayBannerIndex::class)
+        ->assertSee('Janeiro')
+        ->assertSee('Dezembro')
+        ->assertSeeHtml('Sem banner');
+});
+
+test('createForMonth prefills the form with that month without creating anything', function () {
+    actingAsRoleForBirthdayBanners('Administrador');
+
+    $component = Livewire::test(BirthdayBannerIndex::class)->call('createForMonth', 7);
+
+    expect($component->get('prefillMonth'))->toBe(7)
+        ->and($component->get('editingBannerId'))->toBeNull();
+
+    Livewire::test(BirthdayBannerForm::class, ['prefillMonth' => 7])
+        ->assertSet('month', '7');
+
+    expect(BirthdayBanner::count())->toBe(0);
+});
+
 test('an Administrador can view the birthday banners management page', function () {
     actingAsRoleForBirthdayBanners('Administrador');
 

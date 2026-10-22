@@ -16,7 +16,7 @@ test('the birthdays page shows an empty state when no banner is published for th
 test('a user can have a birth date set via the admin user form', function () {
     $this->seed(AclSeeder::class);
     $admin = User::factory()->create();
-    $admin->assignRole('Administrador');
+    $admin->assignRole('Super Administrador');
 
     Livewire\Livewire::actingAs($admin)->test(UserForm::class)
         ->set('name', 'Novo Usuário')

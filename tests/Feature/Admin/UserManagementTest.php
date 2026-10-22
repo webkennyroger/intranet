@@ -353,6 +353,25 @@ test('an Administrador has no permission to bulk block or bulk delete users', fu
         ->and($superAdmin->refresh()->isActive())->toBeTrue();
 });
 
+test('an Administrador cannot create or update a user via UserForm, even by setting role to Super Administrador', function () {
+    $this->seed(AclSeeder::class);
+
+    $admin = User::factory()->create();
+    $admin->assignRole('Administrador');
+    $this->actingAs($admin);
+
+    Livewire::test(UserForm::class)
+        ->set('name', 'Invasor')
+        ->set('username', 'invasor')
+        ->set('email', 'invasor@example.com')
+        ->set('password', 'password123')
+        ->set('role', 'Super Administrador')
+        ->call('save')
+        ->assertForbidden();
+
+    expect(User::where('email', 'invasor@example.com')->exists())->toBeFalse();
+});
+
 test('toggleSelectAllOnPage selects then deselects every user on the current page', function () {
     $this->seed(AclSeeder::class);
     $admin = User::factory()->create();

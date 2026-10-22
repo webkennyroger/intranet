@@ -49,6 +49,23 @@ test('saving the article form redirects back to the articles index', function ()
         ->assertRedirect(route('admin.articles.index'));
 });
 
+test('a Defensor cannot create or update an article via ArticleForm', function () {
+    actingAsRole('Defensor');
+    $category = Category::factory()->create();
+
+    Livewire::test(ArticleForm::class)
+        ->set('title', 'Tentativa Sem Permissão')
+        ->set('excerpt', 'Resumo do artigo')
+        ->set('body', '<p>Conteúdo</p>')
+        ->set('categoryIds', [$category->id])
+        ->set('coverColor', '#064e3b')
+        ->set('coverIcon', 'newspaper')
+        ->call('save')
+        ->assertForbidden();
+
+    expect(Article::where('title', 'Tentativa Sem Permissão')->exists())->toBeFalse();
+});
+
 test('creating an article with "postar agora" publishes it immediately', function () {
     actingAsRole('Administrador');
     $category = Category::factory()->create();
@@ -599,7 +616,7 @@ test('filtering the management list by category shows only articles in that cate
 
     $component = Livewire::test(ArticleIndex::class)->set('categoryId', (string) $wanted->id);
 
-    expect($component->viewData('articles')->pluck('title')->all())->toBe(['Artigo Avisos']);
+    expect($component->get('articles')->pluck('title')->all())->toBe(['Artigo Avisos']);
 });
 
 test('filtering the management list by archive year shows only articles published that year', function () {
@@ -609,7 +626,7 @@ test('filtering the management list by archive year shows only articles publishe
 
     $component = Livewire::test(ArticleIndex::class)->set('year', '2024');
 
-    expect($component->viewData('articles')->pluck('title')->all())->toBe(['De 2024']);
+    expect($component->get('articles')->pluck('title')->all())->toBe(['De 2024']);
 });
 
 test('the Mural management page shows articles from every category', function () {

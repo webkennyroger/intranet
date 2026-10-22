@@ -74,6 +74,19 @@ test('toggling the video like twice removes it again', function () {
     expect($video->refresh()->isLikedBy($user))->toBeFalse();
 });
 
+test('liking an unpublished album or video via the media page is rejected', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+    $draftAlbum = PhotoAlbum::factory()->create(['is_published' => false]);
+    $draftVideo = Video::factory()->create(['is_published' => false]);
+
+    Livewire::test(PhotosIndex::class)->call('toggleAlbumLike', $draftAlbum->id)->assertStatus(404);
+    Livewire::test(PhotosIndex::class)->call('toggleVideoLike', $draftVideo->id)->assertStatus(404);
+
+    expect($draftAlbum->isLikedBy($user))->toBeFalse()
+        ->and($draftVideo->isLikedBy($user))->toBeFalse();
+});
+
 test('opening a video from the index page increments its views count', function () {
     $user = User::factory()->create();
     $this->actingAs($user);

@@ -2,8 +2,10 @@
 
 use App\Livewire\Admin\MediaLibraryIndex;
 use App\Models\Article;
-use App\Models\CouncilMember;
+use App\Models\BirthdayBanner;
+use App\Models\Category;
 use App\Models\Document;
+use App\Models\Event;
 use App\Models\Media;
 use App\Models\Photo;
 use App\Models\PhotoAlbum;
@@ -41,28 +43,75 @@ test('the media library aggregates real uploaded files from every source', funct
     Storage::disk('public')->put($photo->image_path, 'fake');
 
     Livewire::test(MediaLibraryIndex::class)
+        ->set('source', 'Documentos')
         ->assertSee('Edital 2026')
+        ->set('source', 'Galeria')
         ->assertSee('Foto da Confraternização');
 });
 
-test('mural articles are not shown in the media library', function () {
-    Storage::fake('public');
+test('the folder tree always shows both root groups and their real subfolders', function () {
     actingAsRoleForMedia('Administrador');
 
-    $article = Article::factory()->create(['title' => 'Artigo Com Capa', 'featured_image' => 'articles/capa.jpg']);
-    Storage::disk('public')->put($article->featured_image, 'fake');
-
-    Livewire::test(MediaLibraryIndex::class)->assertDontSee('Artigo Com Capa');
+    Livewire::test(MediaLibraryIndex::class)
+        ->assertSee('Fotos')
+        ->assertSee('Documentos')
+        ->assertSee('Galeria')
+        ->assertSee('Conselho Superior');
 });
 
-test('council member photos are not shown in the media library', function () {
+test('the media library aggregates event cover images and attached files', function () {
     Storage::fake('public');
     actingAsRoleForMedia('Administrador');
 
-    $member = CouncilMember::factory()->create(['name' => 'Defensor Exemplo', 'photo_path' => 'council/foto.jpg']);
-    Storage::disk('public')->put($member->photo_path, 'fake');
+    $event = Event::factory()->create([
+        'title' => 'Capacitação Anual',
+        'cover_image' => 'events/abc/capa.jpg',
+        'file_path' => 'events/abc/programacao.pdf',
+    ]);
+    Storage::disk('public')->put($event->cover_image, 'fake');
+    Storage::disk('public')->put($event->file_path, 'fake');
 
-    Livewire::test(MediaLibraryIndex::class)->assertDontSee('Defensor Exemplo');
+    Livewire::test(MediaLibraryIndex::class)
+        ->set('source', 'Eventos')
+        ->assertSee('Capacitação Anual');
+});
+
+test('article cover images are shown in the media library under their category folder', function () {
+    Storage::fake('public');
+    actingAsRoleForMedia('Administrador');
+
+    $category = Category::factory()->create(['name' => 'Mural']);
+    $article = Article::factory()->create(['title' => 'Artigo Com Capa', 'featured_image' => 'articles/capa.jpg']);
+    $article->categories()->attach($category);
+    Storage::disk('public')->put($article->featured_image, 'fake');
+
+    Livewire::test(MediaLibraryIndex::class)
+        ->set('source', 'Mural')
+        ->assertSee('Artigo Com Capa');
+});
+
+test('an article without any category falls back to the Mural folder', function () {
+    Storage::fake('public');
+    actingAsRoleForMedia('Administrador');
+
+    $article = Article::factory()->create(['title' => 'Artigo Sem Categoria', 'featured_image' => 'articles/capa.jpg']);
+    Storage::disk('public')->put($article->featured_image, 'fake');
+
+    Livewire::test(MediaLibraryIndex::class)
+        ->set('source', 'Mural')
+        ->assertSee('Artigo Sem Categoria');
+});
+
+test('birthday banner images are shown in the media library under Aniversariantes', function () {
+    Storage::fake('public');
+    actingAsRoleForMedia('Administrador');
+
+    $banner = BirthdayBanner::factory()->create(['month' => 10, 'image_path' => 'birthdays/banner.jpg']);
+    Storage::disk('public')->put($banner->image_path, 'fake');
+
+    Livewire::test(MediaLibraryIndex::class)
+        ->set('source', 'Aniversariantes')
+        ->assertSee('Outubro');
 });
 
 test('files that no longer exist on disk are skipped silently', function () {
@@ -103,6 +152,7 @@ test('searching filters media by name', function () {
     Storage::disk('public')->put($two->file_path, 'fake');
 
     Livewire::test(MediaLibraryIndex::class)
+        ->set('source', 'Documentos')
         ->set('search', 'Comunicado')
         ->assertSee('Comunicado Especial')
         ->assertDontSee('Outro Assunto');
@@ -195,6 +245,31 @@ test('deleting the album cover photo reassigns the cover to another photo', func
     expect($album->refresh()->cover_image_path)->toBe($other->image_path);
 });
 
+test('uploading, deleting or renaming a plain media file without permission is forbidden', function () {
+    Storage::fake('public');
+    actingAsRoleForMedia('Defensor');
+
+    Livewire::test(MediaLibraryIndex::class)
+        ->set('source', 'articles')
+        ->set('newMediaFiles', [UploadedFile::fake()->image('foto.jpg')])
+        ->assertForbidden();
+    expect(Media::count())->toBe(0);
+
+    $media = Media::factory()->create(['path' => 'media/foto.jpg']);
+    Storage::disk('public')->put($media->path, 'fake');
+
+    Livewire::test(MediaLibraryIndex::class)->call('deleteMedia', $media->id)->assertForbidden();
+    expect(Media::find($media->id))->not->toBeNull();
+
+    Livewire::test(MediaLibraryIndex::class)
+        ->set('renamingOwnerType', 'media')
+        ->set('renamingMediaId', $media->id)
+        ->set('renamingName', 'Novo nome')
+        ->call('renameItem')
+        ->assertForbidden();
+    expect($media->refresh()->name)->not->toBe('Novo nome');
+});
+
 test('deleting a photo without permission is forbidden', function () {
     Storage::fake('public');
     actingAsRoleForMedia('Defensor');
@@ -246,6 +321,53 @@ test('renaming a document updates its title', function () {
         ->call('renameItem');
 
     expect($document->refresh()->title)->toBe('Título novo');
+});
+
+test('deleting an event cover image removes only that file, keeping the event and its attachment', function () {
+    Storage::fake('public');
+    actingAsRoleForMedia('Administrador');
+    $event = Event::factory()->create([
+        'cover_image' => 'events/abc/capa.jpg',
+        'file_path' => 'events/abc/programacao.pdf',
+    ]);
+    Storage::disk('public')->put($event->cover_image, 'fake');
+    Storage::disk('public')->put($event->file_path, 'fake');
+
+    Livewire::test(MediaLibraryIndex::class)->call('deleteEventFile', $event->id, 0);
+
+    $event->refresh();
+    expect($event->cover_image)->toBeNull()
+        ->and($event->file_path)->toBe('events/abc/programacao.pdf');
+    Storage::disk('public')->assertMissing('events/abc/capa.jpg');
+    Storage::disk('public')->assertExists('events/abc/programacao.pdf');
+});
+
+test('deleting an event attached file removes only that file, keeping the event and its cover image', function () {
+    Storage::fake('public');
+    actingAsRoleForMedia('Administrador');
+    $event = Event::factory()->create([
+        'cover_image' => 'events/abc/capa.jpg',
+        'file_path' => 'events/abc/programacao.pdf',
+    ]);
+    Storage::disk('public')->put($event->cover_image, 'fake');
+    Storage::disk('public')->put($event->file_path, 'fake');
+
+    Livewire::test(MediaLibraryIndex::class)->call('deleteEventFile', $event->id, 1);
+
+    $event->refresh();
+    expect($event->file_path)->toBeNull()
+        ->and($event->cover_image)->toBe('events/abc/capa.jpg');
+    Storage::disk('public')->assertMissing('events/abc/programacao.pdf');
+    Storage::disk('public')->assertExists('events/abc/capa.jpg');
+});
+
+test('deleting an event file without permission is forbidden', function () {
+    Storage::fake('public');
+    actingAsRoleForMedia('Defensor');
+    $event = Event::factory()->create(['cover_image' => 'events/abc/capa.jpg']);
+    Storage::disk('public')->put($event->cover_image, 'fake');
+
+    Livewire::test(MediaLibraryIndex::class)->call('deleteEventFile', $event->id, 0)->assertForbidden();
 });
 
 test('the generic deleteItem dispatcher routes to the right deletion by owner type', function () {

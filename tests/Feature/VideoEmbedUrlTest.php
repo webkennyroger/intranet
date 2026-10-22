@@ -43,3 +43,10 @@ test('thumbnailUrl returns null when there is no file and the url is not from yo
 
     expect($video->thumbnailUrl())->toBeNull();
 });
+
+test('platform identifies youtube, vimeo and other urls', function () {
+    expect((new Video(['url' => 'https://www.youtube.com/watch?v=abc123']))->platform())->toBe('youtube')
+        ->and((new Video(['url' => 'https://youtu.be/abc123']))->platform())->toBe('youtube')
+        ->and((new Video(['url' => 'https://vimeo.com/123456789']))->platform())->toBe('vimeo')
+        ->and((new Video(['url' => 'https://example.com/my-video']))->platform())->toBe('other');
+});
