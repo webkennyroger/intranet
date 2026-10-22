@@ -14,8 +14,14 @@ class CategorySeeder extends Seeder
 {
     public function run(): void
     {
-        foreach (['Mural' => 'mural', 'Notícia' => 'noticia', 'SOS DPEMT' => 'sos-dpemt'] as $name => $slug) {
-            Category::firstOrCreate(['slug' => $slug], ['name' => $name]);
+        $categories = [
+            'Mural' => ['slug' => 'mural', 'color' => '#7C3AED'],
+            'Notícia' => ['slug' => 'noticia', 'color' => '#2563EB'],
+            'SOS DPEMT' => ['slug' => 'sos-dpemt', 'color' => '#DC2626'],
+        ];
+
+        foreach ($categories as $name => $data) {
+            Category::firstOrCreate(['slug' => $data['slug']], ['name' => $name, 'color' => $data['color']]);
         }
     }
 }

@@ -81,6 +81,24 @@ class ActivityLog extends Model
         );
     }
 
+    /**
+     * Cor hexadecimal por ação — mesma linguagem visual do `action_variant`
+     * (badge), usada onde é preciso um hex de verdade (faixa decorativa da
+     * linha, aba de filtro colorida), não só a classe do badge.
+     */
+    protected function actionColor(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => match ($this->action) {
+                'created', 'activated' => '#059669',
+                'updated' => '#2563EB',
+                'deactivated' => '#D97706',
+                'deleted' => '#DC2626',
+                default => '#64748B',
+            },
+        );
+    }
+
     protected function subjectLabel(): Attribute
     {
         return Attribute::make(
@@ -89,7 +107,6 @@ class ActivityLog extends Model
                 Category::class => 'Categoria',
                 Document::class => 'Documento',
                 DocumentCategory::class => 'Pasta de Documentos',
-                CouncilMember::class => 'Conselho Superior',
                 ServiceLink::class => 'Serviço',
                 PhotoAlbum::class => 'Álbum de Fotos',
                 Video::class => 'Vídeo',

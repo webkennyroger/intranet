@@ -5,7 +5,7 @@ namespace App\Models;
 use Database\Factories\VideoFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -63,9 +63,26 @@ class Video extends Model
         return null;
     }
 
-    public function likedByUsers(): BelongsToMany
+    /**
+     * Identifica a plataforma de origem a partir da URL, pra exibir um
+     * selo (YouTube/Vimeo/link externo) na listagem do admin.
+     */
+    public function platform(): string
     {
-        return $this->belongsToMany(User::class, 'video_likes')->withTimestamps();
+        if (preg_match('/youtu\.be\/|youtube\.com/', $this->url)) {
+            return 'youtube';
+        }
+
+        if (preg_match('/vimeo\.com/', $this->url)) {
+            return 'vimeo';
+        }
+
+        return 'other';
+    }
+
+    public function likedByUsers(): MorphToMany
+    {
+        return $this->morphToMany(User::class, 'likeable', 'likes')->withTimestamps();
     }
 
     public function isLikedBy(User $user): bool

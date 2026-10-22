@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
@@ -62,14 +63,9 @@ class Article extends Model
      * Tempo estimado de leitura (minutos), a 200 palavras por minuto,
      * usado nos cards de notícia da página Início.
      */
-    public function readingTimeMinutes(): int
+    public function likedByUsers(): MorphToMany
     {
-        return max(1, (int) ceil(str_word_count(strip_tags($this->body)) / 200));
-    }
-
-    public function likedByUsers(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'article_likes')->withTimestamps();
+        return $this->morphToMany(User::class, 'likeable', 'likes')->withTimestamps();
     }
 
     public function isLikedBy(User $user): bool

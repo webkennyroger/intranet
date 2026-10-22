@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\EventFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -18,7 +19,33 @@ class Event extends Model
     /** @use HasFactory<EventFactory> */
     use HasFactory;
 
-    protected $fillable = ['order', 'title', 'description', 'location', 'cover_image', 'link', 'file_path', 'starts_at', 'ends_at', 'is_published'];
+    protected $fillable = ['order', 'title', 'description', 'location', 'cover_image', 'link', 'file_path', 'starts_at', 'ends_at', 'is_published', 'color', 'event_category_id'];
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(EventCategory::class, 'event_category_id');
+    }
+
+    /**
+     * Cor principal já configurada em Aparência — usada como padrão pra
+     * eventos/categorias novos, pra não destoar da cor de marca escolhida
+     * pelo admin.
+     */
+    public static function defaultColor(): string
+    {
+        return SiteSetting::current()->primary_color;
+    }
+
+    /**
+     * Cor efetiva do evento: a da categoria vinculada, se houver —
+     * editar a cor da categoria depois reflete em todos os eventos dela —
+     * senão a cor própria do evento (eventos sem categoria), senão a
+     * cor principal padrão.
+     */
+    public function colorHex(): string
+    {
+        return $this->category?->color ?? ($this->color ?: self::defaultColor());
+    }
 
     public function coverImageUrl(): ?string
     {

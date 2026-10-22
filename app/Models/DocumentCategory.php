@@ -17,7 +17,27 @@ class DocumentCategory extends Model
     /** @use HasFactory<DocumentCategoryFactory> */
     use HasFactory;
 
+    protected $table = 'categories';
+
     protected $fillable = ['name', 'slug', 'icon', 'color'];
+
+    /**
+     * Valor padrão de "type" pra linhas novas — não pode ser um listener de
+     * "creating" porque seeders rodados com WithoutModelEvents (ex.:
+     * DatabaseSeeder) desligam esse evento, e todo registro acabaria
+     * gravado com o "default" da coluna em vez do tipo certo.
+     */
+    protected $attributes = ['type' => 'document'];
+
+    /**
+     * "categories" guarda as categorias de 4 módulos diferentes, distinguidos
+     * pela coluna "type" — esse scope garante que este model só veja/crie
+     * as do tipo "document".
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope(fn ($query) => $query->where('type', 'document'));
+    }
 
     public function documents(): HasMany
     {

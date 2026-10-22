@@ -5,8 +5,8 @@ namespace App\Models;
 use Database\Factories\PhotoAlbumFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 /**
  * Álbum de fotos de um evento institucional. Agrupa as `Photo`s do álbum
@@ -32,9 +32,9 @@ class PhotoAlbum extends Model
         return $this->hasMany(Photo::class)->orderBy('order');
     }
 
-    public function likedByUsers(): BelongsToMany
+    public function likedByUsers(): MorphToMany
     {
-        return $this->belongsToMany(User::class, 'photo_album_likes')->withTimestamps();
+        return $this->morphToMany(User::class, 'likeable', 'likes')->withTimestamps();
     }
 
     public function isLikedBy(User $user): bool

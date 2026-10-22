@@ -22,7 +22,7 @@ class SiteSetting extends Model
     public static function current(): self
     {
         return static::firstOrCreate(['id' => 1], [
-            'primary_color' => '#0C4A34',
+            'primary_color' => '#00C950',
             'nav_header_color' => '#FFFFFF',
             'header_color' => '#FFFFFF',
             'sidebar_color' => '#FFFFFF',

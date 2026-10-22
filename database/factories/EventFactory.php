@@ -28,6 +28,7 @@ class EventFactory extends Factory
             'starts_at' => $startsAt,
             'ends_at' => (clone $startsAt)->modify('+2 hours'),
             'is_published' => true,
+            'color' => fake()->hexColor(),
         ];
     }
 }
