@@ -6,10 +6,7 @@
 <form wire:submit="save" class="space-y-4">
     <x-ui.input wire:model="title" label="Título do álbum" />
 
-    <div class="space-y-1.5">
-        <label class="block text-sm font-medium" style="color: var(--text-secondary);">Descrição</label>
-        <textarea wire:model="description" rows="2" class="w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-(--focus-ring)/40 focus:border-(--focus-ring) transition-all duration-200 px-4 py-2.5 text-sm" style="background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-primary);"></textarea>
-    </div>
+    <x-ui.textarea wire:model="description" label="Descrição" rows="2" />
 
     <x-ui.input wire:model="eventDate" type="date" label="Data do evento" />
 

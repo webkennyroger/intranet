@@ -1,7 +1,7 @@
 {{--
     Área de texto multilinha (label + textarea + erro/hint), seguindo o mesmo
-    padrão visual do <x-ui.input>. Componente genérico do kit de UI, ainda não
-    usado em nenhuma tela deste projeto.
+    padrão visual do <x-ui.input>. Usado no campo Descrição dos formulários
+    do admin (Documentos, Eventos, Fotos, Capacitações e Vídeos).
 --}}
 @props([
     'label' => null,

@@ -1,5 +1,6 @@
 {{--
     Interruptor on/off (checkbox nativo escondido + trilho/bolinha customizados).
+    Usado no campo "Ativo" do formulário de Serviços.
 --}}
 @props([
     'label' => null,
