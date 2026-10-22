@@ -197,6 +197,8 @@ class ArticleForm extends Component
      */
     protected function persistArticle(): Article
     {
+        abort_unless(auth()->user()->can($this->article ? 'articles.update' : 'articles.create'), 403);
+
         $this->validate([
             'title' => 'required|string|max:255',
             'excerpt' => 'required|string|max:500',

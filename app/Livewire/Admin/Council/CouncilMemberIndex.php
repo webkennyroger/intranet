@@ -2,8 +2,6 @@
 
 namespace App\Livewire\Admin\Council;
 
-use App\Livewire\Concerns\ComputesWeeklyTrend;
-use App\Models\CouncilMember;
 use App\Models\CouncilProcess;
 use App\Services\ActivityLogger;
 use Livewire\Attributes\Computed;
@@ -12,138 +10,14 @@ use Livewire\Component;
 use Livewire\WithPagination;
 
 /**
- * Tela admin "Conselho Superior": gerencia os membros do conselho
- * (reordenação por arrastar-e-soltar, ativação/desativação, exclusão) e,
- * abaixo, os processos SEI do conselho (busca, publicar/despublicar,
- * exclusão) — tudo na mesma tela, mesmo item de menu.
+ * Tela admin "Conselho Superior": gerencia os processos SEI do conselho
+ * (busca, publicar/despublicar, exclusão). Os membros exibidos na página
+ * pública não têm cadastro próprio — são os usuários com o papel
+ * "Defensor", atribuído em Usuários & Acessos.
  */
 class CouncilMemberIndex extends Component
 {
-    use ComputesWeeklyTrend, WithPagination;
-
-    // --- Membros ---
-
-    public ?int $editingMemberId = null;
-
-    /** @var array<int, int> */
-    public array $selectedMembers = [];
-
-    #[On('council-member-saved')]
-    public function refreshMembers(): void
-    {
-        $this->editingMemberId = null;
-        $this->dispatch('close-modal', 'council-member-form');
-    }
-
-    public function editMember(int $memberId): void
-    {
-        $this->editingMemberId = $memberId;
-    }
-
-    public function closeForm(): void
-    {
-        $this->editingMemberId = null;
-    }
-
-    public function toggleActive(int $memberId): void
-    {
-        $member = CouncilMember::findOrFail($memberId);
-        $willBeActive = ! $member->is_active;
-        $member->update(['is_active' => $willBeActive]);
-        $willBeActive ? ActivityLogger::activated($member) : ActivityLogger::deactivated($member);
-        $this->dispatch('toast', title: 'Conselho Superior', message: $willBeActive ? 'Membro ativado com sucesso.' : 'Membro desativado.', variant: $willBeActive ? 'success' : 'warning');
-    }
-
-    public function deleteMember(int $memberId): void
-    {
-        abort_unless(auth()->user()->can('council.delete'), 403);
-
-        $member = CouncilMember::findOrFail($memberId);
-        $member->delete();
-        ActivityLogger::deleted($member);
-        $this->dispatch('toast', title: 'Conselho Superior', message: 'Membro excluído com sucesso.', variant: 'danger');
-    }
-
-    public function toggleSelectAllMembersOnPage(): void
-    {
-        $pageIds = CouncilMember::orderBy('order')->pluck('id')->all();
-
-        if (array_diff($pageIds, $this->selectedMembers) === []) {
-            $this->selectedMembers = array_values(array_diff($this->selectedMembers, $pageIds));
-        } else {
-            $this->selectedMembers = array_values(array_unique(array_merge($this->selectedMembers, $pageIds)));
-        }
-    }
-
-    public function deselectAllMembers(): void
-    {
-        $this->selectedMembers = [];
-    }
-
-    public function bulkActivate(): void
-    {
-        abort_unless(auth()->user()->can('council.update'), 403);
-
-        $members = CouncilMember::whereIn('id', $this->selectedMembers)->where('is_active', false)->get();
-
-        foreach ($members as $member) {
-            $member->update(['is_active' => true]);
-            ActivityLogger::activated($member);
-        }
-
-        $this->selectedMembers = [];
-        $message = $members->isNotEmpty() ? $members->count().' membro(s) ativado(s) com sucesso.' : 'Nenhum membro inativo selecionado para ativar.';
-        $this->dispatch('toast', title: 'Conselho Superior', message: $message, variant: $members->isNotEmpty() ? 'success' : 'warning');
-    }
-
-    public function bulkDeactivate(): void
-    {
-        abort_unless(auth()->user()->can('council.update'), 403);
-
-        $members = CouncilMember::whereIn('id', $this->selectedMembers)->where('is_active', true)->get();
-
-        foreach ($members as $member) {
-            $member->update(['is_active' => false]);
-            ActivityLogger::deactivated($member);
-        }
-
-        $this->selectedMembers = [];
-        $message = $members->isNotEmpty() ? $members->count().' membro(s) desativado(s).' : 'Nenhum membro ativo selecionado.';
-        $this->dispatch('toast', title: 'Conselho Superior', message: $message, variant: 'warning');
-    }
-
-    public function bulkDeleteMembers(): void
-    {
-        abort_unless(auth()->user()->can('council.delete'), 403);
-
-        $members = CouncilMember::whereIn('id', $this->selectedMembers)->get();
-
-        foreach ($members as $member) {
-            $member->delete();
-            ActivityLogger::deleted($member);
-        }
-
-        $this->selectedMembers = [];
-        $this->dispatch('toast', title: 'Conselho Superior', message: $members->count().' membro(s) excluído(s) com sucesso.', variant: 'danger');
-    }
-
-    /**
-     * @param  array<int, int>  $ids
-     */
-    public function reorder(array $ids): void
-    {
-        $existingCount = CouncilMember::whereIn('id', $ids)->count();
-
-        // A lista arrastada pelo navegador pode não bater com o banco (ids
-        // duplicados, removidos por outra aba, etc.) — essa checagem garante
-        // que $ids é exatamente o conjunto atual de membros antes de aplicar
-        // a nova ordem, evitando corromper o campo "order".
-        abort_if($existingCount !== count(array_unique($ids)) || $existingCount !== CouncilMember::count(), 403);
-
-        foreach ($ids as $position => $id) {
-            CouncilMember::whereKey($id)->update(['order' => $position]);
-        }
-    }
+    use WithPagination;
 
     // --- Processos ---
 
@@ -190,7 +64,7 @@ class CouncilMemberIndex extends Component
 
     public function togglePublish(int $processId): void
     {
-        abort_unless(auth()->user()->can('council-processes.update'), 403);
+        abort_unless(auth()->user()->can('council.update'), 403);
 
         $process = CouncilProcess::findOrFail($processId);
         $willBePublished = ! $process->is_published;
@@ -201,7 +75,7 @@ class CouncilMemberIndex extends Component
 
     public function deleteProcess(int $processId): void
     {
-        abort_unless(auth()->user()->can('council-processes.delete'), 403);
+        abort_unless(auth()->user()->can('council.delete'), 403);
 
         $process = CouncilProcess::findOrFail($processId);
         $process->delete();
@@ -227,7 +101,7 @@ class CouncilMemberIndex extends Component
 
     public function bulkPublish(): void
     {
-        abort_unless(auth()->user()->can('council-processes.update'), 403);
+        abort_unless(auth()->user()->can('council.update'), 403);
 
         $processes = CouncilProcess::whereIn('id', $this->selectedProcesses)->where('is_published', false)->get();
 
@@ -243,7 +117,7 @@ class CouncilMemberIndex extends Component
 
     public function bulkUnpublish(): void
     {
-        abort_unless(auth()->user()->can('council-processes.update'), 403);
+        abort_unless(auth()->user()->can('council.update'), 403);
 
         $processes = CouncilProcess::whereIn('id', $this->selectedProcesses)->where('is_published', true)->get();
 
@@ -259,7 +133,7 @@ class CouncilMemberIndex extends Component
 
     public function bulkDeleteProcesses(): void
     {
-        abort_unless(auth()->user()->can('council-processes.delete'), 403);
+        abort_unless(auth()->user()->can('council.delete'), 403);
 
         $processes = CouncilProcess::whereIn('id', $this->selectedProcesses)->get();
 
@@ -292,21 +166,9 @@ class CouncilMemberIndex extends Component
 
     public function render()
     {
-        $members = CouncilMember::orderBy('order')->get();
-
         return view('livewire.admin.council.council-member-index', [
-            'members' => $members,
-            'allSelectedOnPage' => $members->isNotEmpty() && array_diff($members->pluck('id')->all(), $this->selectedMembers) === [],
-            'editingMember' => $this->editingMemberId ? CouncilMember::find($this->editingMemberId) : null,
-            'totalMembers' => CouncilMember::count(),
-            'activeMembers' => CouncilMember::where('is_active', true)->count(),
             'editingProcess' => $this->editingProcessId ? CouncilProcess::find($this->editingProcessId) : null,
             'totalProcesses' => CouncilProcess::count(),
-            'totalProcessesTrend' => $this->weeklyTrend(CouncilProcess::query(), 'created_at'),
-            'publishedProcesses' => CouncilProcess::where('is_published', true)->count(),
-            'publishedProcessesTrend' => $this->weeklyTrend(CouncilProcess::query()->where('is_published', true), 'created_at'),
-            'draftProcesses' => CouncilProcess::where('is_published', false)->count(),
-            'draftProcessesTrend' => $this->weeklyTrend(CouncilProcess::query()->where('is_published', false), 'created_at'),
         ])->layout('layouts.admin', ['title' => 'Conselho Superior']);
     }
 }

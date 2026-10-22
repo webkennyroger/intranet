@@ -26,12 +26,14 @@ class BirthdayBannerForm extends Component
 
     public ?string $existingImage = null;
 
-    public function mount(?BirthdayBanner $banner = null): void
+    public function mount(?BirthdayBanner $banner = null, ?int $prefillMonth = null): void
     {
         if ($banner) {
             $this->banner = $banner;
             $this->month = (string) $banner->month;
             $this->existingImage = $banner->image_path;
+        } elseif ($prefillMonth) {
+            $this->month = (string) $prefillMonth;
         }
     }
 

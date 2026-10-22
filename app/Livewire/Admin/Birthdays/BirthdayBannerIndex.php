@@ -2,37 +2,50 @@
 
 namespace App\Livewire\Admin\Birthdays;
 
-use App\Livewire\Concerns\ComputesWeeklyTrend;
 use App\Models\BirthdayBanner;
 use App\Services\ActivityLogger;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * Tela admin "Banners de Aniversariantes": lista os banners comemorativos
- * cadastrados por mês, permitindo editar, publicar/despublicar e excluir.
+ * Tela admin "Banners de Aniversariantes": lista os 12 meses do ano (um
+ * banner no máximo por mês), permitindo enviar, editar, publicar/
+ * despublicar e excluir a arte de cada um.
  */
 class BirthdayBannerIndex extends Component
 {
-    use ComputesWeeklyTrend;
-
     public ?int $editingBannerId = null;
+
+    public ?int $prefillMonth = null;
 
     #[On('birthday-banner-saved')]
     public function refreshList(): void
     {
         $this->editingBannerId = null;
+        $this->prefillMonth = null;
         $this->dispatch('close-modal', 'birthday-banner-form');
     }
 
     public function edit(int $bannerId): void
     {
         $this->editingBannerId = $bannerId;
+        $this->prefillMonth = null;
+    }
+
+    /**
+     * Abre o formulário de criação já com o mês daquela linha preenchido —
+     * não grava nada até o usuário enviar uma imagem e salvar.
+     */
+    public function createForMonth(int $month): void
+    {
+        $this->editingBannerId = null;
+        $this->prefillMonth = $month;
     }
 
     public function closeForm(): void
     {
         $this->editingBannerId = null;
+        $this->prefillMonth = null;
     }
 
     public function togglePublish(int $bannerId): void
@@ -58,15 +71,18 @@ class BirthdayBannerIndex extends Component
 
     public function render()
     {
-        $banners = BirthdayBanner::orderBy('month')->get();
+        $banners = BirthdayBanner::orderBy('month')->get()->keyBy('month');
+
+        $months = collect(BirthdayBanner::monthNames())->map(fn (string $name, int $month) => [
+            'month' => $month,
+            'name' => $name,
+            'banner' => $banners->get($month),
+        ])->values();
 
         return view('livewire.admin.birthdays.birthday-banner-index', [
-            'banners' => $banners,
+            'months' => $months,
             'editingBanner' => $this->editingBannerId ? BirthdayBanner::find($this->editingBannerId) : null,
             'totalBanners' => $banners->count(),
-            'totalBannersTrend' => $this->weeklyTrend(BirthdayBanner::query(), 'created_at'),
-            'publishedBanners' => $banners->where('is_published', true)->count(),
-            'publishedBannersTrend' => $this->weeklyTrend(BirthdayBanner::query()->where('is_published', true), 'created_at'),
         ])->layout('layouts.admin', ['title' => 'Banners de Aniversariantes']);
     }
 }

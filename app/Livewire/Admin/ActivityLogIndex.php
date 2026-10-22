@@ -5,7 +5,6 @@ namespace App\Livewire\Admin;
 use App\Livewire\Concerns\ComputesWeeklyTrend;
 use App\Models\ActivityLog;
 use App\Models\Article;
-use App\Models\CouncilMember;
 use App\Models\Document;
 use App\Models\Event;
 use App\Models\ForumTopic;
@@ -14,7 +13,10 @@ use App\Models\ServiceLink;
 use App\Models\Training;
 use App\Models\User;
 use App\Models\Video;
+use App\Services\ActivityLogExportService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -34,7 +36,6 @@ class ActivityLogIndex extends Component
     public const SUBJECT_TYPES = [
         Article::class => 'Mural',
         Document::class => 'Documento',
-        CouncilMember::class => 'Conselho Superior',
         ServiceLink::class => 'Serviço',
         PhotoAlbum::class => 'Álbum de Fotos',
         Video::class => 'Vídeo',
@@ -67,6 +68,15 @@ class ActivityLogIndex extends Component
 
     public string $userFilter = '';
 
+    /**
+     * Intervalo de data customizado, aberto pelo botão "Filtros" — alternativa
+     * aos períodos fixos (hoje/semana/mês) quando se precisa de um recorte
+     * específico. Os dois precisam estar preenchidos para valer.
+     */
+    public string $dateFrom = '';
+
+    public string $dateTo = '';
+
     public ?int $selectedLogId = null;
 
     /** @var array<int, int> */
@@ -92,6 +102,27 @@ class ActivityLogIndex extends Component
 
     public function updatedUserFilter(): void
     {
+        $this->resetPage();
+        $this->selected = [];
+    }
+
+    public function applyDateRange(): void
+    {
+        $this->validate([
+            'dateFrom' => ['required', 'date'],
+            'dateTo' => ['required', 'date', 'after_or_equal:dateFrom'],
+        ]);
+
+        $this->periodFilter = '';
+        $this->resetPage();
+        $this->selected = [];
+        $this->dispatch('close-modal', 'activity-log-filters');
+    }
+
+    public function clearDateRange(): void
+    {
+        $this->dateFrom = '';
+        $this->dateTo = '';
         $this->resetPage();
         $this->selected = [];
     }
@@ -151,6 +182,41 @@ class ActivityLogIndex extends Component
         $this->dispatch('toast', title: 'Histórico de Atividades', message: $count.' registro(s) excluído(s) com sucesso.', variant: 'danger');
     }
 
+    /**
+     * Exporta os registros que batem com os filtros atuais da tela (busca,
+     * tipo, período, usuário e aba de ação) — não só a página atual.
+     */
+    public function exportExcel(): Response
+    {
+        $logs = $this->exportableLogs();
+        $bytes = app(ActivityLogExportService::class)->toXlsx($logs);
+
+        return response($bytes, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="historico-de-atividades-'.now()->format('Y-m-d').'.xlsx"',
+        ]);
+    }
+
+    public function exportPdf(): Response
+    {
+        $logs = $this->exportableLogs();
+        $bytes = app(ActivityLogExportService::class)->toPdf($logs);
+
+        return response($bytes, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="historico-de-atividades-'.now()->format('Y-m-d').'.pdf"',
+        ]);
+    }
+
+    private function exportableLogs(): Collection
+    {
+        return (clone $this->filteredQuery())
+            ->when($this->actionFilter !== '', fn ($query) => $query->where('action', $this->actionFilter))
+            ->with(['user'])
+            ->latest()
+            ->get();
+    }
+
     private function filteredQuery(): Builder
     {
         return ActivityLog::query()
@@ -161,7 +227,11 @@ class ActivityLogIndex extends Component
             ->when($this->userFilter !== '', fn ($query) => $query->where('user_id', $this->userFilter))
             ->when($this->periodFilter === 'today', fn ($query) => $query->whereDate('created_at', today()))
             ->when($this->periodFilter === 'week', fn ($query) => $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]))
-            ->when($this->periodFilter === 'month', fn ($query) => $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year));
+            ->when($this->periodFilter === 'month', fn ($query) => $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
+            ->when($this->dateFrom !== '' && $this->dateTo !== '', fn ($query) => $query->whereBetween('created_at', [
+                "{$this->dateFrom} 00:00:00",
+                "{$this->dateTo} 23:59:59",
+            ]));
     }
 
     public function render()

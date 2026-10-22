@@ -40,6 +40,8 @@ class ServiceLinkIndex extends Component
 
     public function delete(int $linkId): void
     {
+        abort_unless(auth()->user()->can('services.delete'), 403);
+
         $link = ServiceLink::findOrFail($linkId);
         $link->delete();
         ActivityLogger::deleted($link);
@@ -48,6 +50,8 @@ class ServiceLinkIndex extends Component
 
     public function toggleActive(int $linkId): void
     {
+        abort_unless(auth()->user()->can('services.update'), 403);
+
         $link = ServiceLink::findOrFail($linkId);
         $willBeActive = ! $link->is_active;
         $link->update(['is_active' => $willBeActive]);
@@ -123,6 +127,8 @@ class ServiceLinkIndex extends Component
      */
     public function reorder(array $ids): void
     {
+        abort_unless(auth()->user()->can('services.update'), 403);
+
         $existingCount = ServiceLink::whereIn('id', $ids)->count();
 
         // Confere se $ids é exatamente o conjunto completo de links, sem

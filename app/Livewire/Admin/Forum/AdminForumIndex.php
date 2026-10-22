@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin\Forum;
 
-use App\Livewire\Concerns\ComputesWeeklyTrend;
 use App\Models\ForumReply;
 use App\Models\ForumTopic;
 use App\Services\ActivityLogger;
@@ -16,7 +15,7 @@ use Livewire\WithPagination;
  */
 class AdminForumIndex extends Component
 {
-    use ComputesWeeklyTrend, WithPagination;
+    use WithPagination;
 
     public string $search = '';
 
@@ -98,9 +97,7 @@ class AdminForumIndex extends Component
     {
         return view('livewire.admin.forum.admin-forum-index', [
             'totalTopics' => ForumTopic::count(),
-            'totalTopicsTrend' => $this->weeklyTrend(ForumTopic::query(), 'created_at'),
             'totalReplies' => ForumReply::count(),
-            'totalRepliesTrend' => $this->weeklyTrend(ForumReply::query(), 'created_at'),
         ])->layout('layouts.admin', ['title' => 'Fórum']);
     }
 }

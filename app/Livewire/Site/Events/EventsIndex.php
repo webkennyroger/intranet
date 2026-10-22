@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Site\Events;
 
+use App\Livewire\Concerns\BuildsCalendarGrid;
 use App\Models\Event;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Livewire\Component;
 
 /**
@@ -13,6 +13,8 @@ use Livewire\Component;
  */
 class EventsIndex extends Component
 {
+    use BuildsCalendarGrid;
+
     public int $month;
 
     public int $year;
@@ -43,40 +45,6 @@ class EventsIndex extends Component
         $this->year = now()->year;
     }
 
-    /**
-     * Monta a grade do mês em semanas completas (domingo a sábado),
-     * incluindo os dias do mês anterior/seguinte que completam a primeira
-     * e a última semana — cada dia já vem com seus eventos publicados.
-     *
-     * @return Collection<int, Collection<int, array>>
-     */
-    private function buildWeeks(Carbon $firstOfMonth, Collection $eventsByDay): Collection
-    {
-        $startOfGrid = $firstOfMonth->copy()->startOfWeek(Carbon::SUNDAY);
-        $endOfGrid = $firstOfMonth->copy()->endOfMonth()->endOfWeek(Carbon::SUNDAY);
-
-        $weeks = collect();
-        $cursor = $startOfGrid->copy();
-
-        while ($cursor->lte($endOfGrid)) {
-            $week = collect();
-
-            for ($i = 0; $i < 7; $i++) {
-                $week->push([
-                    'date' => $cursor->copy(),
-                    'inMonth' => $cursor->month === $firstOfMonth->month,
-                    'isToday' => $cursor->isToday(),
-                    'events' => $eventsByDay->get($cursor->format('Y-m-d'), collect()),
-                ]);
-                $cursor->addDay();
-            }
-
-            $weeks->push($week);
-        }
-
-        return $weeks;
-    }
-
     public function render()
     {
         $firstOfMonth = Carbon::create($this->year, $this->month, 1);
@@ -84,15 +52,22 @@ class EventsIndex extends Component
         $monthEvents = Event::where('is_published', true)
             ->whereBetween('starts_at', [
                 $firstOfMonth->copy()->startOfWeek(Carbon::SUNDAY),
-                $firstOfMonth->copy()->endOfMonth()->endOfWeek(Carbon::SUNDAY),
+                $firstOfMonth->copy()->endOfMonth()->endOfWeek(Carbon::SATURDAY),
             ])
             ->orderBy('starts_at')
             ->get()
             ->groupBy(fn (Event $event) => $event->starts_at->format('Y-m-d'));
 
+        $upcomingEvents = Event::where('is_published', true)
+            ->whereDate('starts_at', '>=', today())
+            ->orderBy('starts_at')
+            ->limit(6)
+            ->get();
+
         return view('livewire.site.events.events-index', [
             'weeks' => $this->buildWeeks($firstOfMonth, $monthEvents),
             'monthLabel' => $firstOfMonth->translatedFormat('F \d\e Y'),
+            'upcomingEvents' => $upcomingEvents,
         ]);
     }
 }

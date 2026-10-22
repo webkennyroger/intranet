@@ -2,21 +2,24 @@
 
 namespace App\Livewire\Site\Council;
 
-use App\Models\CouncilMember;
 use App\Models\CouncilProcess;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Livewire\WithoutUrlPagination;
 use Livewire\WithPagination;
 
 /**
- * Página institucional do conselho: lista os membros ativos (na ordem de
- * exibição definida no cadastro) e, abaixo, os processos SEI publicados,
+ * Página institucional do conselho: lista os processos SEI publicados,
  * com busca por número, assunto, relator/atribuído ou interessado — o
  * número do processo abre o link externo do SEI quando cadastrado.
+ * WithoutUrlPagination (igual ao Dashboard admin): sem isso a URL mudava
+ * pra "?page=2" a cada clique — a paginação já era via Livewire
+ * (wire:click, sem reload), mas a barra de endereço mudando dava a
+ * impressão de navegação de página de verdade.
  */
 class CouncilIndex extends Component
 {
-    use WithPagination;
+    use WithoutUrlPagination, WithPagination;
 
     public string $search = '';
 
@@ -44,13 +47,13 @@ class CouncilIndex extends Component
                 ->orWhere('assigned_to', 'like', "%{$this->search}%")
                 ->orWhere('interested_party', 'like', "%{$this->search}%"))
             ->orderByDesc('sei_number')
-            ->paginate(20);
+            ->paginate(10);
     }
 
     public function render()
     {
         return view('livewire.site.council.council-index', [
-            'members' => CouncilMember::where('is_active', true)->orderBy('order')->get(),
+            'totalProcesses' => CouncilProcess::where('is_published', true)->count(),
         ]);
     }
 }

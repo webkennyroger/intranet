@@ -73,7 +73,7 @@ class TrainingForm extends Component
             'links.*.label' => 'nullable|string|max:255',
             'workloadHours' => 'nullable|integer|min:1|max:1000',
             'startsAt' => 'nullable|date',
-            'trainingCategoryId' => 'nullable|exists:training_categories,id',
+            'trainingCategoryId' => 'nullable|exists:categories,id,type,training',
         ]);
 
         $links = collect($this->links)

@@ -21,7 +21,7 @@ class HomeIndex extends Component
 {
     public function toggleLike(int $articleId): void
     {
-        $article = Article::findOrFail($articleId);
+        $article = Article::published()->findOrFail($articleId);
         $user = auth()->user();
 
         if ($article->isLikedBy($user)) {
@@ -33,7 +33,7 @@ class HomeIndex extends Component
 
     public function toggleAlbumLike(int $albumId): void
     {
-        $album = PhotoAlbum::findOrFail($albumId);
+        $album = PhotoAlbum::where('is_published', true)->findOrFail($albumId);
         $user = auth()->user();
 
         if ($album->isLikedBy($user)) {
@@ -64,10 +64,12 @@ class HomeIndex extends Component
             ->take(12)
             ->get();
 
-        $nextEvent = Event::where('is_published', true)
-            ->where('starts_at', '>=', now())
+        $upcomingEvents = Event::where('is_published', true)
+            ->whereDate('starts_at', '>=', today())
             ->orderBy('starts_at')
-            ->first();
+            ->limit(8)
+            ->get();
+        $nextEvent = $upcomingEvents->first();
 
         // "Em Destaque": sempre 1 de cada origem (Notícia, Mural, próximo
         // Evento e álbum de Fotos mais recente), não as últimas matérias
@@ -159,6 +161,7 @@ class HomeIndex extends Component
             'latestNewsSlides' => $this->chunkIntoSlides($latestNews),
             'gallerySlides' => $this->chunkIntoSlides($this->galleryItems($photoAlbums, $videos)),
             'nextEvent' => $nextEvent,
+            'upcomingEvents' => $upcomingEvents,
             'birthdayBanner' => $birthdayBanner,
         ])->layout('layouts.app', ['title' => 'Início']);
     }

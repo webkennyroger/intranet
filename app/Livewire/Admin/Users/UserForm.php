@@ -51,6 +51,8 @@ class UserForm extends Component
 
     public function save(): void
     {
+        abort_unless(auth()->user()->can($this->user ? 'users.update' : 'users.create'), 403);
+
         $rules = [
             'name' => 'required|string|max:255',
             'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($this->user?->id)],

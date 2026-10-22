@@ -39,6 +39,8 @@ class ServiceLinkForm extends Component
 
     public function save(): void
     {
+        abort_unless(auth()->user()->can($this->link ? 'services.update' : 'services.create'), 403);
+
         $this->validate();
 
         $data = [

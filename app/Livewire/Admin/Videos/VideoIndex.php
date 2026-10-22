@@ -22,10 +22,18 @@ class VideoIndex extends Component
 
     public string $search = '';
 
+    public string $status = 'all';
+
     /** @var array<int, int> */
     public array $selected = [];
 
     public function updatedSearch(): void
+    {
+        $this->resetPage();
+        $this->selected = [];
+    }
+
+    public function updatedStatus(): void
     {
         $this->resetPage();
         $this->selected = [];
@@ -141,6 +149,8 @@ class VideoIndex extends Component
     public function videos()
     {
         return Video::when($this->search !== '', fn ($query) => $query->where('title', 'like', "%{$this->search}%"))
+            ->when($this->status === 'published', fn ($query) => $query->where('is_published', true))
+            ->when($this->status === 'draft', fn ($query) => $query->where('is_published', false))
             ->latest()->paginate(10);
     }
 

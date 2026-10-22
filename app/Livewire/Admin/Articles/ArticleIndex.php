@@ -7,6 +7,7 @@ use App\Models\Article;
 use App\Models\Category;
 use App\Services\ActivityLogger;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -77,18 +78,9 @@ class ArticleIndex extends Component
         $this->dispatch('toast', title: 'Artigo', message: 'Artigo excluído com sucesso.', variant: 'danger');
     }
 
-    /**
-     * IDs da página atual, respeitando os filtros ativos — usado tanto na
-     * listagem principal quanto para "selecionar todos nesta página".
-     */
-    private function currentPageIds(): array
-    {
-        return $this->filteredQuery()->latest('published_at')->paginate(6)->pluck('id')->all();
-    }
-
     public function toggleSelectAllOnPage(): void
     {
-        $pageIds = $this->currentPageIds();
+        $pageIds = $this->articles->pluck('id')->all();
 
         if (array_diff($pageIds, $this->selected) === []) {
             $this->selected = array_values(array_diff($this->selected, $pageIds));
@@ -171,6 +163,23 @@ class ArticleIndex extends Component
         return $query;
     }
 
+    /**
+     * Isolada num island (ver article-index.blade.php): precisa estar
+     * acessível via $this-> porque islands não têm acesso a variáveis de
+     * view vindas de fora deles, só a propriedades/métodos do componente.
+     */
+    #[Computed]
+    public function articles()
+    {
+        return $this->filteredQuery()->latest('published_at')->paginate(6);
+    }
+
+    #[Computed]
+    public function allSelectedOnPage(): bool
+    {
+        return $this->articles->isNotEmpty() && array_diff($this->articles->pluck('id')->all(), $this->selected) === [];
+    }
+
     public function render()
     {
         // Agrupa os anos em PHP (em vez de YEAR()/strftime() no banco) pra
@@ -181,19 +190,15 @@ class ArticleIndex extends Component
             ->map->count()
             ->sortKeysDesc();
 
-        $articles = $this->filteredQuery()->latest('published_at')->paginate(6);
-
         return view('livewire.admin.articles.article-index', [
-            'articles' => $articles,
-            'allSelectedOnPage' => $articles->isNotEmpty() && array_diff($articles->pluck('id')->all(), $this->selected) === [],
             'totalArticles' => Article::count(),
             'totalArticlesTrend' => $this->weeklyTrend(Article::query(), 'created_at'),
             'publishedArticles' => Article::published()->count(),
             'publishedArticlesTrend' => $this->weeklyTrend(Article::query()->published(), 'published_at'),
             'draftArticles' => Article::where('is_published', false)->count(),
             'draftArticlesTrend' => $this->weeklyTrend(Article::query()->where('is_published', false), 'created_at'),
-            'totalLikes' => DB::table('article_likes')->count(),
-            'totalLikesTrend' => $this->weeklyTrend(DB::table('article_likes'), 'created_at'),
+            'totalLikes' => DB::table('likes')->where('likeable_type', 'article')->count(),
+            'totalLikesTrend' => $this->weeklyTrend(DB::table('likes')->where('likeable_type', 'article'), 'created_at'),
             'categories' => Category::withCount('articles')->orderBy('name')->get(),
             'archiveYears' => $archiveYears,
             'popularPosts' => Article::published()->withCount('likedByUsers')->orderByDesc('liked_by_users_count')->take(3)->get(),

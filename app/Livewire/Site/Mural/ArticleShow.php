@@ -25,7 +25,10 @@ class ArticleShow extends Component
 
     public function mount(Article $article): void
     {
-        abort_unless($article->is_published, 404);
+        // Mesma regra de scopePublished(): um artigo agendado (is_published
+        // true, mas published_at no futuro) não pode ser aberto direto pela
+        // URL antes da hora, só porque alguém adivinhou/incrementou o id.
+        abort_unless($article->is_published && $article->published_at?->isPast(), 404);
 
         $article->incrementViews();
 
@@ -71,6 +74,12 @@ class ArticleShow extends Component
     public function addReply(): void
     {
         $this->validateOnly('newReply');
+
+        // $replyingToId vem de startReply(), que só recebe o id clicado na
+        // tela — confere aqui que esse comentário é mesmo deste artigo,
+        // pra uma chamada adulterada não criar uma resposta encaixada na
+        // conversa de um artigo diferente.
+        Comment::where('article_id', $this->article->id)->findOrFail($this->replyingToId);
 
         Comment::create([
             'article_id' => $this->article->id,

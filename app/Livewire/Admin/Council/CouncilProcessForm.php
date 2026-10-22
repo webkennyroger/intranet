@@ -46,7 +46,7 @@ class CouncilProcessForm extends Component
 
     public function save(): void
     {
-        abort_unless(auth()->user()->can($this->process ? 'council-processes.update' : 'council-processes.create'), 403);
+        abort_unless(auth()->user()->can($this->process ? 'council.update' : 'council.create'), 403);
 
         $this->validate();
 

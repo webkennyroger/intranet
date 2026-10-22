@@ -12,7 +12,7 @@ use Livewire\Component;
  */
 class AppearanceForm extends Component
 {
-    public string $primaryColor = '#0C4A34';
+    public string $primaryColor = '#00C950';
 
     public string $navHeaderColor = '#FFFFFF';
 
@@ -23,17 +23,40 @@ class AppearanceForm extends Component
     public string $textColor = '#0F172A';
 
     /**
+     * Paleta oficial do Tailwind CSS v4 (https://uicolors.app/tailwind-colors),
+     * na mesma ordem do site, sempre no tom 500 — Branco e Preto puros
+     * ficam nas pontas por conveniência (não existem como tom 500).
+     *
      * @var array<string, string>
      */
     public array $palette = [
         'Branco' => '#FFFFFF',
-        'Jade' => '#22B573',
-        'Rosa' => '#EC4899',
-        'Azul' => '#2563EB',
-        'Amarelo' => '#F59E0B',
-        'Laranja' => '#F97316',
-        'Vermelho' => '#DC2626',
-        'Roxo' => '#7C3AED',
+        'Red' => '#FB2C36',
+        'Orange' => '#FF6900',
+        'Amber' => '#FE9A00',
+        'Yellow' => '#F0B100',
+        'Lime' => '#7CCF00',
+        'Green' => '#00C950',
+        'Emerald' => '#00BC7D',
+        'Teal' => '#00BBA7',
+        'Cyan' => '#00B8DB',
+        'Sky' => '#00A6F4',
+        'Blue' => '#2B7FFF',
+        'Indigo' => '#615FFF',
+        'Violet' => '#8E51FF',
+        'Purple' => '#AD46FF',
+        'Fuchsia' => '#E12AFB',
+        'Pink' => '#F6339A',
+        'Rose' => '#FF2056',
+        'Slate' => '#62748E',
+        'Gray' => '#6A7282',
+        'Zinc' => '#71717B',
+        'Neutral' => '#737373',
+        'Stone' => '#79716B',
+        'Taupe' => '#7C6D67',
+        'Mauve' => '#79697B',
+        'Mist' => '#67787C',
+        'Olive' => '#7C7C67',
         'Preto' => '#000000',
     ];
 

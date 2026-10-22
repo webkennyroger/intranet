@@ -15,7 +15,7 @@ class PhotosIndex extends Component
 {
     public function toggleAlbumLike(int $albumId): void
     {
-        $album = PhotoAlbum::findOrFail($albumId);
+        $album = PhotoAlbum::where('is_published', true)->findOrFail($albumId);
         $user = auth()->user();
 
         if ($album->isLikedBy($user)) {
@@ -27,7 +27,7 @@ class PhotosIndex extends Component
 
     public function toggleVideoLike(int $videoId): void
     {
-        $video = Video::findOrFail($videoId);
+        $video = Video::where('is_published', true)->findOrFail($videoId);
         $user = auth()->user();
 
         if ($video->isLikedBy($user)) {

@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Categories;
 use App\Models\Category;
 use App\Services\ActivityLogger;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -63,9 +64,14 @@ class CategoryIndex extends Component
 
     public function save(): void
     {
+        abort_unless(auth()->user()->can($this->editing ? 'categories.update' : 'categories.create'), 403);
+
         $this->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|alpha_dash|unique:categories,slug,'.($this->editing?->id ?? 'NULL'),
+            'slug' => [
+                'required', 'string', 'max:255', 'alpha_dash',
+                Rule::unique('categories', 'slug')->where('type', 'article')->ignore($this->editing?->id),
+            ],
             'description' => 'nullable|string|max:255',
             'color' => 'required|regex:/^#[0-9a-fA-F]{6}$/',
         ]);
@@ -95,6 +101,8 @@ class CategoryIndex extends Component
 
     public function delete(int $categoryId): void
     {
+        abort_unless(auth()->user()->can('categories.delete'), 403);
+
         $category = Category::findOrFail($categoryId);
         $category->delete();
         ActivityLogger::deleted($category);

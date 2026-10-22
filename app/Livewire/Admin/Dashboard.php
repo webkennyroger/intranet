@@ -87,15 +87,12 @@ class Dashboard extends Component
             'canViewUsers' => $canViewUsers,
             'canViewServices' => $canViewServices,
 
-            'publishedArticlesTrend' => $canViewContent ? $this->weeklyTrend(Article::query()->published(), 'published_at') : $emptyTrend,
-            'likesTrend' => $canViewContent ? $this->weeklyTrend(DB::table('article_likes'), 'created_at') : $emptyTrend,
-            'usersTrend' => $canViewUsers ? $this->weeklyTrend(User::query(), 'created_at') : $emptyTrend,
-            'activeServicesTrend' => $canViewServices ? $this->weeklyTrend(ServiceLink::query()->where('is_active', true), 'created_at') : $emptyTrend,
+            'likesTrend' => $canViewContent ? $this->weeklyTrend(DB::table('likes')->where('likeable_type', 'article'), 'created_at') : $emptyTrend,
 
             'totalArticles' => $canViewContent ? Article::count() : 0,
             'publishedArticles' => $canViewContent ? Article::published()->count() : 0,
             'draftArticles' => $canViewContent ? Article::where('is_published', false)->count() : 0,
-            'totalLikes' => $canViewContent ? DB::table('article_likes')->count() : 0,
+            'totalLikes' => $canViewContent ? DB::table('likes')->where('likeable_type', 'article')->count() : 0,
             'recentComments' => $canViewContent ? Comment::with(['author', 'article'])->latest()->take(10)->get() : collect(),
 
             'newsMonthLabels' => $newsMonthLabels->pluck('label')->all(),
@@ -103,7 +100,7 @@ class Dashboard extends Component
                 ? $newsMonthLabels->map(fn ($m) => (int) Article::whereYear('published_at', $m['year'])->whereMonth('published_at', $m['month'])->sum('views_count'))->all()
                 : [],
             'newsLikesByMonth' => $canViewContent
-                ? $newsMonthLabels->map(fn ($m) => DB::table('article_likes')->whereYear('created_at', $m['year'])->whereMonth('created_at', $m['month'])->count())->all()
+                ? $newsMonthLabels->map(fn ($m) => DB::table('likes')->where('likeable_type', 'article')->whereYear('created_at', $m['year'])->whereMonth('created_at', $m['month'])->count())->all()
                 : [],
             'newsRange' => $this->newsRange,
 

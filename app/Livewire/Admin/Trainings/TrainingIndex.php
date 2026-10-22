@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin\Trainings;
 
-use App\Livewire\Concerns\ComputesWeeklyTrend;
 use App\Models\Training;
 use App\Models\TrainingCategory;
 use App\Services\ActivityLogger;
@@ -20,7 +19,7 @@ use Livewire\WithPagination;
  */
 class TrainingIndex extends Component
 {
-    use ComputesWeeklyTrend, WithPagination;
+    use WithPagination;
 
     public string $activeTab = 'capacitacoes';
 
@@ -248,9 +247,6 @@ class TrainingIndex extends Component
         return view('livewire.admin.trainings.training-index', [
             'editingTraining' => $this->editingTrainingId ? Training::find($this->editingTrainingId) : null,
             'totalTrainings' => Training::count(),
-            'totalTrainingsTrend' => $this->weeklyTrend(Training::query(), 'created_at'),
-            'publishedTrainings' => Training::where('is_published', true)->count(),
-            'publishedTrainingsTrend' => $this->weeklyTrend(Training::query()->where('is_published', true), 'created_at'),
             'categories' => TrainingCategory::withCount('trainings')->orderBy('name')->get(),
         ])->layout('layouts.admin', ['title' => 'Capacitações']);
     }

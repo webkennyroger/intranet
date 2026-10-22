@@ -33,7 +33,6 @@ class PermissionManager
             'birthday-banners' => ['label' => 'Banners de Aniversariantes', 'icon' => 'cake-candles'],
             'services' => ['label' => 'Serviços', 'icon' => 'sliders'],
             'council' => ['label' => 'Conselho Superior', 'icon' => 'user-tie'],
-            'council-processes' => ['label' => 'Processos do Conselho', 'icon' => 'folder-open'],
             'forum' => ['label' => 'Fórum', 'icon' => 'bullhorn'],
             'users' => ['label' => 'Usuários', 'icon' => 'users'],
             'appearance' => ['label' => 'Aparência', 'icon' => 'palette'],
