@@ -33,7 +33,7 @@
 
     <a href="{{ route('dashboard') }}"
         class="flex items-center h-16 px-4 shrink-0 gap-2.5 overflow-hidden border-b border-black/10"
-        style="background-color: var(--admin-nav-header); color: var(--admin-nav-header-text);"
+        style="background-color: var(--bg-surface); color: var(--text-primary);"
     >
         <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style="background-color: var(--admin-primary-light);">
             <i class="fa-solid fa-user-shield" style="color: var(--admin-primary);"></i>
@@ -45,7 +45,7 @@
         </span>
     </a>
 
-    <nav class="p-3 space-y-1 flex-1 overflow-y-auto text-sm" style="background-color: var(--admin-sidebar); color: var(--admin-sidebar-text);">
+    <nav class="p-3 space-y-1 flex-1 overflow-y-auto text-sm" style="background-color: var(--bg-surface); color: var(--text-primary);">
         @foreach (config('admin_sidebar') as $section)
             @php
                 $items = collect($section['items'] ?? [$section])

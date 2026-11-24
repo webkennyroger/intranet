@@ -1,11 +1,11 @@
 {{--
     Cabeçalho fixo do painel admin. Tem o botão que alterna o menu lateral
     (colapsa no desktop, abre/fecha off-canvas no mobile), uma busca
-    (ainda desabilitada) e o menu do usuário com link de volta à intranet
-    e logout.
+    (ainda desabilitada), um atalho pro site, o alternador de tema e o menu do
+    usuário com link de volta à intranet (site) e logout.
 --}}
 <header class="sticky top-0 z-45 lg:z-30 h-16 flex items-center justify-between px-4 gap-4 shadow-sm"
-    style="background-color: var(--admin-header); color: var(--admin-header-text); border-bottom: 1px solid var(--border-color);">
+    style="background-color: var(--bg-surface); color: var(--text-primary); border-bottom: 1px solid var(--border-color);">
     <div class="flex items-center gap-3 min-w-0">
         <x-ui.tooltip text="Alternar menu lateral" position="bottom">
             <button
@@ -26,9 +26,13 @@
     </div>
 
     <div class="flex items-center gap-2" x-data="{ userMenuOpen: false }">
+        <x-ui.tooltip text="Ir para o site" position="bottom">
+            <a href="{{ route('inicio') }}" target="_blank" rel="noopener" class="relative p-2 rounded-full hover:bg-black/10 transition inline-flex items-center justify-center" style="color: inherit;" aria-label="Ir para o site">
+                <i class="fa-solid fa-globe text-lg"></i>
+            </a>
+        </x-ui.tooltip>
+
         <x-ui.theme-toggle class="relative p-2 rounded-full hover:bg-black/10 transition" style="color: inherit;" />
-
-
 
         <div class="h-6 w-px bg-current opacity-20 hidden sm:block"></div>
 
@@ -56,7 +60,7 @@
                 </div>
 
                 <div class="py-1">
-                    <a href="{{ route('dashboard') }}"
+                    <a href="{{ route('inicio') }}" target="_blank" rel="noopener"
                         class="flex items-center gap-2.5 px-4 py-2 text-sm hover:bg-emerald-50 dark:hover:bg-(--bg-hover) hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors"
                         style="color: var(--text-secondary);">
                         <i class="fa-solid fa-arrow-left w-4 text-center"></i> Voltar à intranet

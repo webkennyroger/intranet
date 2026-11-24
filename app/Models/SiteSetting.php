@@ -5,28 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Configurações visuais da intranet (cores de aparência). Guarda um único
- * registro (id 1, via current()) e deriva, a partir dele, gradientes,
- * tons escuros e cores de texto legíveis usadas em todo o layout.
+ * Configurações visuais da intranet: guarda a cor de destaque num único
+ * registro (id 1, via current()) e deriva, a partir dela, gradientes, tons
+ * escuros e cores de texto legíveis usadas em todo o layout.
  */
 class SiteSetting extends Model
 {
     protected $fillable = [
         'primary_color',
-        'nav_header_color',
-        'header_color',
-        'sidebar_color',
-        'text_color',
     ];
 
     public static function current(): self
     {
         return static::firstOrCreate(['id' => 1], [
             'primary_color' => '#00C950',
-            'nav_header_color' => '#FFFFFF',
-            'header_color' => '#FFFFFF',
-            'sidebar_color' => '#FFFFFF',
-            'text_color' => '#0F172A',
         ]);
     }
 
@@ -168,25 +160,15 @@ class SiteSetting extends Model
     /**
      * A readable text color (dark or light) for content placed on top of
      * the given background color, based on its perceived brightness.
-     * "$darkText" is the color used on light backgrounds — defaults to a
-     * neutral near-black, but callers rendering admin chrome (nav header,
-     * top bar, sidebar) pass the user-chosen "Cor do texto" instead, so
-     * that chrome text matches the rest of the panel's text exactly
-     * whenever it resolves to the "dark" branch, instead of two different
-     * near-black shades side by side.
      */
-    public static function readableTextFor(string $hex, string $darkText = '#312a2a'): string
+    public static function readableTextFor(string $hex): string
     {
-        return static::isLightBackground($hex) ? $darkText : '#f4f4f5';
+        return static::isLightBackground($hex) ? '#312a2a' : '#f4f4f5';
     }
 
     /**
      * Whether the given background color is light enough to need dark
-     * text on top of it — same brightness threshold as readableTextFor(),
-     * split out so callers can branch on "is this background light" (e.g.
-     * which active-highlight pair to use) without comparing against
-     * readableTextFor()'s return value, which is now a user-chosen color
-     * and not a fixed, comparable constant.
+     * text on top of it.
      */
     public static function isLightBackground(string $hex): bool
     {

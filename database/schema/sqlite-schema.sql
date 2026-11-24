@@ -160,11 +160,7 @@ CREATE TABLE "site_settings"(
   "id" integer primary key autoincrement not null,
   "primary_color" varchar not null default '#0C4A34',
   "created_at" datetime,
-  "updated_at" datetime,
-  "nav_header_color" varchar not null default '#0C4A34',
-  "header_color" varchar not null default '#0C4A34',
-  "sidebar_color" varchar not null default '#0C4A34',
-  "text_color" varchar not null default '#0F172A'
+  "updated_at" datetime
 );
 CREATE TABLE "photo_albums"(
   "id" integer primary key autoincrement not null,
@@ -451,3 +447,4 @@ INSERT INTO migrations VALUES(63,'2026_10_21_172157_restore_category_foreign_key
 INSERT INTO migrations VALUES(64,'2026_10_21_172158_drop_old_category_tables',2);
 INSERT INTO migrations VALUES(65,'2026_10_22_094655_make_categories_slug_unique_per_type',3);
 INSERT INTO migrations VALUES(66,'2026_10_22_110542_drop_council_members_table',4);
+INSERT INTO migrations VALUES(67,'2026_11_24_125001_drop_chrome_colors_from_site_settings_table',5);
